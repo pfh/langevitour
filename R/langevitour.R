@@ -5,11 +5,11 @@
 #' @import htmlwidgets
 #'
 #' @export
-langevitour <- function(message, width = NULL, height = NULL, elementId = NULL) {
+langevitour <- function(X, width = NULL, height = NULL, elementId = NULL) {
 
   # forward options using x
   x = list(
-    message = message
+    X = X
   )
 
   # create widget

@@ -5,7 +5,7 @@ HTMLWidgets.widget({
     let tour = new Langevitour(el, width, height);
     return {
       renderValue: function(X) {
-        tour.render_value(X);
+        tour.renderValue(X);
       },
       resize: function(width, height) {
         tour.resize(width, height);
