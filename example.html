@@ -19,14 +19,23 @@ body { margin: 0; }
 <script>
 "use strict";
 
+// Generate higher-dimensional Paulian function
+let points = [ ], groups = [ ];
+let r = ()=>jStat.normal.sample(0,0.1);
+for(let i=0;i<10000;i++) {
+    let a=i/10000 * Math.PI * 2;
+    points.push([ Math.sin(a)+r(), Math.sin(a*2)+r(), Math.sin(a*3), Math.sin(a*4), Math.sin(a*5) ]);
+    groups.push( Math.floor(i/2500) );
+}
+
 let container = document.getElementById("container");
 let tour = new Langevitour(container, window.innerWidth, window.innerHeight);
 
 tour.renderValue({
-    X:[[0,1,2],[3,4,5],[6,7,8]], 
-    groups:[0,1,2], 
-    levels:['a','b','c'],
-    colnames:['V1','V2','V3'],
+    X:points, 
+    groups:groups, 
+    levels:['a','b','c','d'],
+    colnames:['V1','V2','V3','V4','V5'],
 });
 
 </script>

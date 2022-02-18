@@ -7,6 +7,10 @@ Authors@R:
 Description: Provides an HTML widget the lets you tour 2D projections of your data.
 Imports:
     htmlwidgets
+Suggests:
+    tourr
+    liminal
+    geozoo
 License: LGPL (>= 2.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
