@@ -5,7 +5,7 @@
 #' @import htmlwidgets
 #'
 #' @export
-langevitour <- function(X, groups = NULL, width = NULL, height = NULL, elementId = NULL) {
+langevitour <- function(X, groups=NULL, scale=NULL, width=NULL, height=NULL, elementId=NULL) {
     X <- as.matrix(X)
     
     if (is.null(colnames(X)))
@@ -18,13 +18,18 @@ langevitour <- function(X, groups = NULL, width = NULL, height = NULL, elementId
         groups <- rep("", nrow(X))
     
     groups <- as.factor(groups)
+    
+    # Potentially expensive
+    if (is.null(scale))
+        scale <- max(svd(X)$d) / sqrt(nrow(X)) * 2.5
 
     data <- list(
         X = X,
         colnames = as.list(colnames(X)),
         rownames = as.list(rownames(X)),
         groups = as.list(as.integer(groups)-1),
-        levels = as.list(levels(groups)))
+        levels = as.list(levels(groups)),
+        scale = scale)
     
     htmlwidgets::createWidget(
         name = 'langevitour',

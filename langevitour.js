@@ -9,10 +9,14 @@
 
 /**** Utility functions ****/
 
+function rand_int(n) { 
+    return Math.floor(Math.random()*n); 
+}
+
 function permutation(n) {
     let array = Array(n).fill().map((x,i)=>i);
     for (let i = array.length-1; i>0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = rand_int(i+1);
         [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
@@ -25,6 +29,12 @@ function times(n, func, ...args) {
 }
 
 function zeros(n) { return Array(n).fill(0); }
+
+function vec_sub(a,b) {
+    let result = Array(a.length);
+    for(let i=0;i<result.length;i++) result[i] = a[i]-b[i];
+    return result;
+}
 
 function zero_mat(n,m) { return times(n,zeros,m); }
 
@@ -100,12 +110,50 @@ function mat_transpose(A) {
 
 
 
+/**** Projection pursuit gradients ****/
+
+
+function grad_bounce(proj, X, scale) {
+    let k = 100;
+    let A = Array(k);
+    
+    for(let i=0;i<k;i++) {
+        A[i] = vec_sub(X[rand_int(X.length)],X[rand_int(X.length)]);
+    }
+    
+    A = mat_scale(A, 1/scale);
+
+    function objective(proj) {
+        let projA = tf.matMul(proj, tf.transpose(A));
+        
+        let l = tf.pow(tf.add(tf.mul(projA,projA), 0.1**2), -0.5);
+        return tf.mul(tf.sum(l), 2/k);
+    }
+
+    let grad_func = tf.grad(objective);
+    
+    function inner() {
+        let grad = grad_func(tf.tensor(proj));
+        
+        // Don't spin.
+        let rot_proj = tf.matMul([[0,-1/Math.sqrt(2)],[1/Math.sqrt(2),0]], proj);
+        let dot = tf.sum(tf.mul(grad,rot_proj));
+        grad = tf.sub(grad, tf.mul(rot_proj, dot));
+        
+        return grad.arraySync();
+    }
+    
+    return tf.tidy(inner);
+}
+
+
 
 /**** Main class ****/
 
 let template = `<div style="width: 100%; height: 100%; overflow-y: auto; border: 0;">
     <style>
     * { font-family: sans-serif; }
+    input { vertical-align: middle; margin-right: 1em; }
     </style>
 
     <div style="position: relative" class=plot_div>
@@ -113,10 +161,11 @@ let template = `<div style="width: 100%; height: 100%; overflow-y: auto; border:
     <svg class=svg style="position: absolute; left:0; top:0;"></svg>
     </div>
 
-    <div>
-    &nbsp;Axes <input class=axes_input type=checkbox checked>
-    Heat <input type=range min=-3 max=3 step=0.01 value=-1.2 class=temp_input>
-    Viscosity<input type=range min=-1.5 max=1.5 step=0.01 value=-1 class=damp_input>
+    <div style="padding-left: 1em;">
+    Axes<input class=axes_input type=checkbox checked>
+    Local repulsion<input class=repulsion_input type=checkbox checked><br>
+    Heat<input type=range min=-3 max=3 step=0.01 value=-1.2 class=temp_input>
+    Damping<input type=range min=-1.5 max=1.5 step=0.01 value=-1 class=damp_input><br>
     <span class=message_area></span>
     </div>
 </div>`;
@@ -141,6 +190,9 @@ class Langevitour {
         this.X = null;
         this.n = 0;
         this.m = 0;
+        
+        
+        this.fps = [ ];
 
         this.last_time = null;    
         this.scheduleFrame();    
@@ -154,6 +206,8 @@ class Langevitour {
         //TODO: checking
         this.n = data.X.length;
         this.m = data.X[0].length;
+        
+        this.scale = data.scale || 4;
 
         // Shuffling is not optional.
         this.permutor = permutation(this.n);
@@ -174,6 +228,16 @@ class Langevitour {
             this.fills[i] = `rgba(${r},${g},${b},0.75)`;
         }
         
+        this.label_colors = [ ];
+        for(let i=0;i<n_groups;i++) {
+            let angle = (i+1/3)/n_groups;
+            let value = 96;
+            let r = value*(1+Math.cos(angle*Math.PI*2));
+            let g = value*(1+Math.cos((angle+1/3)*Math.PI*2));
+            let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
+            this.label_colors[i] = `rgb(${r},${g},${b})`;
+        }
+        
         this.proj = zero_mat(2, this.m);
         this.proj[0][0] = 1;
         this.proj[1][1] = 1;
@@ -190,23 +254,23 @@ class Langevitour {
     }
     
     configure() {
-        this.size = Math.max(50, Math.min(this.width-100, this.height-50));
+        this.size = Math.max(50, Math.min(this.width-100, this.height-100));
         this.canvas.width = this.width;
         this.canvas.height = this.size;
         this.svg.style.width = this.width+'px';
         this.svg.style.height = this.size+'px';
         
         this.x_scale = d3.scaleLinear()
-            .domain([-4,4]).range([2.5,this.size-2.5]).clamp(true);
+            .domain([-this.scale,this.scale]).range([2.5,this.size-2.5]).clamp(true);
         this.y_scale = d3.scaleLinear()
-            .domain([-4,4]).range([2.5,this.size-2.5]).clamp(true);
+            .domain([-this.scale,this.scale]).range([2.5,this.size-2.5]).clamp(true);
         
         this.label_data = [ ];
         for(let i=0;i<this.m;i++) {
             this.label_data.push({ 
                 index: i, 
                 label:this.colnames[i], 
-                x:this.size+50, y:35+i*40 
+                x:(this.size+this.width)/2, y:35+i*40 
             });
         }
 
@@ -217,7 +281,7 @@ class Langevitour {
             .join('rect')
             .attr('width', 60)
             .attr('height', 30)
-            .attr('fill', '#00000022')
+            .attr('fill', '#ddd')
             .attr('rx', 10)
             .style('cursor','grab');
         let labels = svg
@@ -266,8 +330,14 @@ class Langevitour {
             return;
         }
         
-        if (this.last_time != null)
-            this.compute(time - this.last_time);        
+        if (this.last_time != null) {
+            let elapsed = time - this.last_time;
+            this.compute(elapsed);        
+            
+            this.fps.push( Math.floor(1/elapsed+0.5) );
+            if (this.fps.length > 100) this.fps.shift();
+            this.get('message_area').innerText = `${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
+        }
         this.last_time = time;
         
         let show_axes = this.get('axes_input').checked;
@@ -279,7 +349,7 @@ class Langevitour {
         ctx.strokeRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
 
         // Axes
-        let axis_scale = 3;
+        let axis_scale = this.scale * 0.75;
         ctx.strokeStyle = '#ccc';
         if (show_axes)
         for(let i=0;i<this.m;i++) {
@@ -306,6 +376,15 @@ class Langevitour {
             ctx.fillStyle = `rgba(0,0,0,${Math.min(1,r*r*4)}`;
             ctx.fillText(this.colnames[i], this.x_scale(axis_scale*this.proj[0][i]), this.y_scale(axis_scale*this.proj[1][i]));
         }        
+        
+        //Legend
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.font = '15px sens-serif';
+        for(let i=0;i<this.levels.length;i++) {
+            ctx.fillStyle = this.label_colors[i];
+            ctx.fillText(this.levels[i], this.size+10, 20+i*20);
+        }
 
         window.setTimeout(this.scheduleFrame.bind(this), 5);
     }
@@ -327,10 +406,12 @@ class Langevitour {
             jStat.normal.sample, 0, Math.sqrt(2*gamma*temperature));
         
         mat_add_into(vel, noise);
-        
-        //let grad = grad_func(proj);
-        //mat_scale_into(grad, -elapsed);
-        //mat_add_into(vel, grad);
+
+        if (this.get('repulsion_input').checked) {        
+            let grad = grad_bounce(proj, this.X, this.scale);
+            mat_scale_into(grad, -elapsed);
+            mat_add_into(vel, grad);
+        }
         
         for(let label of this.label_data) {
             if (label.x > this.size) continue;
