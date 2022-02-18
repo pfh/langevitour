@@ -1,15 +1,15 @@
 Package: langevitour
 Title: Langevin Tour
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person("Paul", "Harrison", , "pfh@logarithmic.net", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3980-268X"))
-Description: Provides an HTML widget the lets you tour 2D projections of your data.
+Description: An HTML widget that tours 2D projections of your data.
 Imports:
     htmlwidgets
 Suggests:
-    tourr
-    liminal
+    tourr,
+    liminal,
     geozoo
 License: LGPL (>= 2.1)
 Encoding: UTF-8

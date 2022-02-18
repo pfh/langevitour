@@ -2,10 +2,29 @@
 #'
 #' Create a Langevin Tour HTML widget. Can be used, for example, from the console or in an RMarkdown document.
 #'
+#' @param X The data to plot. A matrix of numeric data, or something that can be cast to a matrix.
+#'
+#' @param groups A group for each row in X, will be used to color points. A factor, or something that can be cast to a factor.
+#'
+#' @param scale Magnitude of the data in X. A reasonable default will be chosen if omitted. A number.
+#'
+#' @param center Should the data be automatically centered?
+#'
+#' @param width Width of widget.
+#'
+#' @param height Height of widget.
+#'
+#' @param elementId An element ID for the widget, see htmlwidgets::createWidget.
+#'
+#' @return An htmlwidget object.
+#'
+#' @examples
+#' langevitour(iris[,1:4], iris$Species)
+#'
 #' @import htmlwidgets
 #'
 #' @export
-langevitour <- function(X, groups=NULL, scale=NULL, width=NULL, height=NULL, elementId=NULL) {
+langevitour <- function(X, groups=NULL, scale=NULL, center=TRUE, width=NULL, height=NULL, elementId=NULL) {
     X <- as.matrix(X)
     
     if (is.null(colnames(X)))
@@ -18,6 +37,9 @@ langevitour <- function(X, groups=NULL, scale=NULL, width=NULL, height=NULL, ele
         groups <- rep("", nrow(X))
     
     groups <- as.factor(groups)
+    
+    if (center)
+        X <- sweep(X, 2, colMeans(X, na.rm=TRUE), "-")
     
     # Potentially expensive
     if (is.null(scale))

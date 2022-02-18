@@ -4,8 +4,38 @@
 \alias{langevitour}
 \title{Langevin Tour}
 \usage{
-langevitour(X, groups = NULL, width = NULL, height = NULL, elementId = NULL)
+langevitour(
+  X,
+  groups = NULL,
+  scale = NULL,
+  center = TRUE,
+  width = NULL,
+  height = NULL,
+  elementId = NULL
+)
+}
+\arguments{
+\item{X}{The data to plot. A matrix of numeric data, or something that can be cast to a matrix.}
+
+\item{groups}{A group for each row in X, will be used to color points. A factor, or something that can be cast to a factor.}
+
+\item{scale}{Magnitude of the data in X. A reasonable default will be chosen if omitted. A number.}
+
+\item{center}{Should the data be automatically centered?}
+
+\item{width}{Width of widget.}
+
+\item{height}{Height of widget.}
+
+\item{elementId}{An element ID for the widget, see htmlwidgets::createWidget.}
+}
+\value{
+An htmlwidget object.
 }
 \description{
 Create a Langevin Tour HTML widget. Can be used, for example, from the console or in an RMarkdown document.
+}
+\examples{
+langevitour(iris[,1:4], iris$Species)
+
 }
