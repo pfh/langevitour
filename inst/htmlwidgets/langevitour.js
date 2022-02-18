@@ -4,8 +4,8 @@ HTMLWidgets.widget({
   factory: function(el, width, height) {
     let tour = new Langevitour(el, width, height);
     return {
-      renderValue: function(X) {
-        tour.renderValue(X);
+      renderValue: function(data) {
+        tour.renderValue(data);
       },
       resize: function(width, height) {
         tour.resize(width, height);

@@ -2,10 +2,10 @@
 % Please edit documentation in R/langevitour.R
 \name{langevitour}
 \alias{langevitour}
-\title{<Add Title>}
+\title{Langevin Tour}
 \usage{
-langevitour(message, width = NULL, height = NULL, elementId = NULL)
+langevitour(X, groups = NULL, width = NULL, height = NULL, elementId = NULL)
 }
 \description{
-<Add Description>
+Create a Langevin Tour HTML widget. Can be used, for example, from the console or in an RMarkdown document.
 }
