@@ -7,4 +7,4 @@ dependencies:
    - svd-js.min.js
    - d3.v7.min.js
    - tf.min.js
-   - langevitour-code.js
+   - langevitour.js
