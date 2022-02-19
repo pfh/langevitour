@@ -493,8 +493,8 @@ class Langevitour {
     }
     
     compute(real_elapsed) {
-        let damping =     0.1  *Math.pow(10, this.get('dampInput').value);
-        let temperature = 0.1  *Math.pow(10, this.get('tempInput').value);
+        let damping =     0.2  *Math.pow(10, this.get('dampInput').value);
+        let temperature = 0.02 *Math.pow(10, this.get('tempInput').value);
         let repulsion =   0.1  *Math.pow(10, this.get('repulsionInput').value);
         let attraction =  0.2 *Math.pow(10, this.get('labelInput').value);
         let doTemp = this.get('tempCheckbox').checked;
@@ -503,16 +503,16 @@ class Langevitour {
 
         let elapsed = Math.max(1e-6, Math.min(1, real_elapsed));
         
-        let gamma = elapsed*damping;
-        
         let vel = this.vel;
         let proj = this.proj;
         
-        mat_scale_into(vel, 1-gamma);
+        //mat_scale_into(vel, 1-elapsed*damping);        
+        //Integrate dv/dt = -damping * v
+        mat_scale_into(vel, Math.exp(-elapsed*damping));
 
         if (doTemp) {
             let noise = times(proj.length, times, this.m,
-                jStat.normal.sample, 0, Math.sqrt(2*gamma*temperature));
+                jStat.normal.sample, 0, Math.sqrt(2*temperature*elapsed));
             
             mat_add_into(vel, noise);
         }
