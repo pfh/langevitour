@@ -54,7 +54,10 @@ langevitour(iris[,1:4], iris$Species)
 
 A dataset in the [liminal](https://sa-lee.github.io/liminal/) package, originally from PHATE.
 
-"Point repulsion" is especially effective in this dataset:
+* "Point repulsion" is especially effective in this dataset.
+
+* You can manipulate it like a puppet by dragging the groups (0-9) onto the plot.
+
 
 ```{r}
 langevitour(liminal::fake_trees[,1:100], liminal::fake_trees$branches)
@@ -68,10 +71,10 @@ Some geometry from the [Geo Zoo](https://github.com/schloerke/geozoo).
 langevitour(geozoo::cube.dotline(5)$points)
 ```
 
-## Hyper-torus
+## Torus
 
 ```{r}
-langevitour(geozoo::torus.flat(p=5)$points)
+langevitour(geozoo::torus.flat(p=4)$points)
 ```
 
 ## pdfsense

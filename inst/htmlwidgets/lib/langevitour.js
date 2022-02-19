@@ -183,7 +183,7 @@ function gradBounce(proj, X, scale) {
 
 /**** Main class ****/
 
-let template = `<div style="width: 100%; height: 100%; overflow-y: auto; border: 0;">
+let template = `<div style="width: 100%; height: 100%; border: 0;">
     <style>
     * { font-family: sans-serif; }
     input { vertical-align: middle; }
@@ -400,10 +400,16 @@ class Langevitour {
         }
 
         let drag = d3.drag()
+            .on('start', function() {
+                this.style.cursor = 'grabbing';
+            })
             .on('drag', (event,d) => {
                 d.x = event.x;
                 d.y = event.y;
                 refresh_labels();
+            })
+            .on('end', function() {
+                this.style.cursor = 'grab';
             });
         drag(boxes);
         drag(labels);
