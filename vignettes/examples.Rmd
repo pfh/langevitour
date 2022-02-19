@@ -83,6 +83,6 @@ Another dataset in the [liminal](https://sa-lee.github.io/liminal/) package. Eac
 
 ```{r}
 X <- as.matrix(liminal::pdfsense[,-(1:6)])
-X <- X / sqrt(rowMeans(X*X))
+X <- X / sqrt(rowSums(X*X))
 langevitour(X, liminal::pdfsense$Type)
 ```

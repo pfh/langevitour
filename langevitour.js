@@ -339,7 +339,9 @@ class Langevitour {
                     vec = vec_add(vec, this.X[j]);
             vec = vec_scale(vec, 1/Math.sqrt(vec_dot(vec,vec)));            
             
-            this.labelData.push({ 
+            this.labelData.push({
+                type: 'level',
+                level: i,
                 label: this.levels[i], 
                 vec: vec,
                 color: this.levelColors[i]
@@ -350,6 +352,8 @@ class Langevitour {
             let vec = zeros(this.m);
             vec[i] = 1;
             this.labelData.push({ 
+                type:'variable',
+                variable: i,
                 label:this.colnames[i], 
                 vec: vec,
                 color: '#000',
@@ -361,6 +365,7 @@ class Langevitour {
         for(let i=0;i<this.labelData.length;i++) {
             let row = i % rows, col = (i-row)/rows;
             this.labelData[i].index = i;
+            this.labelData[i].selected = false;
             this.labelData[i].x = this.size+(col+0.5)*(this.width-this.size)/cols;
             this.labelData[i].y = 20+row*25;
         }
@@ -374,7 +379,9 @@ class Langevitour {
             .attr('height', 20)
             .attr('fill', '#dddddd88')
             .attr('rx', 5)
-            .style('cursor','grab');
+            .style('cursor','grab')
+            .on('mouseover', (e,d)=>{ d.selected = true; refresh_labels(); })
+            .on('mouseout', (e,d)=>{ d.selected = false; refresh_labels(); });
         let labels = svg
             .selectAll('text')
             .data(this.labelData)
@@ -384,7 +391,9 @@ class Langevitour {
             .attr('text-anchor','middle')
             .attr('dominant-baseline','central')
             .style('cursor','grab')
-            .style('user-select','none');
+            .style('user-select','none')
+            .on('mouseover', (e,d)=>{ d.selected = true; refresh_labels(); })
+            .on('mouseout', (e,d)=>{ d.selected = false; refresh_labels(); });
     
         labels.each(function(d) { d.width = this.getBBox().width + 10; });
         boxes
@@ -394,6 +403,7 @@ class Langevitour {
             boxes
                 .attr('x',d=>d.x-d.width/2)
                 .attr('y',d=>d.y-10)
+                .attr('fill',d=>d.selected?'#8888ffff':'#dddddd88')
             labels
                 .attr('x',d=>d.x)
                 .attr('y',d=>d.y)
@@ -462,8 +472,25 @@ class Langevitour {
         
         // Points
         let xy = mat_tcrossprod(this.proj, this.X);
+        let fills = this.fills;
+        let selected = this.labelData.filter(d=>d.selected);
+        if (selected.length == 1) {
+            selected = selected[0];
+            fills = [ ];
+            for(let i=0;i<this.n;i++)
+                if (selected.type == 'level')
+                    if (this.groups[i] == selected.level)
+                        fills[i] = this.fills[i]
+                    else
+                        fills[i] = '#00000022';
+                else {
+                    let c = (this.X[i][selected.variable] / this.scale);
+                    c = Math.sign(c)*Math.sqrt(Math.abs(c));                //Hmm
+                    fills[i] = d3.interpolateViridis(c*0.5+0.5);
+                }
+        }
         for(let i=0;i<this.n;i++) {
-            ctx.fillStyle = this.fills[i];
+            ctx.fillStyle = fills[i];
             ctx.fillRect(this.x_scale(xy[0][i])-1.5, this.y_scale(xy[1][i])-1.5, 3, 3);
         }
 
