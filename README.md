@@ -2,7 +2,8 @@
 
 Under development but basically usable. Langevin dynamics based tours of data. Javascript with R wrapper. A twist on the "tour" concept from software such as [GGobi](http://ggobi.org/), [tourr](http://ggobi.github.io/tourr/), [liminal](https://sa-lee.github.io/liminal/).
 
-* [Example](https://pfh.github.io/langevitour/example.html)
+* [Javascript example](https://pfh.github.io/langevitour/example.html)
+* [R examples](https://logarithmic.net/langevitour/examples.html)
 
 ## R Installation
 
