@@ -2,7 +2,7 @@
 Under development. Langevin dynamics based Tours of data, in Javascript with R wrapper.
 
 ```
-devtools::load_all() ; langevitour(iris[,1:4], iris$Species)
+system('make') ; devtools::load_all() ; langevitour(iris[,1:4], iris$Species)
 
 devtools::load_all() ; langevitour(liminal::fake_trees[,1:100], liminal::fake_trees$branches)
 
