@@ -1,0 +1,85 @@
+---
+title: "langevitour examples"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{langevitour examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<style>
+h2,h3,h4 { margin-top: 200px; }
+</style>
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+These are some example datasets visualized using [langevitour](https://github.com/pfh/langevitour).
+
+Things to try:
+
+* Drag labels onto the plot.
+* Activate "point repulsion".
+* Experiment with "damping" and "heat".
+
+```{r install, eval=FALSE}
+remotes::install_github("pfh/langevitour")
+```
+
+```{r setup}
+library(langevitour)
+```
+
+## Olive oils
+
+A dataset from the [tourr](http://ggobi.github.io/tourr/) package.
+
+```{r}
+langevitour(scale(tourr::olive[,3:10]), paste(tourr::olive$region, tourr::olive$area))
+```
+
+## Iris
+
+The classic.
+
+```{r}
+langevitour(iris[,1:4], iris$Species)
+```
+
+## fake_trees
+
+A dataset in the [liminal](https://sa-lee.github.io/liminal/) package, originally from PHATE.
+
+"Point repulsion" is especially effective in this dataset:
+
+```{r}
+langevitour(liminal::fake_trees[,1:100], liminal::fake_trees$branches)
+```
+
+## Hyper-cube
+
+Some geometry from the [Geo Zoo](https://github.com/schloerke/geozoo).
+
+```{r}
+langevitour(geozoo::cube.dotline(5)$points)
+```
+
+## Hyper-torus
+
+```{r}
+langevitour(geozoo::torus.flat(p=5)$points)
+```
+
+## pdfsense
+
+Another dataset in the [liminal](https://sa-lee.github.io/liminal/) package. Each row has been scaled to a unit vector.
+
+```{r}
+X <- as.matrix(liminal::pdfsense[,-(1:6)])
+X <- X / sqrt(rowMeans(X*X))
+langevitour(X, liminal::pdfsense$Type)
+```

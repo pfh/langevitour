@@ -10,8 +10,11 @@ Imports:
 Suggests:
     tourr,
     liminal,
-    geozoo
+    geozoo,
+    knitr,
+    rmarkdown
 License: LGPL (>= 2.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
+VignetteBuilder: knitr

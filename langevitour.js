@@ -9,6 +9,20 @@
 
 /**** Utility functions ****/
 
+function elementVisible(el) {
+    //https://stackoverflow.com/a/22480938
+    
+    let rect = el.getBoundingClientRect();
+    let elemTop = rect.top;
+    let elemBottom = rect.bottom;
+
+    // Only completely visible elements return true:
+    //return (elemTop >= 0) && (elemBottom <= window.innerHeight);
+    
+    // Partially visible elements return true:
+    return elemTop < window.innerHeight && elemBottom >= 0;
+}
+
 function rand_int(n) { 
     return Math.floor(Math.random()*n); 
 }
@@ -404,7 +418,7 @@ class Langevitour {
     doFrame(time) {
         time /= 1000.0; //Convert to seconds
         
-        if (this.X == null) {
+        if (this.X == null || !elementVisible(this.canvas)) {
             window.setTimeout(this.scheduleFrame.bind(this), 100); //TODO: do this nicer
             return;
         }

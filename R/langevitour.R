@@ -59,7 +59,15 @@ langevitour <- function(X, groups=NULL, scale=NULL, center=TRUE, width=NULL, hei
         width = width,
         height = height,
         package = 'langevitour',
-        elementId = elementId)
+        elementId = elementId,
+        sizingPolicy = htmlwidgets::sizingPolicy(
+            defaultWidth = 700,
+            defaultHeight = 600,
+            viewer.padding = 5,
+            browser.fill = TRUE,
+            knitr.figure = FALSE
+        )
+    )
 }
 
 ##' Shiny bindings for langevitour
