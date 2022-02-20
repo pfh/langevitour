@@ -511,7 +511,7 @@ class Langevitour {
         }
         
         // Rug
-        if (selectedVar != null) {
+        if (showAxes && selectedVar != null) {
             //ctx.strokeStyle = '#00000022';
 
             let ox = [ this.proj[1][selectedVar], -this.proj[0][selectedVar] ];
