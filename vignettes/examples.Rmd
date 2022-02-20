@@ -3,8 +3,10 @@ title: "langevitour examples"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{langevitour examples}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 <style>
@@ -38,8 +40,14 @@ library(langevitour)
 
 A dataset from the [tourr](http://ggobi.github.io/tourr/) package.
 
+By default, langevitour does not scale variables individually. This dataset rather requires scaling, so we supply our desired scaling.
+
 ```{r}
-langevitour(scale(tourr::olive[,3:10]), paste(tourr::olive$region, tourr::olive$area))
+olives <- tourr::olive[,3:10]
+olives_scale <- apply(olives, 2, sd) * 4
+olives_group <- paste(tourr::olive$region, tourr::olive$area)
+
+langevitour(olives, group=olives_group, scale=olives_scale)
 ```
 
 ## Iris
@@ -85,4 +93,33 @@ Another dataset in the [liminal](https://sa-lee.github.io/liminal/) package. Eac
 X <- as.matrix(liminal::pdfsense[,-(1:6)])
 X <- X / sqrt(rowSums(X*X))
 langevitour(X, liminal::pdfsense$Type)
+```
+
+## Steifel manifold $V_a(\mathbb{R}^b)$
+
+The orthonormal projections of b dimensions onto a.
+
+Steifel manifolds are what langevitour tours!
+
+```{r}
+steifel <- function(a,b) {
+    k <- 5000
+    
+    X <- matrix(nrow=k, ncol=a*b)
+    colnames(X) <- paste0("X[",rep(seq_len(a),b),",",rep(seq_len(b), each=a),"]")
+    for(i in seq_len(k)) {
+        mat <- matrix(rnorm(a*b), nrow=a)
+        decomp <- svd(mat)
+        mat <- decomp$u %*% t(decomp$v)
+        X[i,] <- as.vector(mat)
+    }
+    
+    langevitour(X)
+}
+
+steifel(2,3)
+```
+
+```{r}
+steifel(2,2)
 ```

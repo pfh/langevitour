@@ -145,7 +145,7 @@ function mat_transpose(A) {
 /**** Projection pursuit gradients ****/
 
 
-function gradBounce(proj, X, scale) {
+function gradBounce(proj, X) {
     let fine_scale = 0.1; // Smaller value may resolve finer details, but becomes less stable.
     let k = 1000;
     let A = Array(k);
@@ -153,8 +153,6 @@ function gradBounce(proj, X, scale) {
     for(let i=0;i<k;i++) {
         A[i] = vec_sub(X[rand_int(X.length)],X[rand_int(X.length)]);
     }
-    
-    A = mat_scale(A, 1/scale);
 
     function objective(proj) {
         let projA = tf.matMul(proj, tf.transpose(A));
@@ -258,20 +256,23 @@ class Langevitour {
         this.n = data.X.length;
         this.m = data.X[0].length;
         
-        this.scale = data.scale || 4;
-
+        // data.X is assumed already centered and scaled. 
+        // These allow us to recover the original values:
+        this.center = data.center || Array(this.m).fill(0);
+        this.scale = data.scale || Array(this.m).fill(1);
+        
         // Shuffling is not optional.
         this.permutor = permutation(this.n);
         this.X = this.permutor.map(i => data.X[i]);
         this.colnames = data.colnames;
         
         this.levels = data.levels;
-        this.groups = this.permutor.map(i => data.groups[i]);
+        this.group = this.permutor.map(i => data.group[i]);
         
-        let n_groups = data.levels.length;
+        let n_groups = this.levels.length;
         this.fills = [ ];
         for(let i=0;i<this.n;i++) {
-            let angle = (this.groups[i]+1/3)/n_groups;
+            let angle = (this.group[i]+1/3)/n_groups;
             let value = 64*i/this.n+64;
             let r = value*(1+Math.cos(angle*Math.PI*2));
             let g = value*(1+Math.cos((angle+1/3)*Math.PI*2));
@@ -322,10 +323,10 @@ class Langevitour {
             .attr('text-anchor','end')
             .style('dominant-baseline','bottom');
         
-        this.x_scale = d3.scaleLinear()
-            .domain([-this.scale,this.scale]).range([2.5,this.size-2.5]).clamp(true);
-        this.y_scale = d3.scaleLinear()
-            .domain([-this.scale,this.scale]).range([2.5,this.size-2.5]).clamp(true);
+        this.xScale = d3.scaleLinear()
+            .domain([-1,1]).range([2.5,this.size-2.5]).clamp(true);
+        this.yScale = d3.scaleLinear()
+            .domain([-1,1]).range([2.5,this.size-2.5]).clamp(true);
 
         //Draggable labels
         
@@ -335,7 +336,7 @@ class Langevitour {
         for(let i=0;i<this.levels.length;i++) {
             let vec = zeros(this.m);
             for(let j=0;j<this.n;j++)
-                if (this.groups[j] == i)
+                if (this.group[j] == i)
                     vec = vec_add(vec, this.X[j]);
             vec = vec_scale(vec, 1/Math.sqrt(vec_dot(vec,vec)));            
             
@@ -380,8 +381,8 @@ class Langevitour {
             .attr('fill', '#dddddd88')
             .attr('rx', 5)
             .style('cursor','grab')
-            .on('mouseover', (e,d)=>{ d.selected = true; refresh_labels(); })
-            .on('mouseout', (e,d)=>{ d.selected = false; refresh_labels(); });
+            .on('mouseover', (e,d)=>{ d.selected += 1; refresh_labels(); })
+            .on('mouseout', (e,d)=>{ d.selected -= 1; refresh_labels(); });
         let labels = svg
             .selectAll('text')
             .data(this.labelData)
@@ -392,34 +393,42 @@ class Langevitour {
             .attr('dominant-baseline','central')
             .style('cursor','grab')
             .style('user-select','none')
-            .on('mouseover', (e,d)=>{ d.selected = true; refresh_labels(); })
-            .on('mouseout', (e,d)=>{ d.selected = false; refresh_labels(); });
+            .on('mouseover', (e,d)=>{ d.selected += 1; refresh_labels(); })
+            .on('mouseout', (e,d)=>{ d.selected -= 1; refresh_labels(); });
     
         labels.each(function(d) { d.width = this.getBBox().width + 10; });
         boxes
             .attr('width', d=>d.width);
 
+        let thys=this; //sigh
         function refresh_labels() {
+            for(let item of thys.labelData) {
+                item.x = Math.max(0,Math.min(thys.width, item.x));
+                item.y = Math.max(0,Math.min(thys.size, item.y));
+            }
+            
             boxes
                 .attr('x',d=>d.x-d.width/2)
                 .attr('y',d=>d.y-10)
-                .attr('fill',d=>d.selected?'#8888ffff':'#dddddd88')
+                .attr('fill',d=>d.selected?'#bbbbbbff':'#dddddd88')
             labels
                 .attr('x',d=>d.x)
                 .attr('y',d=>d.y)
         }
 
         let drag = d3.drag()
-            .on('start', function() {
+            .on('start', function(e,d) {
                 this.style.cursor = 'grabbing';
+                d.selected += 1;
             })
-            .on('drag', (event,d) => {
-                d.x = event.x;
-                d.y = event.y;
+            .on('drag', (e,d) => {
+                d.x = e.x;
+                d.y = e.y;
                 refresh_labels();
             })
-            .on('end', function() {
+            .on('end', function(e,d) {
                 this.style.cursor = 'grab';
+                d.selected -= 1;
             });
         drag(boxes);
         drag(labels);
@@ -456,55 +465,82 @@ class Langevitour {
         let ctx = this.canvas.getContext("2d");
         ctx.clearRect(0,0,this.width,this.height);
         
-        let rx = this.x_scale.range(), ry = this.y_scale.range();
+        let rx = this.xScale.range(), ry = this.yScale.range();
         ctx.strokeRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
 
         // Axes
-        let axisScale = this.scale * 0.75;
+        let axisScale = 0.75;
         ctx.strokeStyle = '#ccc';
         if (showAxes)
         for(let i=0;i<this.m;i++) {
             ctx.beginPath();
-            ctx.moveTo(this.x_scale(-axisScale*this.proj[0][i]), this.y_scale(-axisScale*this.proj[1][i]));
-            ctx.lineTo(this.x_scale(axisScale*this.proj[0][i]), this.y_scale(axisScale*this.proj[1][i]));
+            ctx.moveTo(this.xScale(-axisScale*this.proj[0][i]), this.yScale(-axisScale*this.proj[1][i]));
+            ctx.lineTo(this.xScale(axisScale*this.proj[0][i]), this.yScale(axisScale*this.proj[1][i]));
             ctx.stroke();
         }
         
         // Points
         let xy = mat_tcrossprod(this.proj, this.X);
         let fills = this.fills;
-        let selected = this.labelData.filter(d=>d.selected);
-        if (selected.length == 1) {
-            selected = selected[0];
+        let selected = this.labelData.filter(d=>d.selected)[0];
+        if (selected != null) {
             fills = [ ];
             for(let i=0;i<this.n;i++)
                 if (selected.type == 'level')
-                    if (this.groups[i] == selected.level)
+                    if (this.group[i] == selected.level)
                         fills[i] = this.fills[i]
                     else
                         fills[i] = '#00000022';
                 else {
-                    let c = (this.X[i][selected.variable] / this.scale);
+                    let c = this.X[i][selected.variable];
                     c = Math.sign(c)*Math.sqrt(Math.abs(c));                //Hmm
                     fills[i] = d3.interpolateViridis(c*0.5+0.5);
                 }
         }
         for(let i=0;i<this.n;i++) {
             ctx.fillStyle = fills[i];
-            ctx.fillRect(this.x_scale(xy[0][i])-1.5, this.y_scale(xy[1][i])-1.5, 3, 3);
+            ctx.fillRect(this.xScale(xy[0][i])-1.5, this.yScale(xy[1][i])-1.5, 3, 3);
         }
 
         // Axis labels
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+
+        ctx.save()
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 5;
+        
+        let selectedVar = null;
+        if (selected != null && selected.type == 'variable')
+            selectedVar = selected.variable;
+        
         if (showAxes)
         for(let i=0;i<this.m;i++) {
-            let r = Math.sqrt(this.proj[0][i]*this.proj[0][i]+this.proj[1][i]*this.proj[1][i]);
+            let r2 = this.proj[0][i]*this.proj[0][i]+this.proj[1][i]*this.proj[1][i];
+            let alpha = (i==selectedVar ? 1 : Math.min(1,r2*2));
+            ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+            ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+
+            if (i==selectedVar) {
+                let ticks = d3.scaleLinear()
+                    .domain([this.center[i]-this.scale[i]*axisScale, this.center[i]+this.scale[i]*axisScale])
+                    .range([-axisScale,axisScale])
+                    .ticks(5);
+                ctx.font = `12px sans-serif`;
+                for(let value of ticks) {
+                    let scaled = (value-this.center[i])/this.scale[i];
+                    ctx.strokeText(`${value}`, this.xScale(scaled*this.proj[0][i]), this.yScale(scaled*this.proj[1][i]));    
+                    ctx.fillText(`${value}`, this.xScale(scaled*this.proj[0][i]), this.yScale(scaled*this.proj[1][i]));    
+                }
+            }
+            
             ctx.font = `15px sans-serif`;
-            ctx.fillStyle = `rgba(0,0,0,${Math.min(1,r*r*2)}`;
-            ctx.fillText(this.colnames[i], this.x_scale(axisScale*this.proj[0][i]), this.y_scale(axisScale*this.proj[1][i]));
-        }        
+            ctx.strokeText(this.colnames[i], this.xScale(axisScale*this.proj[0][i]), this.yScale(axisScale*this.proj[1][i]));
+            ctx.fillText(this.colnames[i], this.xScale(axisScale*this.proj[0][i]), this.yScale(axisScale*this.proj[1][i]));
+        }
         
+        ctx.restore();
+
         //Legend
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
@@ -514,7 +550,7 @@ class Langevitour {
             ctx.fillStyle = this.levelColors[i];
             ctx.fillText(this.levels[i], this.size+10, 10+i*20);
         }
-
+        
         window.setTimeout(this.scheduleFrame.bind(this), 5);
         //this.scheduleFrame();
     }
@@ -523,7 +559,7 @@ class Langevitour {
         let damping =     0.2  *Math.pow(10, this.get('dampInput').value);
         let temperature = 0.02 *Math.pow(10, this.get('tempInput').value);
         let repulsion =   0.1  *Math.pow(10, this.get('repulsionInput').value);
-        let attraction =  0.2 *Math.pow(10, this.get('labelInput').value);
+        let attraction =  1.0 *Math.pow(10, this.get('labelInput').value);
         let doTemp = this.get('tempCheckbox').checked;
         let doRepulsion = this.get('repulsionCheckbox').checked;
         let doAttraction = this.get('labelCheckbox').checked;
@@ -545,7 +581,7 @@ class Langevitour {
         }
 
         if (doRepulsion) {        
-            let grad = gradBounce(proj, this.X, this.scale);
+            let grad = gradBounce(proj, this.X);
             mat_scale_into(grad, -1*repulsion);
             mat_add_into(vel, grad);
         }
@@ -553,8 +589,8 @@ class Langevitour {
         if (doAttraction)        
         for(let label of this.labelData) {
             if (label.x > this.size) continue;
-            let x = this.x_scale.invert(label.x);
-            let y = this.y_scale.invert(label.y);
+            let x = this.xScale.invert(label.x);
+            let y = this.yScale.invert(label.y);
             vel[0] = vec_add(vel[0], vec_scale(label.vec, x*attraction));
             vel[1] = vec_add(vel[1], vec_scale(label.vec, y*attraction));
         }

@@ -1,12 +1,12 @@
 
-.PHONY : all document install
+.PHONY : all copy document install
 
-all: inst/htmlwidgets/lib/langevitour.js document
+all: copy document
 
 document:
 	R -e 'devtools::document()'
 
-inst/htmlwidgets/lib/langevitour.js: langevitour.js
+copy: 
 	cp langevitour.js inst/htmlwidgets/lib/ 
 
 install:

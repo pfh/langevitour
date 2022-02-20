@@ -4,11 +4,11 @@
 #'
 #' @param X The data to plot. A matrix of numeric data, or something that can be cast to a matrix.
 #'
-#' @param groups A group for each row in X, will be used to color points. A factor, or something that can be cast to a factor.
+#' @param group A group for each row in X, will be used to color points. A factor, or something that can be cast to a factor.
 #'
-#' @param scale Magnitude of the data in X. A reasonable default will be chosen if omitted. A number.
+#' @param center Center for each variable. If omitted, the column means will be used.
 #'
-#' @param center Should the data be automatically centered?
+#' @param scale Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen.
 #'
 #' @param width Width of widget.
 #'
@@ -24,7 +24,7 @@
 #' @import htmlwidgets
 #'
 #' @export
-langevitour <- function(X, groups=NULL, scale=NULL, center=TRUE, width=NULL, height=NULL, elementId=NULL) {
+langevitour <- function(X, group=NULL, center=NULL, scale=NULL, width=NULL, height=NULL, elementId=NULL) {
     X <- as.matrix(X)
     
     if (is.null(colnames(X)))
@@ -33,25 +33,44 @@ langevitour <- function(X, groups=NULL, scale=NULL, center=TRUE, width=NULL, hei
     if (is.null(rownames(X)))
         rownames(X) <- paste0("R", seq_len(nrow(X)))
     
-    if (is.null(groups))
-        groups <- rep("", nrow(X))
+    if (is.null(group))
+        group <- rep("", nrow(X))
     
-    groups <- as.factor(groups)
+    group <- as.factor(group)
     
-    if (center)
-        X <- sweep(X, 2, colMeans(X, na.rm=TRUE), "-")
+    # Centering
+    
+    if (is.null(center))
+        center <- colMeans(X, na.rm=TRUE)
+    if (length(center) == 1)
+        center <- rep(ncol(X), center)
+        
+    X_centered <- sweep(X, 2, center, "-")
+    
+    # Scaling
     
     # Potentially expensive
     if (is.null(scale))
-        scale <- max(svd(X)$d) / sqrt(nrow(X)) * 2.5
-
+        scale <- max(svd(X_centered)$d) / sqrt(nrow(X)) * 2.5
+    if (length(scale) == 1)
+        scale <- rep(scale, ncol(X))
+        
+    X_centered_scaled <- sweep(X_centered, 2, scale, "/")
+    
+    rownames(X_centered_scaled) <- NULL
+    colnames(X_centered_scaled) <- NULL
+    names(center) <- NULL
+    names(scale) <- NULL
+    names(group) <- NULL
+    
     data <- list(
-        X = X,
+        X = X_centered_scaled,
+        center = center,
+        scale = scale,
         colnames = as.list(colnames(X)),
         rownames = as.list(rownames(X)),
-        groups = as.list(as.integer(groups)-1),
-        levels = as.list(levels(groups)),
-        scale = scale)
+        group = as.list(as.integer(group)-1),
+        levels = as.list(levels(group)))
     
     htmlwidgets::createWidget(
         name = 'langevitour',

@@ -6,9 +6,9 @@
 \usage{
 langevitour(
   X,
-  groups = NULL,
+  group = NULL,
+  center = NULL,
   scale = NULL,
-  center = TRUE,
   width = NULL,
   height = NULL,
   elementId = NULL
@@ -17,11 +17,11 @@ langevitour(
 \arguments{
 \item{X}{The data to plot. A matrix of numeric data, or something that can be cast to a matrix.}
 
-\item{groups}{A group for each row in X, will be used to color points. A factor, or something that can be cast to a factor.}
+\item{group}{A group for each row in X, will be used to color points. A factor, or something that can be cast to a factor.}
 
-\item{scale}{Magnitude of the data in X. A reasonable default will be chosen if omitted. A number.}
+\item{center}{Center for each variable. If omitted, the column means will be used.}
 
-\item{center}{Should the data be automatically centered?}
+\item{scale}{Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen.}
 
 \item{width}{Width of widget.}
 
