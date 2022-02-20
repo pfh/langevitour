@@ -500,7 +500,7 @@ class Langevitour {
                         fills[i] = '#00000022';
                 else {
                     let c = this.X[i][selected.variable];
-                    c = Math.sign(c)*Math.sqrt(Math.abs(c));                //Hmm
+                    c = Math.tanh(c * 2);                            // Hmm
                     fills[i] = d3.interpolateViridis(c*0.5+0.5);
                 }
         }
