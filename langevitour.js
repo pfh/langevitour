@@ -461,6 +461,11 @@ class Langevitour {
         this.last_time = time;
         
         let showAxes = this.get('axesCheckbox').checked;        
+
+        let selected = this.labelData.filter(d=>d.selected)[0];
+        let selectedVar = null;
+        if (selected != null && selected.type == 'variable')
+            selectedVar = selected.variable;
         
         let ctx = this.canvas.getContext("2d");
         ctx.clearRect(0,0,this.width,this.height);
@@ -471,6 +476,7 @@ class Langevitour {
         // Axes
         let axisScale = 0.75;
         ctx.strokeStyle = '#ccc';
+        
         if (showAxes)
         for(let i=0;i<this.m;i++) {
             ctx.beginPath();
@@ -478,11 +484,11 @@ class Langevitour {
             ctx.lineTo(this.xScale(axisScale*this.proj[0][i]), this.yScale(axisScale*this.proj[1][i]));
             ctx.stroke();
         }
-        
+
         // Points
         let xy = mat_tcrossprod(this.proj, this.X);
+
         let fills = this.fills;
-        let selected = this.labelData.filter(d=>d.selected)[0];
         if (selected != null) {
             fills = [ ];
             for(let i=0;i<this.n;i++)
@@ -497,11 +503,33 @@ class Langevitour {
                     fills[i] = d3.interpolateViridis(c*0.5+0.5);
                 }
         }
+        
         for(let i=0;i<this.n;i++) {
             ctx.fillStyle = fills[i];
             ctx.fillRect(this.xScale(xy[0][i])-1.5, this.yScale(xy[1][i])-1.5, 3, 3);
         }
+        
+        // Rug
+        if (selectedVar != null) {
+            //ctx.strokeStyle = '#00000022';
 
+            let ox = [ this.proj[1][selectedVar], -this.proj[0][selectedVar] ];
+            ox = vec_scale(ox, 0.05/Math.sqrt(vec_dot(ox,ox)));
+            for(let i=0;i<this.n;i++) {
+                let p = [ 
+                    this.proj[0][selectedVar] * this.X[i][selectedVar], 
+                    this.proj[1][selectedVar] * this.X[i][selectedVar] ];                
+                let pA = vec_add(p, ox);
+                let pB = vec_add(p, vec_scale(ox,-1));
+                
+                ctx.strokeStyle = fills[i];
+                ctx.beginPath();
+                ctx.moveTo(this.xScale(pA[0]),this.yScale(pA[1]));
+                ctx.lineTo(this.xScale(pB[0]),this.yScale(pB[1]));
+                ctx.stroke();
+            }
+        }
+                
         // Axis labels
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -509,11 +537,7 @@ class Langevitour {
         ctx.save()
         ctx.lineJoin = 'round';
         ctx.lineWidth = 5;
-        
-        let selectedVar = null;
-        if (selected != null && selected.type == 'variable')
-            selectedVar = selected.variable;
-        
+                
         if (showAxes)
         for(let i=0;i<this.m;i++) {
             let r2 = this.proj[0][i]*this.proj[0][i]+this.proj[1][i]*this.proj[1][i];

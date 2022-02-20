@@ -44,7 +44,7 @@ By default, langevitour does not scale variables individually. This dataset rath
 
 ```{r}
 olives <- tourr::olive[,3:10]
-olives_scale <- apply(olives, 2, sd) * 4
+olives_scale <- apply(olives, 2, sd) * 6
 olives_group <- paste(tourr::olive$region, tourr::olive$area)
 
 langevitour(olives, group=olives_group, scale=olives_scale)
@@ -95,14 +95,14 @@ X <- X / sqrt(rowSums(X*X))
 langevitour(X, liminal::pdfsense$Type)
 ```
 
-## Steifel manifold $V_a(\mathbb{R}^b)$
+## Stiefel manifold $V_a(\mathbb{R}^b)$
 
 The orthonormal projections of b dimensions onto a.
 
-Steifel manifolds are what langevitour tours!
+Stiefel manifolds are what langevitour tours!
 
 ```{r}
-steifel <- function(a,b) {
+stiefel <- function(a,b) {
     k <- 5000
     
     X <- matrix(nrow=k, ncol=a*b)
@@ -117,9 +117,9 @@ steifel <- function(a,b) {
     langevitour(X)
 }
 
-steifel(2,3)
+stiefel(2,3)
 ```
 
 ```{r}
-steifel(2,2)
+stiefel(2,2)
 ```
