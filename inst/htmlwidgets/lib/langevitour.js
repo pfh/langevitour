@@ -471,6 +471,7 @@ class Langevitour {
         ctx.clearRect(0,0,this.width,this.height);
         
         let rx = this.xScale.range(), ry = this.yScale.range();
+        ctx.strokeStyle = '#000';
         ctx.strokeRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
 
         // Axes
