@@ -145,8 +145,7 @@ function mat_transpose(A) {
 /**** Projection pursuit gradients ****/
 
 
-function gradBounce(proj, X) {
-    let fine_scale = 0.1; // Smaller value may resolve finer details, but becomes less stable.
+function gradBounce(proj, X, power, fine_scale) {
     let k = 1000;
     let A = Array(k);
     
@@ -157,8 +156,16 @@ function gradBounce(proj, X) {
     function objective(proj) {
         let projA = tf.matMul(proj, tf.transpose(A));
         
-        let l = tf.pow(tf.add(tf.mul(projA,projA), fine_scale**2), -0.5);
-        return tf.mul(tf.sum(l), 1/k);
+        let l = tf.sum(tf.mul(projA,projA),0)
+        
+        l = tf.add(l, fine_scale**2);
+        
+        if (power == 0)
+            l = tf.log(l)
+        else
+            l = tf.div(tf.pow(l,power),power);
+        
+        return tf.mul(tf.sum(l), -1/k);
     }
 
     let grad_func = tf.grad(objective);
@@ -583,8 +590,8 @@ class Langevitour {
     compute(real_elapsed) {
         let damping =     0.2  *Math.pow(10, this.get('dampInput').value);
         let temperature = 0.02 *Math.pow(10, this.get('tempInput').value);
-        let repulsion =   0.1  *Math.pow(10, this.get('repulsionInput').value);
-        let attraction =  1.0 *Math.pow(10, this.get('labelInput').value);
+        let repulsion =   0.5  *Math.pow(10, this.get('repulsionInput').value);
+        let attraction =  1.0  *Math.pow(10, this.get('labelInput').value);
         let doTemp = this.get('tempCheckbox').checked;
         let doRepulsion = this.get('repulsionCheckbox').checked;
         let doAttraction = this.get('labelCheckbox').checked;
@@ -606,7 +613,7 @@ class Langevitour {
         }
 
         if (doRepulsion) {        
-            let grad = gradBounce(proj, this.X);
+            let grad = gradBounce(proj, this.X, 0, 0.01);
             mat_scale_into(grad, -1*repulsion);
             mat_add_into(vel, grad);
         }
