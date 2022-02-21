@@ -11,6 +11,7 @@ Suggests:
     tourr,
     liminal,
     geozoo,
+    RANN,
     knitr,
     rmarkdown
 License: LGPL (>= 2.1)

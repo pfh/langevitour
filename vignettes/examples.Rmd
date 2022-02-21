@@ -50,6 +50,7 @@ olives_group <- paste(tourr::olive$region, tourr::olive$area)
 langevitour(olives, group=olives_group, scale=olives_scale)
 ```
 
+
 ## Iris
 
 The classic.
@@ -57,6 +58,7 @@ The classic.
 ```{r}
 langevitour(iris[,1:4], iris$Species)
 ```
+
 
 ## fake_trees
 
@@ -70,6 +72,19 @@ A dataset in the [liminal](https://sa-lee.github.io/liminal/) package, originall
 ```{r}
 langevitour(liminal::fake_trees[,1:100], liminal::fake_trees$branches)
 ```
+
+
+## fake_trees with k-nearest neighbor smoothing
+
+```{r}
+X <- as.matrix(liminal::fake_trees[,1:100])
+knn <- RANN::nn2(X, k=10)$nn.idx
+X_smooth <- lapply(seq_len(nrow(X)), function(i) colMeans(X[knn[i,],]))
+X_smooth <- do.call(rbind, X_smooth)
+
+langevitour(X_smooth, liminal::fake_trees$branches)
+```
+
 
 ## Hyper-cube
 

@@ -15,13 +15,13 @@ langevitour(
 )
 }
 \arguments{
-\item{X}{The data to plot. A matrix of numeric data, or something that can be cast to a matrix.}
+\item{X}{The data to plot. A matrix of numeric data, or something that can be cast to a matrix. Rows will be shown as points in the widget. Columns are the variables of your data.}
 
 \item{group}{A group for each row in X, will be used to color points. A factor, or something that can be cast to a factor.}
 
 \item{center}{Center for each variable. If omitted, the column means will be used.}
 
-\item{scale}{Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen.}
+\item{scale}{Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen, equal for all variables. (The default is the largest singular value of the centered X times 2.5.)}
 
 \item{width}{Width of widget.}
 
@@ -33,7 +33,12 @@ langevitour(
 An htmlwidget object.
 }
 \description{
-Create a Langevin Tour HTML widget. Can be used, for example, from the console or in an RMarkdown document.
+Make a Langevin Tour HTML widget, which can be used to explore high-dimensional numeric datasets.
+}
+\details{
+To retain the original units on plot axes within the widget, use \code{center} and \code{scale} rather than altering X.
+
+langevitour will by default not scale variables individually. If you want this, use something like \code{scale=apply(X,2,sd)*4}.
 }
 \examples{
 langevitour(iris[,1:4], iris$Species)
