@@ -16,31 +16,6 @@ remotes::install_github("pfh/langevitour")
 ## R example usage
 
 ```{r}
-# Install some packages with interesting data
-install.packages(c("geozoo", "tourr", "liminal"))
-
-
-library(langevitour)
-
-
 langevitour(iris[,1:4], iris$Species)
-
-
-langevitour(liminal::fake_trees[,1:100], liminal::fake_trees$branches)
-# - be sure to try "point repulsion" in this example
-
-
-langevitour(geozoo::torus.flat(p=4)$points)
-
-
-langevitour(tourr::flea[,1:6], tourr::flea$species)
-
-
-langevitour(scale(tourr::olive[,3:10]), paste(tourr::olive$region, tourr::olive$area))
-
-
-X <- as.matrix(liminal::pdfsense[,-(1:6)])
-X <- X / sqrt(rowMeans(X*X))
-langevitour(X, liminal::pdfsense$Type)
 ```
 

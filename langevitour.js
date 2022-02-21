@@ -1,11 +1,13 @@
 "use strict";
 
 /*
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.13.0/dist/tf.min.js"></script>
 <script src="https://unpkg.com/jstat@1.9.5/dist/jstat.js"></script>
 <script src="https://unpkg.com/svd-js@1.1.1/build-umd/svd-js.min.js"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.13.0/dist/tf.min.js"></script> -->
 */
+
+let langevitour = (function(){
 
 /**** Utility functions ****/
 
@@ -144,7 +146,7 @@ function mat_transpose(A) {
 
 /**** Projection pursuit gradients ****/
 
-
+/*
 function gradBounce(proj, X, power, fine_scale) {
     let k = 1000;
     let A = Array(k);
@@ -183,7 +185,31 @@ function gradBounce(proj, X, power, fine_scale) {
     
     return tf.tidy(inner);
 }
+*/
 
+function gradBounce(proj, X, power, fine_scale) {
+    let iters = 1000;
+    let m = proj.length, n = proj[0].length;
+    let p = [ ];
+    let grad = zero_mat(m,n);
+    
+    for(let i=0;i<iters;i++) {
+        let a = vec_sub(X[rand_int(X.length)],X[rand_int(X.length)]);
+        
+        for(let j=0;j<m;j++)
+            p[j] = vec_dot(a, proj[j]);
+        
+        let scale = (vec_dot(p,p)+fine_scale)**(power-1);
+        
+        for(let j=0;j<m;j++)
+        for(let k=0;k<n;k++)
+            grad[j][k] += a[k] * p[j] * scale;
+    }
+    
+    mat_scale_into(grad, -2/iters);
+    
+    return grad;
+}
 
 
 /**** Main class ****/
@@ -637,3 +663,7 @@ class Langevitour {
         this.proj = new_proj;
     }
 }
+
+return { Langevitour };
+})();
+

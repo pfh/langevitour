@@ -2,7 +2,7 @@ HTMLWidgets.widget({
   name: 'langevitour',
   type: 'output',
   factory: function(el, width, height) {
-    let tour = new Langevitour(el, width, height);
+    let tour = new langevitour.Langevitour(el, width, height);
     return {
       renderValue: function(data) {
         tour.renderValue(data);
