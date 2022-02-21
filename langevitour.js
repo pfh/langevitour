@@ -244,11 +244,25 @@ let template = `<div style="width: 100%; height: 100%; border: 0;">
         <div class=box>Heat<input class=tempCheckbox type=checkbox checked><input type=range min=-2 max=4 step=0.01 value=0 class=tempInput></div>
         <br/>
 
-        <div class=box>Point repulsion<input class=repulsionCheckbox type=checkbox><input type=range min=-2 max=2 step=0.01 value=0 class=repulsionInput></div>
+        <div class=box>
+        Point repulsion
+        <select class=repulsionSelect value=none>
+            <option value=none>none</option>
+            <option value=local>local</option>
+            <option value=pca>PCA</option>
+            <option value=outlier>outlier</option>
+        </select> 
+        <input type=range min=-2 max=2 step=0.01 value=0 class=repulsionInput></div>
 
         <div class=box>Label attraction<input class=labelCheckbox type=checkbox checked><input type=range min=-3 max=1 step=0.01 value=0 class=labelInput></div><br>
     </div>
 </div>`;
+
+let repulsionTable = {
+    "local": {amount:0.5, power:0, fine_scale:0.01},
+    "pca": {amount:0.5, power:1, fine_scale:0},
+    "outlier": {amount:5, power:2, fine_scale:0},
+};
 
 class Langevitour {
     constructor(container, width, height) {
@@ -616,10 +630,10 @@ class Langevitour {
     compute(real_elapsed) {
         let damping =     0.2  *Math.pow(10, this.get('dampInput').value);
         let temperature = 0.02 *Math.pow(10, this.get('tempInput').value);
-        let repulsion =   0.5  *Math.pow(10, this.get('repulsionInput').value);
+        let repulsion =   1.0  *Math.pow(10, this.get('repulsionInput').value);
         let attraction =  1.0  *Math.pow(10, this.get('labelInput').value);
         let doTemp = this.get('tempCheckbox').checked;
-        let doRepulsion = this.get('repulsionCheckbox').checked;
+        let whatRepulsion = this.get('repulsionSelect').value;
         let doAttraction = this.get('labelCheckbox').checked;
 
         let elapsed = Math.max(1e-6, Math.min(1, real_elapsed));
@@ -638,9 +652,10 @@ class Langevitour {
             mat_add_into(vel, noise);
         }
 
-        if (doRepulsion) {        
-            let grad = gradBounce(proj, this.X, 0, 0.01);
-            mat_scale_into(grad, -1*repulsion);
+        if (whatRepulsion != 'none') {
+            let options = repulsionTable[whatRepulsion];
+            let grad = gradBounce(proj, this.X, options.power, options.fine_scale);
+            mat_scale_into(grad, -1*options.amount*repulsion);
             mat_add_into(vel, grad);
         }
 
