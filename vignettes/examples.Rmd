@@ -1,8 +1,8 @@
 ---
-title: "langevitour examples"
+title: "Examples"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{langevitour examples}
+  %\VignetteIndexEntry{Examples}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -20,14 +20,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-These are some example datasets visualized using [langevitour](https://github.com/pfh/langevitour).
-
-Things to try:
-
-* Drag labels onto the plot.
-* Activate "point repulsion".
-* Experiment with "damping" and "heat".
-
 ```{r install, eval=FALSE}
 remotes::install_github("pfh/langevitour")
 ```
@@ -35,6 +27,50 @@ remotes::install_github("pfh/langevitour")
 ```{r setup}
 library(langevitour)
 ```
+
+Things to try:
+
+* Drag labels onto the plot.
+* Set point repulsion to "local".
+* Experiment with "damping" and "heat".
+
+## Iris
+
+```{r}
+langevitour(iris[,1:4], iris$Species)
+```
+
+
+## Mouse brain cells
+
+Single-cell RNA-Seq gene expression of 2,816 mouse brain cells ([Zeisel, 2015](https://pubmed.ncbi.nlm.nih.gov/25700174/)). The top 20 principal components were produced using the steps in the [Bioconductor OSCA workflow](http://bioconductor.org/books/3.13/OSCA.workflows/zeisel-mouse-brain-strt-seq.html).
+
+* Try setting point repulsion to "local".
+
+```{r}
+zeisel <- read.csv(system.file("extdata","zeisel_pca.csv.gz", package="langevitour"))
+
+langevitour(zeisel[,-1], zeisel$type)
+```
+
+
+## Mouse brain cells with k-NN averaging
+
+We can reduce the noise in this data by averaging each cell with its 30 nearest neighbors.
+
+* Try to separate microglia, astrocytes_ependymal and endothelial-mural cells by dragging their labels onto the plot.
+* Find principal components that distinguish these cells and try dragging them onto the plot instead.
+
+```{r}
+X <- as.matrix(zeisel[,-1])
+neighbors <- RANN::nn2(X, k=30)$nn.idx
+X_smooth <- lapply(seq_len(nrow(X)), \(i) colMeans(X[neighbors[i,],]))
+X_smooth <- do.call(rbind, X_smooth)
+
+langevitour(X_smooth, zeisel$type)
+```
+
+
 
 ## Olive oils
 
@@ -48,41 +84,6 @@ olives_scale <- apply(olives, 2, sd) * 6
 olives_group <- paste(tourr::olive$region, tourr::olive$area)
 
 langevitour(olives, group=olives_group, scale=olives_scale)
-```
-
-
-## Iris
-
-The classic.
-
-```{r}
-langevitour(iris[,1:4], iris$Species)
-```
-
-
-## fake_trees
-
-A dataset in the [liminal](https://sa-lee.github.io/liminal/) package, originally from PHATE.
-
-* "Point repulsion" is especially effective in this dataset.
-
-* You can manipulate it like a puppet by dragging the groups (0-9) onto the plot.
-
-
-```{r}
-langevitour(liminal::fake_trees[,1:100], liminal::fake_trees$branches)
-```
-
-
-## fake_trees with k-nearest neighbor smoothing
-
-```{r}
-X <- as.matrix(liminal::fake_trees[,1:100])
-knn <- RANN::nn2(X, k=10)$nn.idx
-X_smooth <- lapply(seq_len(nrow(X)), function(i) colMeans(X[knn[i,],]))
-X_smooth <- do.call(rbind, X_smooth)
-
-langevitour(X_smooth, liminal::fake_trees$branches)
 ```
 
 
@@ -102,7 +103,7 @@ langevitour(geozoo::torus.flat(p=4)$points)
 
 ## pdfsense
 
-Another dataset in the [liminal](https://sa-lee.github.io/liminal/) package. Each row has been scaled to a unit vector.
+A dataset in the [liminal](https://sa-lee.github.io/liminal/) package. Each row has been scaled to a unit vector.
 
 ```{r}
 X <- as.matrix(liminal::pdfsense[,-(1:6)])

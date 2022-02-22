@@ -5,6 +5,8 @@ Authors@R:
     person("Paul", "Harrison", , "pfh@logarithmic.net", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3980-268X"))
 Description: An HTML widget that tours 2D projections of your data.
+URL: https://logarithmic.net/langevitour/
+BugReports: https://github.com/pfh/langevitour/issues/
 Imports:
     htmlwidgets
 Suggests:

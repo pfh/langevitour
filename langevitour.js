@@ -216,6 +216,11 @@ function gradBounce(proj, X, power, fine_scale) {
 
 let template = `<div style="width: 100%; height: 100%; border: 0;">
     <style>
+    /* Reset all host styling. */
+    :host {
+        all: initial;
+    }
+    
     * { font-family: sans-serif; }
     input { vertical-align: middle; }
     .box { 

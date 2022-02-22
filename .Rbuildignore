@@ -4,3 +4,6 @@
 ^langevitour\.js$
 ^example\.html$
 ^notes\.R$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
