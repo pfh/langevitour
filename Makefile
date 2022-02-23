@@ -3,13 +3,13 @@
 
 all: copy document docs
 
-document:
+document: copy
 	R -e 'devtools::document()'
 
 copy: 
 	cp langevitour.js inst/htmlwidgets/lib/ 
 
-docs:
+docs: copy document
 	R -e 'pkgdown::build_site()'
 
 install:

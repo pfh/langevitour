@@ -147,7 +147,7 @@ function mat_transpose(A) {
 /**** Projection pursuit gradients ****/
 
 /*
-function gradBounce(proj, X, power, fine_scale) {
+function gradRepulsion(proj, X, power, fine_scale) {
     let k = 1000;
     let A = Array(k);
     
@@ -187,7 +187,17 @@ function gradBounce(proj, X, power, fine_scale) {
 }
 */
 
-function gradBounce(proj, X, power, fine_scale) {
+function removeSpin(motion, proj) {
+    let rot_proj = mat_mul([[0,-1/Math.sqrt(2)],[1/Math.sqrt(2),0]], proj);
+    let dot = 0;
+    for(let i=0;i<proj.length;i++)
+    for(let j=0;j<proj[0].length;j++)
+        dot += motion[i][j]*rot_proj[i][j];
+    
+    return mat_add(motion, mat_scale(rot_proj, -dot));
+}
+
+function gradRepulsion(proj, X, power, fine_scale) {
     let iters = 1000;
     let m = proj.length, n = proj[0].length;
     let p = [ ];
@@ -208,7 +218,7 @@ function gradBounce(proj, X, power, fine_scale) {
     
     mat_scale_into(grad, -2/iters);
     
-    return grad;
+    return removeSpin( grad, proj );
 }
 
 
@@ -289,14 +299,13 @@ class Langevitour {
         this.n = 0;
         this.m = 0;
         this.levels = [ ];
-        
-        
-        this.fps = [ ];
 
-        this.last_time = null;    
+        this.running = false;
+        this.last_time = 0;
+        this.dragging = false;
+        this.fps = [ ];
         
         this.resize(width, height);
-        this.scheduleFrame();    
     }
     
     get(className) {
@@ -348,6 +357,11 @@ class Langevitour {
         this.vel = zero_mat(2, this.m);
         
         this.configure();
+        
+        if (!this.running) {
+            this.scheduleFrame();
+            this.running = true;
+        }
     }
     
     resize(width, height) {
@@ -423,22 +437,31 @@ class Langevitour {
             this.labelData[i].y = 20+row*25;
         }
         
+        this.labelData.reverse();
+        
         let svg = d3.select(this.svg).select('.labelGroup');
-        let boxes = svg
-            .selectAll('rect')
+        
+        let gs = svg
+            .selectAll('g')
             .data(this.labelData)
-            .join('rect')
+            .join(
+                enter => {
+                    let g = enter.append('g');
+                    g.append('rect');
+                    g.append('text');
+                    return g;
+                }
+            );
+        
+        let boxes = gs.selectAll('rect')
             .attr('width', 60)
             .attr('height', 20)
-            .attr('fill', '#dddddd88')
             .attr('rx', 5)
             .style('cursor','grab')
             .on('mouseover', (e,d)=>{ d.selected += 1; refresh_labels(); })
             .on('mouseout', (e,d)=>{ d.selected -= 1; refresh_labels(); });
-        let labels = svg
-            .selectAll('text')
-            .data(this.labelData)
-            .join('text')
+
+        let labels = gs.select('text')
             .text(d=>d.label)
             .style('fill',d=>d.color)
             .attr('text-anchor','middle')
@@ -452,7 +475,8 @@ class Langevitour {
         boxes
             .attr('width', d=>d.width);
 
-        let thys=this; //sigh
+        let thys = this; //sigh
+
         function refresh_labels() {
             for(let item of thys.labelData) {
                 item.x = Math.max(0,Math.min(thys.width, item.x));
@@ -462,7 +486,7 @@ class Langevitour {
             boxes
                 .attr('x',d=>d.x-d.width/2)
                 .attr('y',d=>d.y-10)
-                .attr('fill',d=>d.selected?'#bbbbbbff':'#dddddd88')
+                .attr('fill',d=>d.selected?'#aaa':'#ddd')
             labels
                 .attr('x',d=>d.x)
                 .attr('y',d=>d.y)
@@ -470,6 +494,7 @@ class Langevitour {
 
         let drag = d3.drag()
             .on('start', function(e,d) {
+                thys.dragging = true;
                 this.style.cursor = 'grabbing';
                 d.selected += 1;
             })
@@ -479,6 +504,7 @@ class Langevitour {
                 refresh_labels();
             })
             .on('end', function(e,d) {
+                thys.dragging = false;
                 this.style.cursor = 'grab';
                 d.selected -= 1;
             });
@@ -494,31 +520,31 @@ class Langevitour {
     
     doFrame(time) {
         time /= 1000.0; //Convert to seconds
+
+        let elapsed = time - this.last_time;
+        this.last_time = time;
         
         if (this.X == null || !elementVisible(this.canvas)) {
-            window.setTimeout(this.scheduleFrame.bind(this), 100); //TODO: do this nicer
+            // We aren't visible. Wait a while.
+            window.setTimeout(this.scheduleFrame.bind(this), 100);
             return;
         }
         
-        this.svg.style.opacity = this.mousing?1:0;
+        this.compute(elapsed);
         
-        if (this.last_time != null) {
-            let elapsed = time - this.last_time;
-            this.compute(elapsed);        
-            
-            this.fps.push( Math.floor(1/elapsed+0.5) );
-            if (this.fps.length > 100) this.fps.shift();
-            d3.select(this.get('messageArea')).text( `${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS` );
-        }
-        this.last_time = time;
-        
-        let showAxes = this.get('axesCheckbox').checked;        
+        this.fps.push( Math.floor(1/elapsed+0.5) );
+        if (this.fps.length > 100) this.fps.shift();
+        d3.select(this.get('messageArea')).text( `${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS` );
 
         let selected = this.labelData.filter(d=>d.selected)[0];
         let selectedVar = null;
         if (selected != null && selected.type == 'variable')
             selectedVar = selected.variable;
         
+        let showAxes = this.get('axesCheckbox').checked;        
+                
+        this.svg.style.opacity = this.mousing?1:0;
+
         let ctx = this.canvas.getContext("2d");
         ctx.clearRect(0,0,this.width,this.height);
         
@@ -641,6 +667,11 @@ class Langevitour {
         let whatRepulsion = this.get('repulsionSelect').value;
         let doAttraction = this.get('labelCheckbox').checked;
 
+        // Cut down oscillation during dragging
+        if (this.dragging && doAttraction) {
+            damping = Math.max(damping, attraction*5.0);
+        }
+
         let elapsed = Math.max(1e-6, Math.min(1, real_elapsed));
         
         let vel = this.vel;
@@ -654,12 +685,14 @@ class Langevitour {
             let noise = times(proj.length, times, this.m,
                 jStat.normal.sample, 0, Math.sqrt(2*temperature*elapsed));
             
+            noise = removeSpin(noise, proj);
+            
             mat_add_into(vel, noise);
         }
 
         if (whatRepulsion != 'none') {
             let options = repulsionTable[whatRepulsion];
-            let grad = gradBounce(proj, this.X, options.power, options.fine_scale);
+            let grad = gradRepulsion(proj, this.X, options.power, options.fine_scale);
             mat_scale_into(grad, -1*options.amount*repulsion);
             mat_add_into(vel, grad);
         }
@@ -669,8 +702,10 @@ class Langevitour {
             if (label.x > this.size) continue;
             let x = this.xScale.invert(label.x);
             let y = this.yScale.invert(label.y);
-            vel[0] = vec_add(vel[0], vec_scale(label.vec, x*attraction));
-            vel[1] = vec_add(vel[1], vec_scale(label.vec, y*attraction));
+            if (x <= -1 || y <= -1 || x >= 1 || y >= 1) continue;
+            let adjustment = 4*(x*x+y*y);
+            vel[0] = vec_add(vel[0], vec_scale(label.vec, x*adjustment*attraction));
+            vel[1] = vec_add(vel[1], vec_scale(label.vec, y*adjustment*attraction));
         }
         
         let new_proj = mat_add(proj, mat_scale(vel, elapsed));
