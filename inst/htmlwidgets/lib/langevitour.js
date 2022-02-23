@@ -224,7 +224,7 @@ function gradRepulsion(proj, X, power, fine_scale) {
 
 /**** Main class ****/
 
-let template = `<div style="width: 100%; height: 100%; border: 0;">
+let template = `<div>
     <style>
     /* Reset all host styling. */
     :host {
@@ -233,17 +233,23 @@ let template = `<div style="width: 100%; height: 100%; border: 0;">
     
     * { font-family: sans-serif; }
     input { vertical-align: middle; }
+    
     .box { 
+        background: #eee;
         display: inline-block; 
         padding: 0.25em 0.5em 0.25em 0.5em; 
         margin: 0.25em; 
-        background: #eee; 
         border-radius: 0.25em;
+        vertical-align: middle;
     }
-    .message { display: inline-block; margin: 0.5em; }
+    
+    .fullscreenButton {
+        margin: 0.25em 0.5em 0.25em 1em;
+        vertical-align: middle;
+    }
     </style>
 
-    <div style="position: relative" class=plot_div>
+    <div style="position: relative" class=plotDiv>
         <canvas class=canvas></canvas>
         <svg class=svg style="position: absolute; left:0; top:0;">
             <g class=labelGroup></g>
@@ -252,14 +258,17 @@ let template = `<div style="width: 100%; height: 100%; border: 0;">
     </div>
 
     <div class=controlDiv>
-        <div class=box>Axes<input class=axesCheckbox type=checkbox checked></div>
+        <button class=fullscreenButton title="Full screen">&#x26F6;</button
         
-        <div class=box>Damping<input type=range min=-3 max=3 step=0.01 value=0 class=dampInput></div>
-            
-        <div class=box>Heat<input class=tempCheckbox type=checkbox checked><input type=range min=-2 max=4 step=0.01 value=0 class=tempInput></div>
-        <br/>
-
-        <div class=box>
+        ><div class=box>Axes<input class=axesCheckbox type=checkbox checked></div
+        
+        ><div class=box>Damping<input type=range min=-3 max=3 step=0.01 value=0 class=dampInput></div
+        
+        ><div class=box>Heat<input class=tempCheckbox type=checkbox checked><input type=range min=-2 max=4 step=0.01 value=0 class=tempInput></div
+        
+        ><br/
+        
+        ><div class=box>
         Point repulsion
         <select class=repulsionSelect value=none>
             <option value=none>none</option>
@@ -267,10 +276,10 @@ let template = `<div style="width: 100%; height: 100%; border: 0;">
             <option value=pca>PCA</option>
             <option value=outlier>outlier</option>
         </select> 
-        <input type=range min=-2 max=2 step=0.01 value=0 class=repulsionInput></div>
-
-        <div class=box>Label attraction<input class=labelCheckbox type=checkbox checked><input type=range min=-3 max=1 step=0.01 value=0 class=labelInput></div><br>
-    </div>
+        <input type=range min=-2 max=2 step=0.01 value=0 class=repulsionInput></div
+        
+        ><div class=box>Label attraction<input class=labelCheckbox type=checkbox checked><input type=range min=-3 max=1 step=0.01 value=0 class=labelInput></div
+    ></div>
 </div>`;
 
 let repulsionTable = {
@@ -281,19 +290,12 @@ let repulsionTable = {
 
 class Langevitour {
     constructor(container, width, height) {
+        /* Set up elements in a shadow DOM to isolate from document style. */
         this.container = container;
         this.shadow = this.container.attachShadow({mode: 'open'});
         this.shadow.innerHTML = template;
-        
-        this.container.tour = this; 
-        // For debugging: document.querySelector('#htmlwidget_container>div').tour
-        
         this.canvas = this.get('canvas');
         this.svg = this.get('svg');
-        
-        this.mousing = false;
-        this.get('plot_div').addEventListener('mouseover', () => { this.mousing = true; });
-        this.get('plot_div').addEventListener('mouseout', () => { this.mousing = false; });
         
         this.X = null;
         this.n = 0;
@@ -304,8 +306,44 @@ class Langevitour {
         this.last_time = 0;
         this.dragging = false;
         this.fps = [ ];
-        
+
         this.resize(width, height);
+        
+        /* svg overlay only appears when mouse in plot area */
+        this.mousing = false;
+        this.get('plotDiv').addEventListener('mouseover', () => { this.mousing = true; });
+        this.get('plotDiv').addEventListener('mouseout', () => { this.mousing = false; });
+        
+        /* Hide fullscreen button if not available */
+        if (this.container.requestFullscreen == null)
+            this.get('fullscreenButton').style.display = 'none';
+        
+        /* Handle fullscreen */
+        this.get('fullscreenButton').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                this.shadow.firstChild.requestFullscreen();
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        });
+        
+        this.shadow.firstChild.addEventListener('fullscreenchange', () => { 
+            let el = this.shadow.firstChild;
+            if (document.fullscreenElement) {
+                this.originalWidth = this.width;
+                this.originalHeight = this.height;
+                let pad = Math.max(0, el.offsetWidth-el.offsetHeight)/2;
+                el.style.paddingLeft = pad+'px';
+                this.width = el.offsetWidth-pad;
+                this.height = el.offsetHeight;
+                this.configure();
+            } else {
+                el.style.paddingLeft = '0px';
+                this.width = this.originalWidth;
+                this.height = this.originalHeight;
+                this.configure();
+            }
+        });
     }
     
     get(className) {
@@ -356,23 +394,28 @@ class Langevitour {
         this.proj[1][1] = 1;
         this.vel = zero_mat(2, this.m);
         
-        this.configure();
         
         if (!this.running) {
             this.scheduleFrame();
             this.running = true;
         }
+        
+        this.configure();        
     }
     
     resize(width, height) {
-        // Scrollbars will appear if very small
+        // At least in pkgdown vignettes, we get weird resize requests while fullscreen.
+        if (document.fullscreenElement) return;
+        
         this.width = Math.max(200, width);
-        this.height = height;
-
+        this.height = Math.max(200, height);
+        
         this.configure();
     }
     
     configure() {
+        if (!this.running) return;
+        
         this.canvas.width = this.width;
         this.svg.style.width = this.width+'px';
 
@@ -433,13 +476,15 @@ class Langevitour {
             let row = i % rows, col = (i-row)/rows;
             this.labelData[i].index = i;
             this.labelData[i].selected = false;
-            this.labelData[i].x = this.size+(col+0.5)*(this.width-this.size)/cols;
+            this.labelData[i].x = this.size+10+col*(this.width-this.size)/cols;
             this.labelData[i].y = 20+row*25;
         }
         
         this.labelData.reverse();
         
         let svg = d3.select(this.svg).select('.labelGroup');
+        
+        svg.selectAll('*').remove();
         
         let gs = svg
             .selectAll('g')
@@ -453,14 +498,8 @@ class Langevitour {
                 }
             );
         
-        let boxes = gs.selectAll('rect')
-            .attr('width', 60)
-            .attr('height', 20)
-            .attr('rx', 5)
-            .style('cursor','grab')
-            .on('mouseover', (e,d)=>{ d.selected += 1; refresh_labels(); })
-            .on('mouseout', (e,d)=>{ d.selected -= 1; refresh_labels(); });
-
+        let boxes = gs.selectAll('rect');
+        
         let labels = gs.select('text')
             .text(d=>d.label)
             .style('fill',d=>d.color)
@@ -471,9 +510,18 @@ class Langevitour {
             .on('mouseover', (e,d)=>{ d.selected += 1; refresh_labels(); })
             .on('mouseout', (e,d)=>{ d.selected -= 1; refresh_labels(); });
     
-        labels.each(function(d) { d.width = this.getBBox().width + 10; });
+        labels.each(function(d) { 
+            d.width = this.getBBox().width + 10; 
+            d.x += d.width/2;
+        });
+        
         boxes
-            .attr('width', d=>d.width);
+            .attr('width', d=>d.width)
+            .attr('height', 20)
+            .attr('rx', 5)
+            .style('cursor','grab')
+            .on('mouseover', (e,d)=>{ d.selected += 1; refresh_labels(); })
+            .on('mouseout', (e,d)=>{ d.selected -= 1; refresh_labels(); });
 
         let thys = this; //sigh
 
@@ -550,6 +598,8 @@ class Langevitour {
         
         let rx = this.xScale.range(), ry = this.yScale.range();
         ctx.strokeStyle = '#000';
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
         ctx.strokeRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
 
         // Axes
