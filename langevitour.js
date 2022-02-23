@@ -245,6 +245,7 @@ let template = `<div>
     
     .fullscreenButton {
         margin: 0.25em 0.5em 0.25em 1em;
+        padding: 0px;
         vertical-align: middle;
     }
     </style>
@@ -258,7 +259,14 @@ let template = `<div>
     </div>
 
     <div class=controlDiv>
-        <button class=fullscreenButton title="Full screen">&#x26F6;</button
+        <button class=fullscreenButton title="Full screen"
+            ><svg  width=20 height=20 version="1.1" viewBox="7 7 22 22" style="vertical-align: middle;">
+            <path d="m 10,16 2,0 0,-4 4,0 0,-2 L 10,10 l 0,6 0,0 z"></path>
+            <path d="m 20,10 0,2 4,0 0,4 2,0 L 26,10 l -6,0 0,0 z"></path>
+            <path d="m 24,24 -4,0 0,2 L 26,26 l 0,-6 -2,0 0,4 0,0 z"></path>
+            <path d="M 12,20 10,20 10,26 l 6,0 0,-2 -4,0 0,-4 0,0 z"></path>
+            </svg
+        ></button
         
         ><div class=box>Axes<input class=axesCheckbox type=checkbox checked></div
         
