@@ -243,11 +243,25 @@ let template = `<div>
         vertical-align: middle;
     }
     
-    .fullscreenButton {
-        margin: 0.25em 0.5em 0.25em 1em;
+    button {
+        margin: 0.25em 0.25em 0.25em 0.25em;
         padding: 0px;
         vertical-align: middle;
+        height: 24px;
+        width: 24px;
     }
+    
+    .infoBox {
+        visibility: hidden;
+        position: absolute;
+        left: 10px;
+        bottom: 0px;
+        padding: 1em;
+        background: #fff;
+        border: 1px solid black;
+        border-radius: 0.25em;
+    }
+    
     </style>
 
     <div style="position: relative" class=plotDiv>
@@ -256,17 +270,27 @@ let template = `<div>
             <g class=labelGroup></g>
             <text class=messageArea></text>
         </svg>
+        <div class=infoBox>
+            <div><b><a href="https://logarithmic.net/langevitour/">langevitour</a></b></div>
+            <div class=infoBoxInfo></div>
+            <div>Projection:</div>
+            <textarea class=infoBoxProj rows=6 cols=30 wrap=off></textarea>
+        </div>
     </div>
 
     <div class=controlDiv>
         <button class=fullscreenButton title="Full screen"
             ><svg  width=20 height=20 version="1.1" viewBox="7 7 22 22" style="vertical-align: middle;">
-            <path d="m 10,16 2,0 0,-4 4,0 0,-2 L 10,10 l 0,6 0,0 z"></path>
-            <path d="m 20,10 0,2 4,0 0,4 2,0 L 26,10 l -6,0 0,0 z"></path>
-            <path d="m 24,24 -4,0 0,2 L 26,26 l 0,-6 -2,0 0,4 0,0 z"></path>
-            <path d="M 12,20 10,20 10,26 l 6,0 0,-2 -4,0 0,-4 0,0 z"></path>
+            <path d="M 10,16 l 2,0 l 0,-4 l 4,0 l 0,-2 L 10,10 l 0,6 l 0,0 z"></path>
+            <path d="M 20,10 l 0,2 l 4,0 l 0,4 l 2,0 L 26,10 l -6,0 l 0,0 z"></path>
+            <path d="M 24,24 l -4,0 l 0,2 L 26,26 l 0,-6 l -2,0 l 0,4 l 0,0 z"></path>
+            <path d="M 12,20 L 10,20 L 10,26 l 6,0 l 0,-2 l -4,0 l 0,-4 l 0,0 z"></path>
             </svg
         ></button
+        
+        ><button class=infoButton>
+            ?
+        </button
         
         ><div class=box>Axes<input class=axesCheckbox type=checkbox checked></div
         
@@ -352,6 +376,26 @@ class Langevitour {
                 this.configure();
             }
         });
+        
+        /* Info box */
+        this.get('infoButton').addEventListener('click', () => {
+            let el = this.get('infoBox');
+            if (el.style.visibility == 'visible') {
+                el.style.visibility = 'hidden';
+            } else {
+                el.style.visibility = 'visible';
+                
+                let matStr = 'projection <- rbind(\n    c(';
+                matStr += this.proj.map(line => line.map(
+                        (item,i) => (item/this.scale[i]).toFixed( Math.ceil(Math.log10(Math.max(0,this.scale[i]))+4) )
+                    ).join(',')).join('),\n    c(');
+                matStr += '))\nprojected <- tcrossprod(as.matrix(X), projection)';
+                
+                this.get('infoBoxProj').value = matStr;
+            
+                this.get('infoBoxInfo').innerHTML = `<p>${this.X.length.toLocaleString("en-US")} points.</p>`;
+            }        
+        });
     }
     
     get(className) {
@@ -396,12 +440,45 @@ class Langevitour {
             let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
             this.levelColors[i] = `rgb(${r},${g},${b})`;
         }
+
+        
+        this.labelData = [ ];
+        
+        if (this.levels.length > 1)
+        for(let i=0;i<this.levels.length;i++) {
+            let vec = zeros(this.m);
+            for(let j=0;j<this.n;j++)
+                if (this.group[j] == i)
+                    vec = vec_add(vec, this.X[j]);
+            vec = vec_scale(vec, 1/Math.sqrt(vec_dot(vec,vec)));            
+            
+            this.labelData.push({
+                type: 'level',
+                level: i,
+                label: this.levels[i], 
+                vec: vec,
+                color: this.levelColors[i],
+                x:2, y:0, //Outside plot area will be reposition in configure()
+            });
+        }
+
+        for(let i=0;i<this.m;i++) {
+            let vec = zeros(this.m);
+            vec[i] = 1;
+            this.labelData.push({ 
+                type:'variable',
+                variable: i,
+                label:this.colnames[i], 
+                vec: vec,
+                color: '#000',
+                x:2, y:0, //Outside plot area will be reposition in configure()
+            });
+        }
         
         this.proj = zero_mat(2, this.m);
         this.proj[0][0] = 1;
         this.proj[1][1] = 1;
         this.vel = zero_mat(2, this.m);
-        
         
         if (!this.running) {
             this.scheduleFrame();
@@ -441,52 +518,14 @@ class Langevitour {
             .style('dominant-baseline','bottom');
         
         this.xScale = d3.scaleLinear()
-            .domain([-1,1]).range([2.5,this.size-2.5]).clamp(true);
+            .domain([-1,1]).range([2.5,this.size-2.5]);
         this.yScale = d3.scaleLinear()
-            .domain([-1,1]).range([2.5,this.size-2.5]).clamp(true);
+            .domain([-1,1]).range([this.size-2.5,2.5]);
 
-        //Draggable labels
-        
-        this.labelData = [ ];
-        
-        if (this.levels.length > 1)
-        for(let i=0;i<this.levels.length;i++) {
-            let vec = zeros(this.m);
-            for(let j=0;j<this.n;j++)
-                if (this.group[j] == i)
-                    vec = vec_add(vec, this.X[j]);
-            vec = vec_scale(vec, 1/Math.sqrt(vec_dot(vec,vec)));            
-            
-            this.labelData.push({
-                type: 'level',
-                level: i,
-                label: this.levels[i], 
-                vec: vec,
-                color: this.levelColors[i]
-            });
-        }
+        this.xScaleClamped = this.xScale.copy().clamp(true);
+        this.yScaleClamped = this.yScale.copy().clamp(true);
 
-        for(let i=0;i<this.m;i++) {
-            let vec = zeros(this.m);
-            vec[i] = 1;
-            this.labelData.push({ 
-                type:'variable',
-                variable: i,
-                label:this.colnames[i], 
-                vec: vec,
-                color: '#000',
-            });
-        }
-        
-        let rows = Math.max(1,Math.floor((this.size-25)/25)), 
-            cols=Math.ceil(this.labelData.length/rows);
-        for(let i=0;i<this.labelData.length;i++) {
-            let row = i % rows, col = (i-row)/rows;
-            this.labelData[i].index = i;
-            this.labelData[i].selected = false;
-            this.labelData[i].x = this.size+10+col*(this.width-this.size)/cols;
-            this.labelData[i].y = 20+row*25;
-        }
+        /* Draggable labels */
         
         this.labelData.reverse();
         
@@ -520,7 +559,6 @@ class Langevitour {
     
         labels.each(function(d) { 
             d.width = this.getBBox().width + 10; 
-            d.x += d.width/2;
         });
         
         boxes
@@ -534,29 +572,33 @@ class Langevitour {
         let thys = this; //sigh
 
         function refresh_labels() {
+            let maxX = thys.xScale.invert(thys.width);
             for(let item of thys.labelData) {
-                item.x = Math.max(0,Math.min(thys.width, item.x));
-                item.y = Math.max(0,Math.min(thys.size, item.y));
+                item.x = Math.max(-1,Math.min(maxX, item.x));
+                item.y = Math.max(-1,Math.min(1,    item.y));
             }
             
             boxes
-                .attr('x',d=>d.x-d.width/2)
-                .attr('y',d=>d.y-10)
+                .attr('x',d=>thys.xScale(d.x)-d.width/2)
+                .attr('y',d=>thys.yScale(d.y)-10)
                 .attr('fill',d=>d.selected?'#aaa':'#ddd')
             labels
-                .attr('x',d=>d.x)
-                .attr('y',d=>d.y)
+                .attr('x',d=>thys.xScale(d.x))
+                .attr('y',d=>thys.yScale(d.y))
         }
 
         let drag = d3.drag()
+            .subject(function (e,d) {
+                return { x:e.x, y:e.y };
+            })
             .on('start', function(e,d) {
                 thys.dragging = true;
                 this.style.cursor = 'grabbing';
                 d.selected += 1;
             })
-            .on('drag', (e,d) => {
-                d.x = e.x;
-                d.y = e.y;
+            .on('drag', function(e,d) {
+                d.x = thys.xScale.invert(e.x);
+                d.y = thys.yScale.invert(e.y);
                 refresh_labels();
             })
             .on('end', function(e,d) {
@@ -566,6 +608,21 @@ class Langevitour {
             });
         drag(boxes);
         drag(labels);
+
+        
+        /* Reposition labels that are not currently in use. */
+        let rows = Math.max(1,Math.floor((this.size-25)/25)), 
+            cols=Math.ceil(this.labelData.length/rows);
+        for(let i=0;i<this.labelData.length;i++) {
+            let d = this.labelData[this.labelData.length-1-i];
+            if (d.x < 1) continue;
+            
+            let row = i % rows, col = (i-row)/rows;
+            d.index = i;
+            d.selected = false;
+            d.x = this.xScale.invert( this.size+10+col*(this.width-this.size)/cols+d.width/2 );
+            d.y = this.yScale.invert( 20+row*25 );
+        }
 
         refresh_labels();
     }
@@ -643,7 +700,7 @@ class Langevitour {
         
         for(let i=0;i<this.n;i++) {
             ctx.fillStyle = fills[i];
-            ctx.fillRect(this.xScale(xy[0][i])-1.5, this.yScale(xy[1][i])-1.5, 3, 3);
+            ctx.fillRect(this.xScaleClamped(xy[0][i])-1.5, this.yScaleClamped(xy[1][i])-1.5, 3, 3);
         }
         
         // Rug
@@ -661,8 +718,8 @@ class Langevitour {
                 
                 ctx.strokeStyle = fills[i];
                 ctx.beginPath();
-                ctx.moveTo(this.xScale(pA[0]),this.yScale(pA[1]));
-                ctx.lineTo(this.xScale(pB[0]),this.yScale(pB[1]));
+                ctx.moveTo(this.xScaleClamped(pA[0]),this.yScaleClamped(pA[1]));
+                ctx.lineTo(this.xScaleClamped(pB[0]),this.yScaleClamped(pB[1]));
                 ctx.stroke();
             }
         }
@@ -729,7 +786,7 @@ class Langevitour {
         if (this.dragging && doAttraction) {
             damping = Math.max(damping, attraction*5.0);
         }
-
+        
         let elapsed = Math.max(1e-6, Math.min(1, real_elapsed));
         
         let vel = this.vel;
@@ -757,9 +814,8 @@ class Langevitour {
 
         if (doAttraction)        
         for(let label of this.labelData) {
-            if (label.x > this.size) continue;
-            let x = this.xScale.invert(label.x);
-            let y = this.yScale.invert(label.y);
+            let x = label.x;
+            let y = label.y;
             if (x <= -1 || y <= -1 || x >= 1 || y >= 1) continue;
             let adjustment = 4*(x*x+y*y);
             vel[0] = vec_add(vel[0], vec_scale(label.vec, x*adjustment*attraction));
