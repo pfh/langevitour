@@ -58,8 +58,10 @@ langevitour(zeisel[,-1], zeisel$type)
 
 We can reduce the noise in this data by averaging each cell with its 30 nearest neighbors.
 
+I also include as extra axes the varimax rotation of the principal components. These axes are more easily interpretable than the principal components themselves.
+
 * Try to separate microglia, astrocytes_ependymal and endothelial-mural cells by dragging their labels onto the plot.
-* Find principal components that distinguish these cells and try dragging them onto the plot instead.
+* Find principal components or varimax rotated principal components that distinguish these cells and try dragging them onto the plot instead.
 
 ```{r}
 X <- as.matrix(zeisel[,-1])
@@ -67,7 +69,10 @@ neighbors <- RANN::nn2(X, k=30)$nn.idx
 X_smooth <- lapply(seq_len(nrow(X)), \(i) colMeans(X[neighbors[i,],]))
 X_smooth <- do.call(rbind, X_smooth)
 
-langevitour(X_smooth, zeisel$type)
+vmAxes <- varimax(X_smooth, normalize=FALSE)$rotmat
+colnames(vmAxes) <- paste0("VM",seq_len(nrow(vmAxes)))
+
+langevitour(X_smooth, zeisel$type, extraAxes=vmAxes)
 ```
 
 
@@ -78,12 +83,27 @@ A dataset from the [tourr](http://ggobi.github.io/tourr/) package.
 
 By default, langevitour does not scale variables individually. This dataset rather requires scaling, so we supply our desired scaling.
 
+I also demonstrate adding extra axes representing principal components and varimax rotated principal components.
+
 ```{r}
 olives <- tourr::olive[,3:10]
-olives_scale <- apply(olives, 2, sd) * 6
-olives_group <- paste(tourr::olive$region, tourr::olive$area)
+olivesScale <- apply(olives, 2, sd)
+olivesGroup <- paste(tourr::olive$region, tourr::olive$area)
 
-langevitour(olives, group=olives_group, scale=olives_scale)
+# Find principal components
+pca <- prcomp(sweep(olives, 2, olivesScale, "/"), rank=3)
+olivesPC = sweep(pca$rotation, 1, olivesScale, "/")
+
+# Find a varimax rotation of the loadings from PCA
+rotmat <- varimax(pca$x)$rotmat
+olivesVM <- olivesPC %*% rotmat
+colnames(olivesVM) <- paste0("VM",seq_len(ncol(olivesVM)))
+
+langevitour(
+    olives, 
+    group=olivesGroup, 
+    scale=olivesScale*6, 
+    extraAxes=cbind(olivesPC, olivesVM))
 ```
 
 

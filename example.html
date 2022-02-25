@@ -18,7 +18,7 @@ body { margin: 0; }
 <script>
 "use strict";
 
-// Generate higher-dimensional Paulian function
+// Generate a sample dataset
 let X = [ ], group = [ ];
 let r = ()=>jStat.normal.sample(0,0.02);
 for(let i=0;i<10000;i++) {
@@ -26,6 +26,17 @@ for(let i=0;i<10000;i++) {
     X.push([ Math.sin(a)/3+r(), Math.sin(a*2)/3+r(), Math.sin(a*3)/3, Math.sin(a*4)/3, Math.sin(a*5)/3 ]);
     group.push( Math.floor(i/2500) );
 }
+
+// Extra axes (specified as columns of a matrix)
+let extraAxes = [ 
+    [1],
+    [1],
+    [0],
+    [0],
+    [0]
+];
+let extraAxesNames = [ 'V1+V2' ];
+let extraAxesCenter = [ 0 ];
 
 let container = document.getElementById("container");
 let tour = new langevitour.Langevitour(container, window.innerWidth, window.innerHeight);
@@ -35,6 +46,10 @@ tour.renderValue({
     group:group, 
     levels:['a','b','c','d'],
     colnames:['V1','V2','V3','V4','V5'],
+    
+    extraAxes:extraAxes,
+    extraAxesNames:extraAxesNames,
+    extraAxesCenter:extraAxesCenter,
 });
 
 </script>

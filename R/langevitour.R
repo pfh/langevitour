@@ -14,6 +14,8 @@
 #'
 #' @param scale Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen, equal for all variables. (The default is the largest singular value of the centered X times 2.5.)
 #'
+#' @param extraAxes A matrix with each column defining a projection of interest. The columns of \code{X \%*\% extraAxes} will be presented as extra "variables".
+#'
 #' @param width Width of widget.
 #'
 #' @param height Height of widget.
@@ -28,7 +30,7 @@
 #' @import htmlwidgets
 #'
 #' @export
-langevitour <- function(X, group=NULL, center=NULL, scale=NULL, width=NULL, height=NULL, elementId=NULL) {
+langevitour <- function(X, group=NULL, center=NULL, scale=NULL, extraAxes=NULL, width=NULL, height=NULL, elementId=NULL) {
     X <- as.matrix(X)
     
     if (is.null(colnames(X)))
@@ -61,6 +63,19 @@ langevitour <- function(X, group=NULL, center=NULL, scale=NULL, width=NULL, heig
         
     X_centered_scaled <- sweep(X_centered, 2, scale, "/")
     
+    # Extra axes
+    
+    extraAxesCenter <- NULL
+    
+    if (!is.null(extraAxes)) {
+        extraAxes <- as.matrix(extraAxes)
+        extraAxesCenter <- as.vector(rbind(center) %*% extraAxes)
+        extraAxes <- sweep(extraAxes, 1, scale, "*")
+        
+        if (is.null(colnames(extraAxes)))
+            colnames(extraAxes) <- paste0("E", seq_len(ncol(extraAxes)))
+    }
+    
     rownames(X_centered_scaled) <- NULL
     colnames(X_centered_scaled) <- NULL
     names(center) <- NULL
@@ -74,7 +89,11 @@ langevitour <- function(X, group=NULL, center=NULL, scale=NULL, width=NULL, heig
         colnames = as.list(colnames(X)),
         rownames = as.list(rownames(X)),
         group = as.list(as.integer(group)-1),
-        levels = as.list(levels(group)))
+        levels = as.list(levels(group)),
+        
+        extraAxes = extraAxes,
+        extraAxesCenter = extraAxesCenter,
+        extraAxesNames = colnames(extraAxes))
     
     htmlwidgets::createWidget(
         name = 'langevitour',
