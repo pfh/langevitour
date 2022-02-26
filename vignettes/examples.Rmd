@@ -46,6 +46,7 @@ langevitour(iris[,1:4], iris$Species)
 Single-cell RNA-Seq gene expression of 2,816 mouse brain cells ([Zeisel, 2015](https://pubmed.ncbi.nlm.nih.gov/25700174/)). The top 20 principal components were produced using the steps in the [Bioconductor OSCA workflow](http://bioconductor.org/books/3.13/OSCA.workflows/zeisel-mouse-brain-strt-seq.html).
 
 * Try setting point repulsion to "local".
+* Examine particular cell types in detail by turning off the other cell types.
 
 ```{r}
 zeisel <- read.csv(system.file("extdata","zeisel_pca.csv.gz", package="langevitour"))
@@ -58,10 +59,8 @@ langevitour(zeisel[,-1], zeisel$type)
 
 We can reduce the noise in this data by averaging each cell with its 30 nearest neighbors.
 
-The package GPArotation provides many factor rotation methods. I have included as extra axes a rotation of the principal components using the Bentler method, which seems to produce axes that are more easily interpretable than the principal components themselves.
-
 * Try to separate microglia, astrocytes_ependymal and endothelial-mural cells by dragging their labels onto the plot.
-* Find principal components or rotated principal components that distinguish these cells and try dragging them onto the plot instead.
+* Find principal components components that distinguish these cells and try dragging them onto the plot instead.
 
 ```{r}
 X <- as.matrix(zeisel[,-1])
@@ -69,10 +68,7 @@ neighbors <- RANN::nn2(X, k=30)$nn.idx
 X_smooth <- lapply(seq_len(nrow(X)), \(i) colMeans(X[neighbors[i,],]))
 X_smooth <- do.call(rbind, X_smooth)
 
-rotatedAxes <- GPArotation::bentlerT(X_smooth)$Th
-colnames(rotatedAxes) <- paste0("R",seq_len(ncol(rotatedAxes)))
-
-langevitour(X_smooth, zeisel$type, extraAxes=cbind(rotatedAxes))
+langevitour(X_smooth, zeisel$type)
 ```
 
 
@@ -83,7 +79,7 @@ A dataset from the [tourr](http://ggobi.github.io/tourr/) package.
 
 By default, langevitour does not scale variables individually. This dataset rather requires scaling, so we supply our desired scaling.
 
-I also demonstrate adding extra axes representing principal components and rotated principal components.
+I also demonstrate adding extra axes representing principal components and rotated principal components. The package GPArotation provides many factor rotation methods. The Bentler method seems to work well.
 
 ```{r}
 olives <- tourr::olive[,3:10]
