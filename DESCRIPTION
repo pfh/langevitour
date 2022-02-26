@@ -10,6 +10,7 @@ BugReports: https://github.com/pfh/langevitour/issues/
 Imports:
     htmlwidgets
 Suggests:
+    GPArotation,
     tourr,
     liminal,
     geozoo,

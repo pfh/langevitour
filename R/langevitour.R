@@ -10,11 +10,15 @@
 #'
 #' @param group A group for each row in X, will be used to color points. A factor, or something that can be cast to a factor.
 #'
+#' @param name A name for each row in X.
+#'
 #' @param center Center for each variable. If omitted, the column means will be used.
 #'
 #' @param scale Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen, equal for all variables. (The default is the largest singular value of the centered X times 2.5.)
 #'
 #' @param extraAxes A matrix with each column defining a projection of interest. The columns of \code{X \%*\% extraAxes} will be presented as extra "variables".
+#'
+#' @param axisColors Character vector. Colors for each variable and then each extra axis.
 #'
 #' @param width Width of widget.
 #'
@@ -30,14 +34,15 @@
 #' @import htmlwidgets
 #'
 #' @export
-langevitour <- function(X, group=NULL, center=NULL, scale=NULL, extraAxes=NULL, width=NULL, height=NULL, elementId=NULL) {
+langevitour <- function(
+        X, group=NULL, name=NULL, center=NULL, scale=NULL, 
+        extraAxes=NULL, axisColors=NULL, 
+        width=NULL, height=NULL, elementId=NULL) {
+
     X <- as.matrix(X)
     
     if (is.null(colnames(X)))
         colnames(X) <- paste0("V", seq_len(ncol(X)))
-
-    if (is.null(rownames(X)))
-        rownames(X) <- paste0("R", seq_len(nrow(X)))
     
     if (is.null(group))
         group <- rep("", nrow(X))
@@ -84,16 +89,18 @@ langevitour <- function(X, group=NULL, center=NULL, scale=NULL, extraAxes=NULL, 
     
     data <- list(
         X = X_centered_scaled,
-        center = center,
-        scale = scale,
+        center = as.list(center),
+        scale = as.list(scale),
         colnames = as.list(colnames(X)),
-        rownames = as.list(rownames(X)),
+        rownames = as.list(name),
         group = as.list(as.integer(group)-1),
         levels = as.list(levels(group)),
         
         extraAxes = extraAxes,
-        extraAxesCenter = extraAxesCenter,
-        extraAxesNames = colnames(extraAxes))
+        extraAxesCenter = as.list(extraAxesCenter),
+        extraAxesNames = as.list(colnames(extraAxes)),
+        
+        axisColors=as.list(axisColors))
     
     htmlwidgets::createWidget(
         name = 'langevitour',

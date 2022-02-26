@@ -7,9 +7,11 @@
 langevitour(
   X,
   group = NULL,
+  name = NULL,
   center = NULL,
   scale = NULL,
   extraAxes = NULL,
+  axisColors = NULL,
   width = NULL,
   height = NULL,
   elementId = NULL
@@ -20,11 +22,15 @@ langevitour(
 
 \item{group}{A group for each row in X, will be used to color points. A factor, or something that can be cast to a factor.}
 
+\item{name}{A name for each row in X.}
+
 \item{center}{Center for each variable. If omitted, the column means will be used.}
 
 \item{scale}{Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen, equal for all variables. (The default is the largest singular value of the centered X times 2.5.)}
 
 \item{extraAxes}{A matrix with each column defining a projection of interest. The columns of \code{X \%*\% extraAxes} will be presented as extra "variables".}
+
+\item{axisColors}{Character vector. Colors for each variable and then each extra axis.}
 
 \item{width}{Width of widget.}
 

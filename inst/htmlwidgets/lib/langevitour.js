@@ -343,8 +343,20 @@ class Langevitour {
         
         /* svg overlay only appears when mouse in plot area */
         this.mousing = false;
-        this.get('plotDiv').addEventListener('mouseover', () => { this.mousing = true; });
-        this.get('plotDiv').addEventListener('mouseout', () => { this.mousing = false; });
+        this.mouseX = 0;
+        this.mouseY = 0;
+        let plotDiv = this.get('plotDiv');
+        plotDiv.addEventListener('mouseover', (e) => { 
+            this.mousing = true; 
+        });
+        plotDiv.addEventListener('mouseout', (e) => { 
+            this.mousing = false; 
+        });
+        plotDiv.addEventListener('mousemove', (e) => { 
+            let rect = plotDiv.getBoundingClientRect();
+            this.mouseX = e.x - rect.left;
+            this.mouseY = e.y - rect.top;
+        });
         
         /* Hide fullscreen button if not available */
         if (this.container.requestFullscreen == null)
@@ -407,6 +419,8 @@ class Langevitour {
         this.n = data.X.length;
         this.m = data.X[0].length;
         
+        let axisColors = data.axisColors || [];
+        
         // data.X is assumed already centered and scaled. 
         // These allow us to recover the original values:
         this.center = data.center || Array(this.m).fill(0);
@@ -415,6 +429,10 @@ class Langevitour {
         // Shuffling is not optional.
         this.permutor = permutation(this.n);
         this.X = this.permutor.map(i => data.X[i]);
+        
+        this.rownames = data.rownames;
+        if (!this.rownames || this.rownames.length == 0) 
+            this.rownames = null;
         
         this.colnames = data.colnames;
         
@@ -429,7 +447,8 @@ class Langevitour {
                 name: data.extraAxesNames[i],
                 unit:unit,
                 scale: scale,
-                center: data.extraAxesCenter[i], 
+                center: data.extraAxesCenter[i],
+                color: axisColors[i+this.m],
             });
         }
 
@@ -441,6 +460,7 @@ class Langevitour {
                 center: this.center[i],
                 scale: this.scale[i],
                 unit: unit,
+                color: axisColors[i],
             });
         }
         
@@ -456,7 +476,7 @@ class Langevitour {
         this.fills = [ ];
         for(let i=0;i<this.n;i++) {
             let angle = (this.group[i]+1/3)/n_groups;
-            let value = 64*i/this.n+64;
+            let value = 80+48*i/this.n;
             let r = value*(1+Math.cos(angle*Math.PI*2));
             let g = value*(1+Math.cos((angle+1/3)*Math.PI*2));
             let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
@@ -466,7 +486,7 @@ class Langevitour {
         this.levelColors = [ ];
         for(let i=0;i<n_groups;i++) {
             let angle = (i+1/3)/n_groups;
-            let value = 96;
+            let value = 104;
             let r = value*(1+Math.cos(angle*Math.PI*2));
             let g = value*(1+Math.cos((angle+1/3)*Math.PI*2));
             let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
@@ -764,23 +784,48 @@ class Langevitour {
             }
         }
                 
-        // Axis labels
+        //Text section
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         ctx.save()
         ctx.lineJoin = 'round';
         ctx.lineWidth = 5;
+        
+        // Row label
+        if (this.mousing && this.mouseX < this.size && this.rownames) {
+            let dists = [ ];
+            for(let i=0;i<this.n;i++)
+                dists[i] = { i:i, d2:(this.xScaleClamped(xy[0][i])-this.mouseX)**2+(this.yScaleClamped(xy[1][i])-this.mouseY)**2 };
+            dists.sort((a,b) => a.d2-b.d2);
+            
+            ctx.font = `15px sans-serif`;
+            ctx.strokeStyle = `#fff`;
+            ctx.fillStyle = `#000`;
+            for(let i=Math.min(this.n,1)-1;i>=0;i--) {
+                let j=dists[i].i;
+                let x = this.xScaleClamped(xy[0][j]), y = this.yScaleClamped(xy[1][j]);
+                ctx.strokeText(this.rownames[j], x, y);                
+                ctx.fillText(this.rownames[j], x, y);                
+            }
+        }
                 
+        // Axis labels
         if (showAxes)
         for(let i=0;i<this.axes.length;i++) {
             let xProj = vec_dot(this.proj[0], this.axes[i].unit);
             let yProj = vec_dot(this.proj[1], this.axes[i].unit);
-            let r2 = xProj*xProj+yProj*yProj;
-            let alpha = (i==selectedAxis ? 1 : Math.min(1,r2*2));
-            ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-            ctx.fillStyle = `rgba(0,0,0,${alpha})`;
-
+            
+            if (this.axes[i].color) {
+                ctx.strokeStyle = '#fff';
+                ctx.fillStyle = this.axes[i].color;
+            } else {
+                let r2 = xProj*xProj+yProj*yProj;
+                let alpha = (i==selectedAxis ? 1 : Math.min(1,r2*2));
+                ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+                ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+            }
+            
             if (i==selectedAxis) {
                 let ticks = d3.scaleLinear()
                     .domain([this.axes[i].center-this.axes[i].scale*axisScale, this.axes[i].center+this.axes[i].scale*axisScale])
@@ -793,6 +838,12 @@ class Langevitour {
                     ctx.fillText(`${value}`, this.xScale(scaled*xProj), this.yScale(scaled*yProj));    
                 }
             }
+            
+            /*if (selectedAxis != null) {
+                let similarity = vec_dot(this.axes[i].unit, this.axes[selectedAxis].unit)*0.5+0.5;
+                ctx.fillStyle = d3.interpolateViridis(similarity);
+                ctx.strokeStyle = '#fff';
+            }*/
             
             ctx.font = `15px sans-serif`;
             ctx.strokeText(this.axes[i].name, this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
