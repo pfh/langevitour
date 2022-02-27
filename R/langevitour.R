@@ -89,18 +89,18 @@ langevitour <- function(
     
     data <- list(
         X = X_centered_scaled,
-        center = as.list(center),
-        scale = as.list(scale),
+        center = as.list(as.numeric(center)),
+        scale = as.list(as.numeric(scale)),
         colnames = as.list(colnames(X)),
-        rownames = as.list(name),
+        rownames = as.list(as.character(name)),
         group = as.list(as.integer(group)-1),
         levels = as.list(levels(group)),
         
         extraAxes = extraAxes,
-        extraAxesCenter = as.list(extraAxesCenter),
+        extraAxesCenter = as.list(as.numeric(extraAxesCenter)),
         extraAxesNames = as.list(colnames(extraAxes)),
         
-        axisColors=as.list(axisColors))
+        axisColors=as.list(as.character(axisColors)))
     
     htmlwidgets::createWidget(
         name = 'langevitour',

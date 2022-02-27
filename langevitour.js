@@ -443,9 +443,10 @@ class Langevitour {
         this.permutor = permutation(this.n);
         this.X = this.permutor.map(i => data.X[i]);
         
-        this.rownames = data.rownames;
-        if (!this.rownames || this.rownames.length == 0) 
+        if (!data.rownames || data.rownames.length == 0) 
             this.rownames = null;
+        else
+            this.rownames = this.permutor.map(i => data.rownames[i]);
         
         this.colnames = data.colnames;
         
