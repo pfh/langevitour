@@ -496,7 +496,7 @@ class Langevitour {
             let g = value*(1+Math.cos((angle+1/3)*Math.PI*2));
             let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
             this.fills[i] = `rgb(${r},${g},${b})`;
-            this.fillsFaded[i] = `rgba(${r},${g},${b},0.0625)`;
+            this.fillsFaded[i] = `rgba(${r},${g},${b},0.125)`;
         }
         
         this.levelColors = [ ];
@@ -765,15 +765,15 @@ class Langevitour {
                 if (levelActive[this.group[i]])
                     fills[i] = '#888888ff';
                 else
-                    fills[i] = '#88888808';
+                    fills[i] = '#8888881f';
             }
         }
         
         if (selected && selected.type == 'axis') {
             for(let i=0;i<this.n;i++) {
                 let c = this.axes[selectedAxis].proj[i];
-                c = Math.tanh(c * 2);                                       // Hmm
-                fills[i] = d3.interpolateViridis(c*0.5+0.5);
+                c = Math.tanh(c * 2);                                                                    // Hmm
+                fills[i] = d3.interpolateViridis(c*0.5+0.5) + (levelActive[this.group[i]]?"":"1f");
             }
         }
         
@@ -795,6 +795,8 @@ class Langevitour {
             ];
             ox = vec_scale(ox, 0.05/Math.sqrt(vec_dot(ox,ox)));
             for(let i=0;i<this.n;i++) {
+                if (!levelActive[this.group[i]]) continue;
+                
                 let valueProj = this.axes[selectedAxis].proj[i];
                 let p = [ 
                     xProj * valueProj, 

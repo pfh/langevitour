@@ -1,0 +1,145 @@
+---
+title: "RNA-Seq extended example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RNA-Seq extended example}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+options(digits=3)
+```
+
+I will use the [airway](https://bioconductor.org/packages/release/data/experiment/html/airway.html) dataset from Bioconductor. In this data, the rows are genes, and columns are measurements of the amount of RNA in different biological samples. The data examines the effect of dexamethasone treatment on four different airway muscle cell lines.
+
+# Data normalization and filtering
+
+I start with the usual mucking around for an RNA-Seq dataset to normalize and log transform the data, and get friendly gene names.
+
+I also filter out genes with low variability (this also eliminates genes with low expression). This is mostly to keep the number of points manageable in langevitour.
+
+```{r setup,message=FALSE,warning=FALSE}
+library(langevitour)
+library(airway)               # airway dataset
+library(edgeR)                # RPM calculation
+library(limma)                # makeContrasts
+library(MASS)                 # ginv generalized matrix inverse
+library(GPArotation)          # Bentler rotation
+library(EnsDb.Hsapiens.v86)   # Gene names
+library(ggplot2)
+library(dplyr)
+library(tibble)
+
+data(airway)
+
+treatment <- colData(airway)$dex == "trt"
+cell <- factor(c(1,1,2,2,3,3,4,4))
+design <- model.matrix(~ 0 + cell + treatment)
+
+dge <- airway |>
+    assay("counts") |>
+    DGEList() |>
+    calcNormFactors()
+
+# Convert to log2 Reads Per Million.
+# prior.count=5 applies some moderation for counts near zero.
+rpms <- cpm(dge, log=TRUE, prior.count=5)
+
+# Only show variable genes (mostly for speed)
+keep <- apply(rpms,1,sd) >= 0.5
+table(keep)
+y <- rpms[keep,,drop=F]
+
+# Use shorter sample names
+colnames(y) <- paste0(ifelse(treatment,"T","U"), cell)
+
+# Get friendly gene names
+symbols <- 
+    AnnotationDbi::select(EnsDb.Hsapiens.v86, keys=rownames(y), keytype="GENEID", columns="SYMBOL") |>
+    deframe()
+name <- symbols[rownames(y)]
+name[is.na(name)] <- rownames(y)[is.na(name)]
+
+# Colors for the samples
+colors <- ifelse(treatment,"#f00","#080")
+```
+
+These are the first few rows of our normalized and log transformed data.
+
+U = Untreated, T = Treated, 1 2 3 4 = cell line.
+
+```{r}
+y[1:5,]
+```
+
+
+# Contrasts of interest
+
+I now work out how to estimate a linear model and calculate contrasts of interest. The contrasts will be made available as extra axes in the langevitour plot.
+
+```{r contrasts}
+coefficient_estimator <- MASS::ginv(design)
+
+contrasts <- makeContrasts(
+        average=(cell1+cell2+cell3+cell4)/4+treatmentTRUE/2,
+        treatment=treatmentTRUE,
+        "cell1 vs others" = cell1-(cell2+cell3+cell4)/3,
+        "cell2 vs others" = cell2-(cell1+cell3+cell4)/3,
+        "cell3 vs others" = cell3-(cell1+cell2+cell4)/3,
+        "cell4 vs others" = cell4-(cell1+cell2+cell3)/3,
+        levels=design)
+
+contrastAxes <- t(coefficient_estimator) %*% contrasts
+
+contrastAxes
+```
+
+
+# Principal Components
+
+I will also supply Principal Components as extra axes in the plot. When doing the PCA, I don't use scaling because the data is already all in comparable units of measurement (log2 RPM). From the scree plot, four components seems reasonable. I also supply the Bentler rotation of these axes, which may be more easily interpretable.
+
+```{r components}
+y_centered <- sweep(y, 1, rowMeans(y), "-")
+
+pca <- prcomp(y_centered, scale=FALSE, rank=4)
+plot(pca)
+pcaAxes <- pca$rotation
+
+bentlerAxes <- pca$rotation %*% bentlerT(pca$x)$Th
+colnames(bentlerAxes) <- paste0("Bentler",seq_len(ncol(bentlerAxes)))
+```
+
+# Plot the data with langevitour
+
+We are now ready to do the langevitour plot.
+
+**A key tool we will use is deactivating an axis by unchecking its checkbox. Langevitour will then only show projections of the data that are orthogonal to the deactivated axis.**
+
+Usage:
+
+* Your first step will be to deactivate the "average" axis, since this is large and uninformative.
+* Try dragging different axes onto the plot.
+* Try the various point repulsion methods. You will need to increase the amount of point repulsion for these to work.
+* Drag treatment onto the plot, and deactivate each of the "cell vs others" axes. The remaining variation orthogonal to the treatment axis should be purely random variation. You can compare this to the variation along the treatment axis. This is a visual version of a statistical test.
+
+Notes:
+
+* The main interest is a small number of genes affected by the treatment.
+* We can also see small numbers of genes expressing differently in the different cell-lines.
+* The Principal Component and Bentler axes are fairly similar, but Bentler3 seems somewhat superior to PC3. It highlights a set of genes that are down in the fourth cell line.
+
+```{r plot}
+langevitour(
+    y, scale=15, axisColor=colors, name=name, 
+    extraAxes=cbind(contrastAxes, pcaAxes, bentlerAxes))
+```
+

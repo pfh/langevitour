@@ -3,7 +3,7 @@
 ^\.Rproj\.user$
 ^langevitour\.js$
 ^example\.html$
-^notes\.R$
+^notes.*\.R$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$

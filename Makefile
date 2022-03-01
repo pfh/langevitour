@@ -12,6 +12,8 @@ copy:
 docs: copy document
 	R -e 'pkgdown::build_site()'
 
-install:
+install: copy
 	R -e 'devtools::install()'
 
+quick-install: copy
+	R -e 'devtools::install(quick=T)'

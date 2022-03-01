@@ -15,8 +15,17 @@ Suggests:
     liminal,
     geozoo,
     RANN,
+    MASS,
+    ggplot2,
+    dplyr,
+    tibble,
     knitr,
-    rmarkdown
+    rmarkdown,
+    airway,
+    limma,
+    edgeR,
+    EnsDb.Hsapiens.v86,
+    AnnotationDbi
 License: LGPL (>= 2.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
