@@ -37,7 +37,7 @@ Things to try:
 ## Iris
 
 ```{r}
-langevitour(iris[,1:4], iris$Species)
+langevitour(iris[,1:4], iris$Species, pointSize=2)
 ```
 
 

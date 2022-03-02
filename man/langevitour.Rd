@@ -12,6 +12,7 @@ langevitour(
   scale = NULL,
   extraAxes = NULL,
   axisColors = NULL,
+  pointSize = 1,
   width = NULL,
   height = NULL,
   elementId = NULL
@@ -31,6 +32,8 @@ langevitour(
 \item{extraAxes}{A matrix with each column defining a projection of interest. The columns of \code{X \%*\% extraAxes} will be presented as extra "variables".}
 
 \item{axisColors}{Character vector. Colors for each variable and then each extra axis.}
+
+\item{pointSize}{Point radius in pixels.}
 
 \item{width}{Width of widget.}
 

@@ -38,6 +38,11 @@ function permutation(n) {
     return array;
 }
 
+function hex_byte(value) {
+    value = Math.max(0,Math.min(255,Math.round(value)));
+    return (value<16?'0':'')+value.toString(16);
+}
+
 function times(n, func, ...args) {
     let result = Array(n);
     for(let i=0;i<n;i++) result[i] = func(...args);
@@ -262,6 +267,13 @@ let template = `<div>
         border-radius: 0.25em;
     }
     
+    .messageArea {
+        position: absolute;
+        right: 3px;
+        bottom: 3px;
+        color: #888;
+    }
+    
     .labelDiv {
         white-space: nowrap;
         position: absolute;
@@ -281,7 +293,7 @@ let template = `<div>
 
     <div style="position: relative" class=plotDiv>
         <canvas class=canvas></canvas>
-        <div class=messageArea style="position: absolute; right:0; bottom:0;"></div>
+        <div class=messageArea></div>
         <div class=overlay style="position: absolute; left:0; top:0;"></div>
         <div class=infoBox>
             <div><b><a href="https://logarithmic.net/langevitour/">langevitour</a></b></div>
@@ -432,6 +444,8 @@ class Langevitour {
         this.n = data.X.length;
         this.m = data.X[0].length;
         
+        this.pointSize = data.pointSize != null ? data.pointSize : 1;
+        
         let axisColors = data.axisColors || [];
         
         // data.X is assumed already centered and scaled. 
@@ -492,21 +506,21 @@ class Langevitour {
         for(let i=0;i<this.n;i++) {
             let angle = (this.group[i]+1/3)/n_groups;
             let value = 80+48*i/this.n;
-            let r = value*(1+Math.cos(angle*Math.PI*2));
-            let g = value*(1+Math.cos((angle+1/3)*Math.PI*2));
-            let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
-            this.fills[i] = `rgb(${r},${g},${b})`;
-            this.fillsFaded[i] = `rgba(${r},${g},${b},0.125)`;
+            let r = hex_byte( value*(1+Math.cos(angle*Math.PI*2)) );
+            let g = hex_byte( value*(1+Math.cos((angle+1/3)*Math.PI*2)) );
+            let b = hex_byte( value*(1+Math.cos((angle+2/3)*Math.PI*2)) );
+            this.fills[i] = '#'+r+g+b;;
+            this.fillsFaded[i] = '#'+r+g+b+'1f';
         }
         
         this.levelColors = [ ];
         for(let i=0;i<n_groups;i++) {
             let angle = (i+1/3)/n_groups;
             let value = 104;
-            let r = value*(1+Math.cos(angle*Math.PI*2));
-            let g = value*(1+Math.cos((angle+1/3)*Math.PI*2));
-            let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
-            this.levelColors[i] = `rgb(${r},${g},${b})`;
+            let r = hex_byte( value*(1+Math.cos(angle*Math.PI*2)) );
+            let g = hex_byte( value*(1+Math.cos((angle+1/3)*Math.PI*2)) );
+            let b = hex_byte( value*(1+Math.cos((angle+2/3)*Math.PI*2)) );
+            this.levelColors[i] = '#'+r+g+b;
         }
 
         
@@ -777,7 +791,7 @@ class Langevitour {
             }
         }
         
-        let size = 1.5;
+        let size = this.pointSize;
         for(let i=0;i<this.n;i++) {
             ctx.fillStyle = fills[i];
             ctx.fillRect(this.xScaleClamped(xy[0][i])-size, this.yScaleClamped(xy[1][i])-size, size*2, size*2);
@@ -850,9 +864,9 @@ class Langevitour {
                 ctx.fillStyle = this.axes[i].color;
             } else {
                 let r2 = xProj*xProj+yProj*yProj;
-                let alpha = (i==selectedAxis ? 1 : Math.min(1,r2*2));
-                ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-                ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+                let alpha = (i==selectedAxis ? '' : hex_byte(r2*2*355));
+                ctx.strokeStyle = '#ffffff'+alpha;
+                ctx.fillStyle = '#000000'+alpha;
             }
             
             if (i==selectedAxis) {

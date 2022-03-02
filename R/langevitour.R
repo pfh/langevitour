@@ -20,6 +20,8 @@
 #'
 #' @param axisColors Character vector. Colors for each variable and then each extra axis.
 #'
+#' @param pointSize Point radius in pixels.
+#'
 #' @param width Width of widget.
 #'
 #' @param height Height of widget.
@@ -36,7 +38,7 @@
 #' @export
 langevitour <- function(
         X, group=NULL, name=NULL, center=NULL, scale=NULL, 
-        extraAxes=NULL, axisColors=NULL, 
+        extraAxes=NULL, axisColors=NULL, pointSize=1,
         width=NULL, height=NULL, elementId=NULL) {
 
     X <- as.matrix(X)
@@ -100,7 +102,8 @@ langevitour <- function(
         extraAxesCenter = as.list(as.numeric(extraAxesCenter)),
         extraAxesNames = as.list(colnames(extraAxes)),
         
-        axisColors=as.list(as.character(axisColors)))
+        axisColors=as.list(as.character(axisColors)),
+        pointSize=as.numeric(pointSize))
     
     htmlwidgets::createWidget(
         name = 'langevitour',
