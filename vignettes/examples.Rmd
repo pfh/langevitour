@@ -99,7 +99,8 @@ langevitour(
     olives, 
     group=olivesGroup, 
     scale=olivesScale*6, 
-    extraAxes=cbind(olivesPC, olivesR))
+    extraAxes=cbind(olivesPC, olivesR),
+    pointSize=1.5)
 ```
 
 

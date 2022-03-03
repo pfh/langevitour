@@ -668,22 +668,32 @@ class Langevitour {
                 return { x:e.x, y:e.y };
             })
             .on('start', function(e,d) {
+                // Do not drag checkbox.
+                if (e.sourceEvent.explicitOriginalTarget.tagName == 'INPUT')
+                    return;
+                
                 thys.dragging = true;
                 this.style.cursor = 'grabbing';
                 d.selected += 1;
             })
             .on('drag', function(e,d) {
+                // We decided not to drag because we started on the checkbox.
+                if (!thys.dragging)
+                    return;
+                    
                 d.x = thys.xScale.invert(e.x);
                 d.y = thys.yScale.invert(e.y);
                 refresh_labels();
             })
             .on('end', function(e,d) {
+                if (!thys.dragging)
+                    return;
+                
                 thys.dragging = false;
                 this.style.cursor = 'grab';
                 d.selected -= 1;
             });
         drag(divs);
-        //drag(labels);
 
         
         /* Reposition labels that are not currently in use. */
@@ -777,9 +787,9 @@ class Langevitour {
             for(let i=0;i<this.n;i++) {
                 if (this.group[i] != selected.level)
                 if (levelActive[this.group[i]])
-                    fills[i] = '#888888ff';
+                    fills[i] = '#bbbbbbff';
                 else
-                    fills[i] = '#8888881f';
+                    fills[i] = '#bbbbbb1f';
             }
         }
         
