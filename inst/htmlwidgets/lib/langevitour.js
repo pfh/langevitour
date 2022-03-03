@@ -609,6 +609,8 @@ class Langevitour {
         
         overlay.selectAll('*').remove();
         
+        this.mouseInCheckbox = false;
+        
         let divs = overlay
             .selectAll('div')
             .data(this.labelData)
@@ -619,7 +621,9 @@ class Langevitour {
                     div.append('input')
                         .attr('type','checkbox')
                         .property('checked',d => d.active)
-                        .on('change',function(e,d) { d.active = this.checked; });
+                        .on('change',function(e,d) { d.active = this.checked; })
+                        .on('mouseover',() => { this.mouseInCheckbox = true; })
+                        .on('mouseout',() => { this.mouseInCheckbox = false; });
                     div.append('span');
                     return div;
                 }
@@ -669,7 +673,7 @@ class Langevitour {
             })
             .on('start', function(e,d) {
                 // Do not drag checkbox.
-                if (e.sourceEvent.explicitOriginalTarget.tagName == 'INPUT')
+                if (thys.mouseInCheckbox)
                     return;
                 
                 thys.dragging = true;
