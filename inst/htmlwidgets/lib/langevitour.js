@@ -269,6 +269,8 @@ let template = `<div>
     
     .messageArea {
         position: absolute;
+        white-space: pre;
+        text-align: right;
         right: 3px;
         bottom: 3px;
         color: #888;
@@ -363,6 +365,8 @@ class Langevitour {
         this.last_time = 0;
         this.dragging = false;
         this.fps = [ ];
+        
+        this.computeMessage = '';
 
         this.resize(width, height);
         
@@ -737,7 +741,7 @@ class Langevitour {
         this.fps.push( Math.floor(1/elapsed+0.5) );
         if (this.fps.length > 100) this.fps.shift();
         
-        this.get('messageArea').innerText = `${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
+        this.get('messageArea').innerText = `${this.computeMessage}\n${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
 
         let selected = this.labelData.filter(d=>d.selected)[0];
         let selectedAxis = null;
@@ -944,6 +948,8 @@ class Langevitour {
         
         let elapsed = Math.max(1e-6, Math.min(1, real_elapsed));
         
+        this.computeMessage = '';
+        
         let vel = this.vel;
         let proj = this.proj;
         
@@ -988,13 +994,18 @@ class Langevitour {
         for(let item of this.labelData)
         if (item.type == 'axis' && !item.active)
             inactive.push(this.axes[item.axis].unit);
-        if (inactive.length && inactive.length < this.m-1) {                                         //TODO: complain if too many
+        
+        let too_many = inactive.length >= this.m-1;
+        let any_dropped = false;
+        
+        if (inactive.length && !too_many) {                                         //TODO: complain if too many
             let { u, v, q } = SVDJS.SVD(mat_transpose(inactive));
             let maxQ = Math.max(...q);
             u = mat_transpose(u);
             for(let i=0;i<u.length;i++) {
                 // Don't nuke tiny directions (could arise from reduntant nukings).
                 if (q[i] < maxQ*1e-6) {
+                    any_dropped = true;
                     continue;                                                                        //TODO: make option
                 }
                 let vec = u[i];
@@ -1002,6 +1013,10 @@ class Langevitour {
                     new_proj[j] = vec_sub(new_proj[j], vec_scale(vec, vec_dot(vec,new_proj[j])));
             }
         }
+        
+        
+        if (too_many) this.computeMessage += 'Error: too many axes removed';
+        if (any_dropped) this.computeMessage += 'Note: reduntant axes removed';
 
         // Project onto Stiefel manifold                
         let { u, v, q } = SVDJS.SVD(mat_transpose(new_proj));

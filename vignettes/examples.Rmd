@@ -43,7 +43,7 @@ langevitour(iris[,1:4], iris$Species, pointSize=2)
 
 ## Mouse brain cells
 
-Single-cell RNA-Seq gene expression of 2,816 mouse brain cells ([Zeisel, 2015](https://pubmed.ncbi.nlm.nih.gov/25700174/)). The top 20 principal components were produced using the steps in the [Bioconductor OSCA workflow](http://bioconductor.org/books/3.13/OSCA.workflows/zeisel-mouse-brain-strt-seq.html).
+Single-cell RNA-Seq gene expression of 2,816 mouse brain cells ([Zeisel, 2015](https://pubmed.ncbi.nlm.nih.gov/25700174/)). The top 20 principal components were produced using the steps in the [Bioconductor OSCA workflow](http://bioconductor.org/books/3.13/OSCA.workflows/zeisel-mouse-brain-strt-seq.html). This is unscaled PCA of log$_2$(normalized_count+1) expression levels, mean UMI count 15,550 per cell. So $x$ units of distance can be explained for example by $n$ genes with $x/\sqrt{n}$ log$_2$ fold change each.
 
 * Try setting point repulsion to "local".
 * Examine particular cell types in detail by turning off the other cell types.
