@@ -738,7 +738,7 @@ class Langevitour {
         
         this.compute(elapsed);
         
-        this.fps.push( Math.floor(1/elapsed+0.5) );
+        this.fps.push( Math.round(1/elapsed) );
         if (this.fps.length > 100) this.fps.shift();
         
         this.get('messageArea').innerText = `${this.computeMessage}\n${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
@@ -929,7 +929,7 @@ class Langevitour {
     
     compute(real_elapsed) {
         let damping =     0.2  *Math.pow(10, this.get('dampInput').value);
-        let temperature = 0.02 *Math.pow(10, this.get('tempInput').value);
+        let temperature = 0.05 *Math.pow(10, this.get('tempInput').value);
         let repulsion =   1.0  *Math.pow(10, this.get('repulsionInput').value);
         let attraction =  1.0  *Math.pow(10, this.get('labelInput').value);
         let doTemp = this.get('tempCheckbox').checked;
@@ -953,13 +953,16 @@ class Langevitour {
         let vel = this.vel;
         let proj = this.proj;
         
-        //mat_scale_into(vel, 1-elapsed*damping);        
         //Integrate dv/dt = -damping * v
-        mat_scale_into(vel, Math.exp(-elapsed*damping));
+        let velKeep = Math.exp(-elapsed*damping);
+        mat_scale_into(vel, velKeep);
 
         if (doTemp) {
+            // Damping reduces the variance * velKeep^2
+            // We need to add velReplaceVar * desired steady state variance of temperature*2
+            let velReplaceVar = 1 - velKeep*velKeep;        
             let noise = times(proj.length, times, this.m,
-                jStat.normal.sample, 0, Math.sqrt(2*temperature*elapsed));
+                jStat.normal.sample, 0, Math.sqrt(2*temperature*velReplaceVar));
             
             noise = removeSpin(noise, proj);
             
