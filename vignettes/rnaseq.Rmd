@@ -124,12 +124,12 @@ We are now ready to do the langevitour plot.
 
 **A key tool we will use is deactivating an axis by unchecking its checkbox. Langevitour will then only show projections of the data that are orthogonal to the deactivated axis.**
 
-Usage:
+Things to try:
 
 * Your first step will be to deactivate the "average" axis, since this is large and uninformative.
 * Try dragging different axes onto the plot.
 * Try the various point repulsion methods. You will need to increase the amount of point repulsion for these to work.
-* Drag treatment onto the plot, and deactivate each of the "cell vs others" axes. The remaining variation orthogonal to the treatment axis should be purely random variation. You can compare this to the variation along the treatment axis. This is a visual version of a statistical test.
+* Drag treatment onto the plot, and deactivate the "average" axis and each of the "cell vs others" axes. Also ensure point repulsion is "none". The remaining variation orthogonal to the treatment axis should be purely random variation. You can compare this to the variation along the treatment axis. This is a visual version of a statistical test called a ["rotation test"](https://link.springer.com/article/10.1007/s11222-005-4789-5). For each gene, we can compare its projection along the treatment axis to the random projections being shown orthogonal to the treatment axis. If it is extreme compared to these random projections we reject that treatment had no effect on the gene. ((There is a bit more that needs to be said here, about multiple testing.))
 
 Notes:
 

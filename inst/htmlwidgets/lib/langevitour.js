@@ -25,20 +25,20 @@ function elementVisible(el) {
     return elemTop < window.innerHeight && elemBottom >= 0;
 }
 
-function rand_int(n) { 
+function randInt(n) { 
     return Math.floor(Math.random()*n); 
 }
 
 function permutation(n) {
     let array = Array(n).fill().map((x,i)=>i);
     for (let i = array.length-1; i>0; i--) {
-        const j = rand_int(i+1);
+        const j = randInt(i+1);
         [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
 }
 
-function hex_byte(value) {
+function hexByte(value) {
     value = Math.max(0,Math.min(255,Math.round(value)));
     return (value<16?'0':'')+value.toString(16);
 }
@@ -51,33 +51,33 @@ function times(n, func, ...args) {
 
 function zeros(n) { return Array(n).fill(0); }
 
-function vec_sub(a,b) {
+function vecSub(a,b) {
     let result = Array(a.length);
     for(let i=0;i<result.length;i++) result[i] = a[i]-b[i];
     return result;
 }
 
-function vec_add(a,b) {
+function vecAdd(a,b) {
     let result = Array(a.length);
     for(let i=0;i<result.length;i++) result[i] = a[i]+b[i];
     return result;
 }
 
-function vec_dot(a,b) {
+function vecDot(a,b) {
     let result = 0;
     for(let i=0;i<a.length;i++) result += a[i]*b[i];
     return result;
 }
 
-function vec_scale(a,b) {
+function vecScale(a,b) {
     let result = Array(a.length);
     for(let i=0;i<result.length;i++) result[i] = a[i]*b;
     return result;
 }
 
-function zero_mat(n,m) { return times(n,zeros,m); }
+function zeroMat(n,m) { return times(n,zeros,m); }
 
-function mat_mul_into(result, A, B) {
+function matMulInto(result, A, B) {
     let a = A.length, b = A[0].length, c = B[0].length;
     for(let i=0;i<a;i++)
     for(let k=0;k<c;k++)
@@ -90,13 +90,13 @@ function mat_mul_into(result, A, B) {
     return result;
 }
 
-function mat_mul(A,B) {
+function matMul(A,B) {
     let result = times(A.length, ()=>Array(B[0].length));
-    mat_mul_into(result, A, B);
+    matMulInto(result, A, B);
     return result
 }
 
-function mat_tcrossprod_into(result, A, B) {
+function matTcrossprodInto(result, A, B) {
     let a = A.length, b = A[0].length, c = B.length;
     for(let i=0;i<a;i++)
     for(let k=0;k<c;k++)
@@ -109,13 +109,13 @@ function mat_tcrossprod_into(result, A, B) {
     return result;
 }
 
-function mat_tcrossprod(A,B) {
+function matTcrossprod(A,B) {
     let result = times(A.length, Array, B.length);
-    mat_tcrossprod_into(result, A, B);
+    matTcrossprodInto(result, A, B);
     return result
 }
 
-function mat_add(A,B) {
+function matAdd(A,B) {
     let result = times(A.length, ()=>Array(A[0].length));
     for(let i=0;i<A.length;i++)
     for(let j=0;j<A[0].length;j++)
@@ -123,23 +123,23 @@ function mat_add(A,B) {
     return result;
 }
 
-function mat_scale(A,b) {
+function matScale(A,b) {
     return A.map(row => row.map(value => value*b));
 }
 
-function mat_scale_into(A,b) {
+function matScaleInto(A,b) {
     for(let i=0;i<A.length;i++)
     for(let j=0;j<A[0].length;j++)
         A[i][j] *= b;
 }
 
-function mat_add_into(A,B) {
+function matAddInto(A,B) {
     for(let i=0;i<A.length;i++)
     for(let j=0;j<A[0].length;j++)
         A[i][j] += B[i][j];
 }
 
-function mat_transpose(A) {
+function matTranspose(A) {
     let result = times(A[0].length, Array, A.length);
     for(let i=0;i<A.length;i++)
     for(let j=0;j<A[0].length;j++)
@@ -151,12 +151,12 @@ function mat_transpose(A) {
 /**** Projection pursuit gradients ****/
 
 /*
-function gradRepulsion(proj, X, power, fine_scale) {
+function gradRepulsion(proj, X, power, fineScale) {
     let k = 1000;
     let A = Array(k);
     
     for(let i=0;i<k;i++) {
-        A[i] = vec_sub(X[rand_int(X.length)],X[rand_int(X.length)]);
+        A[i] = vecSub(X[randInt(X.length)],X[randInt(X.length)]);
     }
 
     function objective(proj) {
@@ -164,7 +164,7 @@ function gradRepulsion(proj, X, power, fine_scale) {
         
         let l = tf.sum(tf.mul(projA,projA),0)
         
-        l = tf.add(l, fine_scale**2);
+        l = tf.add(l, fineScale**2);
         
         if (power == 0)
             l = tf.log(l)
@@ -174,15 +174,15 @@ function gradRepulsion(proj, X, power, fine_scale) {
         return tf.mul(tf.sum(l), -1/k);
     }
 
-    let grad_func = tf.grad(objective);
+    let gradFunc = tf.grad(objective);
     
     function inner() {
-        let grad = grad_func(tf.tensor(proj));
+        let grad = gradFunc(tf.tensor(proj));
         
         // Don't spin.
-        let rot_proj = tf.matMul([[0,-1/Math.sqrt(2)],[1/Math.sqrt(2),0]], proj);
-        let dot = tf.sum(tf.mul(grad,rot_proj));
-        grad = tf.sub(grad, tf.mul(rot_proj, dot));
+        let rotProj = tf.matMul([[0,-1/Math.sqrt(2)],[1/Math.sqrt(2),0]], proj);
+        let dot = tf.sum(tf.mul(grad,rotProj));
+        grad = tf.sub(grad, tf.mul(rotProj, dot));
         
         return grad.arraySync();
     }
@@ -192,35 +192,35 @@ function gradRepulsion(proj, X, power, fine_scale) {
 */
 
 function removeSpin(motion, proj) {
-    let rot_proj = mat_mul([[0,-1/Math.sqrt(2)],[1/Math.sqrt(2),0]], proj);
+    let rotProj = matMul([[0,-1/Math.sqrt(2)],[1/Math.sqrt(2),0]], proj);
     let dot = 0;
     for(let i=0;i<proj.length;i++)
     for(let j=0;j<proj[0].length;j++)
-        dot += motion[i][j]*rot_proj[i][j];
+        dot += motion[i][j]*rotProj[i][j];
     
-    return mat_add(motion, mat_scale(rot_proj, -dot));
+    return matAdd(motion, matScale(rotProj, -dot));
 }
 
-function gradRepulsion(proj, X, power, fine_scale) {
+function gradRepulsion(proj, X, power, fineScale) {
     let iters = 1000;
     let m = proj.length, n = proj[0].length;
     let p = [ ];
-    let grad = zero_mat(m,n);
+    let grad = zeroMat(m,n);
     
     for(let i=0;i<iters;i++) {
-        let a = vec_sub(X[rand_int(X.length)],X[rand_int(X.length)]);
+        let a = vecSub(X[randInt(X.length)],X[randInt(X.length)]);
         
         for(let j=0;j<m;j++)
-            p[j] = vec_dot(a, proj[j]);
+            p[j] = vecDot(a, proj[j]);
         
-        let scale = (vec_dot(p,p)+fine_scale)**(power-1);
+        let scale = (vecDot(p,p)+fineScale)**(power-1);
         
         for(let j=0;j<m;j++)
         for(let k=0;k<n;k++)
             grad[j][k] += a[k] * p[j] * scale;
     }
     
-    mat_scale_into(grad, -2/iters);
+    matScaleInto(grad, -2/iters);
     
     return removeSpin( grad, proj );
 }
@@ -342,12 +342,19 @@ let template = `<div>
 </div>`;
 
 let repulsionTable = {
-    "local": {amount:0.5, power:0, fine_scale:0.01},
-    "pca": {amount:0.5, power:1, fine_scale:0},
-    "outlier": {amount:5, power:2, fine_scale:0},
+    "local": {amount:0.5, power:0, fineScale:0.01},
+    "pca": {amount:0.5, power:1, fineScale:0},
+    "outlier": {amount:5, power:2, fineScale:0},
 };
 
+/** Class to create and animate a Langevin Tour widget */
 class Langevitour {
+    /** 
+     * Create a Langevin Tour widget.
+     * @param {HTMLElement} container Element to insert widget into.
+     * @param {number} width Desired initial width of widget.
+     * @param {number} height Desired initial height of widget.
+     */
     constructor(container, width, height) {
         /* Set up elements in a shadow DOM to isolate from document style. */
         this.container = container;
@@ -362,7 +369,7 @@ class Langevitour {
         this.levels = [ ];
 
         this.running = false;
-        this.last_time = 0;
+        this.lastTime = 0;
         this.dragging = false;
         this.fps = [ ];
         
@@ -443,6 +450,22 @@ class Langevitour {
         return this.shadow.firstChild.getElementsByClassName(className)[0];
     }
     
+    /**
+     * Show data in the widget.
+     * @param {object} data The data to show.
+     * @param {Array.<Array.<number>>} data.X A row-major matrix, where each row represents a point and each column represents a variable. The data should be centered and scaled.
+     * @param {Array.<scale>} data.scale Scaling to restore original units of X.
+     * @param {Array.<number>} data.center Center to restore original units of X.
+     * @param {Array.<string>} data.colnames A name for each column in X.
+     * @param {Array.<string>} [data.rownames] A name for each point.
+     * @param {Array.<number>} [data.group] Group number for each point. Integer values starting from 0.
+     * @param {Array.<string>} [data.levels] Group names for each group in data.group.
+     * @param {Array.<Array.<number>>} [data.extraAxes] A matrix with each column defining a projection of interest.
+     * @param {Array.<number>} [data.center] Center to restore original units of extra axes. Scaling is assumed already included in data.extraAxes.
+     * @param {Array.<string>} [data.extraAxesNames] A name for each extra axis.
+     * @param {Array.<string>} [data.axisColors] CSS colors for each variable and then optionally for each extra axis.
+     * @param {number} [data.pointSize] Radius of points in pixels.
+     */
     renderValue(data) {
         //TODO: checking
         this.n = data.X.length;
@@ -473,8 +496,8 @@ class Langevitour {
         if (data.extraAxes)
         for(let i=0;i<data.extraAxes[0].length;i++) {
             let vec = data.extraAxes.map(row => row[i]);
-            let scale = Math.sqrt(vec_dot(vec,vec));
-            let unit = vec_scale(vec, 1/scale);
+            let scale = Math.sqrt(vecDot(vec,vec));
+            let unit = vecScale(vec, 1/scale);
             this.axes.push({ 
                 name: data.extraAxesNames[i],
                 unit:unit,
@@ -498,32 +521,32 @@ class Langevitour {
         
         // Precompute projection of all data onto all axes
         for(let i=0;i<this.axes.length;i++) {
-            this.axes[i].proj = this.X.map(vec => vec_dot(vec, this.axes[i].unit));
+            this.axes[i].proj = this.X.map(vec => vecDot(vec, this.axes[i].unit));
         }
                 
         this.levels = data.levels;
         this.group = this.permutor.map(i => data.group[i]);
         
-        let n_groups = this.levels.length;
+        let nGroups = this.levels.length;
         this.fills = [ ];
         this.fillsFaded = [ ];
         for(let i=0;i<this.n;i++) {
-            let angle = (this.group[i]+1/3)/n_groups;
+            let angle = (this.group[i]+1/3)/nGroups;
             let value = 80+48*i/this.n;
-            let r = hex_byte( value*(1+Math.cos(angle*Math.PI*2)) );
-            let g = hex_byte( value*(1+Math.cos((angle+1/3)*Math.PI*2)) );
-            let b = hex_byte( value*(1+Math.cos((angle+2/3)*Math.PI*2)) );
+            let r = hexByte( value*(1+Math.cos(angle*Math.PI*2)) );
+            let g = hexByte( value*(1+Math.cos((angle+1/3)*Math.PI*2)) );
+            let b = hexByte( value*(1+Math.cos((angle+2/3)*Math.PI*2)) );
             this.fills[i] = '#'+r+g+b;;
             this.fillsFaded[i] = '#'+r+g+b+'1f';
         }
         
         this.levelColors = [ ];
-        for(let i=0;i<n_groups;i++) {
-            let angle = (i+1/3)/n_groups;
+        for(let i=0;i<nGroups;i++) {
+            let angle = (i+1/3)/nGroups;
             let value = 104;
-            let r = hex_byte( value*(1+Math.cos(angle*Math.PI*2)) );
-            let g = hex_byte( value*(1+Math.cos((angle+1/3)*Math.PI*2)) );
-            let b = hex_byte( value*(1+Math.cos((angle+2/3)*Math.PI*2)) );
+            let r = hexByte( value*(1+Math.cos(angle*Math.PI*2)) );
+            let g = hexByte( value*(1+Math.cos((angle+1/3)*Math.PI*2)) );
+            let b = hexByte( value*(1+Math.cos((angle+2/3)*Math.PI*2)) );
             this.levelColors[i] = '#'+r+g+b;
         }
 
@@ -535,8 +558,8 @@ class Langevitour {
             let vec = zeros(this.m);
             for(let j=0;j<this.n;j++)
                 if (this.group[j] == i)
-                    vec = vec_add(vec, this.X[j]);
-            vec = vec_scale(vec, 1/Math.sqrt(vec_dot(vec,vec)));            
+                    vec = vecAdd(vec, this.X[j]);
+            vec = vecScale(vec, 1/Math.sqrt(vecDot(vec,vec)));            
             
             this.labelData.push({
                 type: 'level',
@@ -561,12 +584,15 @@ class Langevitour {
             });
         }
         
-        //this.labelData.reverse();
-        
-        this.proj = zero_mat(2, this.m);
+        // Set initial projection state        
+        this.proj = zeroMat(2, this.m);
         this.proj[0][0] = 1;
         this.proj[1][1] = 1;
-        this.vel = zero_mat(2, this.m);
+        this.vel = zeroMat(2, this.m);
+        
+        // Only used in doFrame. However this is a fairly large amount of memory that needs to be used each time.
+        this.xy = zeroMat(2, this.n);
+        this.fillsFrame = Array(this.n).fill("");
         
         if (!this.running) {
             this.scheduleFrame();
@@ -576,6 +602,14 @@ class Langevitour {
         this.configure();        
     }
     
+    /** 
+     * Resize the widget.
+     *
+     * Ignored if widget has gone full-screen.
+     *
+     * @param {number} width New width.
+     * @param {number} height New height.
+     */
     resize(width, height) {
         // At least in pkgdown vignettes, we get weird resize requests while fullscreen.
         if (document.fullscreenElement) return;
@@ -633,24 +667,16 @@ class Langevitour {
                 }
             );
         
-        let labels = divs.select('span')
-            .text(d=>d.label)
-            .style('color',d=>d.color);
-        //    .on('mouseover', (e,d)=>{ d.selected += 1; refresh_labels(); })
-        //    .on('mouseout', (e,d)=>{ d.selected -= 1; refresh_labels(); });
-    
-        //labels.each(function(d) { 
-        //    d.width = this.getBBox().width + 10; 
-        //});
+        divs
+            .style('cursor','grab')
+            .on('mouseover', (e,d)=>{ d.selected += 1; refreshLabels(); })
+            .on('mouseout', (e,d)=>{ d.selected -= 1; refreshLabels(); });
         
         divs
-            //.attr('width', d=>d.width)
-            //.attr('height', 20)
-            //.attr('rx', 5)
-            .style('cursor','grab')
-            .on('mouseover', (e,d)=>{ d.selected += 1; refresh_labels(); })
-            .on('mouseout', (e,d)=>{ d.selected -= 1; refresh_labels(); });
-        
+            .select('span')
+            .text(d=>d.label)
+            .style('color',d=>d.color);
+                
         divs.each(function (d) {
             d.halfWidth = this.offsetWidth/2;
             d.halfHeight = this.offsetHeight/2;
@@ -658,7 +684,7 @@ class Langevitour {
 
         let thys = this; //sigh
 
-        function refresh_labels() {
+        function refreshLabels() {
             let maxX = thys.xScale.invert(thys.width);
             for(let item of thys.labelData) {
                 item.x = Math.max(-1,Math.min(maxX, item.x));
@@ -691,7 +717,7 @@ class Langevitour {
                     
                 d.x = thys.xScale.invert(e.x);
                 d.y = thys.yScale.invert(e.y);
-                refresh_labels();
+                refreshLabels();
             })
             .on('end', function(e,d) {
                 if (!thys.dragging)
@@ -717,7 +743,7 @@ class Langevitour {
             d.y = this.yScale.invert( 20+row*25 );
         }
         
-        refresh_labels();
+        refreshLabels();
     }
     
     scheduleFrame() {
@@ -727,8 +753,8 @@ class Langevitour {
     doFrame(time) {
         time /= 1000.0; //Convert to seconds
 
-        let elapsed = time - this.last_time;
-        this.last_time = time;
+        let elapsed = time - this.lastTime;
+        this.lastTime = time;
         
         if (this.X == null || !elementVisible(this.canvas)) {
             // We aren't visible. Wait a while.
@@ -772,8 +798,8 @@ class Langevitour {
         
         if (showAxes)
         for(let i=0;i<this.axes.length;i++) {
-            let xProj = vec_dot(this.proj[0], this.axes[i].unit);
-            let yProj = vec_dot(this.proj[1], this.axes[i].unit);
+            let xProj = vecDot(this.proj[0], this.axes[i].unit);
+            let yProj = vecDot(this.proj[1], this.axes[i].unit);
         
             ctx.beginPath();
             ctx.moveTo(this.xScale(-axisScale*xProj), this.yScale(-axisScale*yProj));
@@ -782,22 +808,21 @@ class Langevitour {
         }
 
         // Points
-        let xy = mat_tcrossprod(this.proj, this.X);
+        matTcrossprodInto(this.xy, this.proj, this.X);
 
-        let fills = [ ];
         for(let i=0;i<this.n;i++)
         if (levelActive[this.group[i]])
-            fills[i] = this.fills[i];
+            this.fillsFrame[i] = this.fills[i];
         else
-            fills[i] = this.fillsFaded[i];
+            this.fillsFrame[i] = this.fillsFaded[i];
         
         if (selected && selected.type == 'level' && levelActive[selected.level]) {
             for(let i=0;i<this.n;i++) {
                 if (this.group[i] != selected.level)
                 if (levelActive[this.group[i]])
-                    fills[i] = '#bbbbbbff';
+                    this.fillsFrame[i] = '#bbbbbbff';
                 else
-                    fills[i] = '#bbbbbb1f';
+                    this.fillsFrame[i] = '#bbbbbb1f';
             }
         }
         
@@ -805,27 +830,27 @@ class Langevitour {
             for(let i=0;i<this.n;i++) {
                 let c = this.axes[selectedAxis].proj[i];
                 c = Math.tanh(c * 2);                                                                    // Hmm
-                fills[i] = d3.interpolateViridis(c*0.5+0.5) + (levelActive[this.group[i]]?"":"1f");
+                this.fillsFrame[i] = d3.interpolateViridis(c*0.5+0.5) + (levelActive[this.group[i]]?"":"1f");
             }
         }
         
         let size = this.pointSize;
         for(let i=0;i<this.n;i++) {
-            ctx.fillStyle = fills[i];
-            ctx.fillRect(this.xScaleClamped(xy[0][i])-size, this.yScaleClamped(xy[1][i])-size, size*2, size*2);
+            ctx.fillStyle = this.fillsFrame[i];
+            ctx.fillRect(this.xScaleClamped(this.xy[0][i])-size, this.yScaleClamped(this.xy[1][i])-size, size*2, size*2);
         }
         
         // Rug
         if (showAxes && selectedAxis != null) {
             //ctx.strokeStyle = '#00000022';
-            let xProj = vec_dot(this.proj[0], this.axes[selectedAxis].unit);
-            let yProj = vec_dot(this.proj[1], this.axes[selectedAxis].unit);
+            let xProj = vecDot(this.proj[0], this.axes[selectedAxis].unit);
+            let yProj = vecDot(this.proj[1], this.axes[selectedAxis].unit);
 
             let ox = [ 
-                 vec_dot(this.proj[1], this.axes[selectedAxis].unit), 
-                -vec_dot(this.proj[0], this.axes[selectedAxis].unit) 
+                 vecDot(this.proj[1], this.axes[selectedAxis].unit), 
+                -vecDot(this.proj[0], this.axes[selectedAxis].unit) 
             ];
-            ox = vec_scale(ox, 0.05/Math.sqrt(vec_dot(ox,ox)));
+            ox = vecScale(ox, 0.05/Math.sqrt(vecDot(ox,ox)));
             for(let i=0;i<this.n;i++) {
                 if (!levelActive[this.group[i]]) continue;
                 
@@ -834,10 +859,10 @@ class Langevitour {
                     xProj * valueProj, 
                     yProj * valueProj 
                 ];                
-                let pA = vec_add(p, ox);
-                let pB = vec_add(p, vec_scale(ox,-1));
+                let pA = vecAdd(p, ox);
+                let pB = vecAdd(p, vecScale(ox,-1));
                 
-                ctx.strokeStyle = fills[i];
+                ctx.strokeStyle = this.fillsFrame[i];
                 ctx.beginPath();
                 ctx.moveTo(this.xScaleClamped(pA[0]),this.yScaleClamped(pA[1]));
                 ctx.lineTo(this.xScaleClamped(pB[0]),this.yScaleClamped(pB[1]));
@@ -857,7 +882,10 @@ class Langevitour {
         if (this.mousing && this.mouseX < this.size && this.rownames) {
             let dists = [ ];
             for(let i=0;i<this.n;i++)
-                dists[i] = { i:i, d2:(this.xScaleClamped(xy[0][i])-this.mouseX)**2+(this.yScaleClamped(xy[1][i])-this.mouseY)**2 };
+                dists[i] = { 
+                    i:i, 
+                    d2:(this.xScaleClamped(this.xy[0][i])-this.mouseX)**2+
+                       (this.yScaleClamped(this.xy[1][i])-this.mouseY)**2 };
             dists.sort((a,b) => a.d2-b.d2);
             
             ctx.font = `15px sans-serif`;
@@ -865,7 +893,7 @@ class Langevitour {
             ctx.fillStyle = `#000`;
             for(let i=Math.min(this.n,1)-1;i>=0;i--) {
                 let j=dists[i].i;
-                let x = this.xScaleClamped(xy[0][j]), y = this.yScaleClamped(xy[1][j]);
+                let x = this.xScaleClamped(this.xy[0][j]), y = this.yScaleClamped(this.xy[1][j]);
                 ctx.strokeText(this.rownames[j], x, y);                
                 ctx.fillText(this.rownames[j], x, y);                
             }
@@ -874,15 +902,15 @@ class Langevitour {
         // Axis labels
         if (showAxes)
         for(let i=0;i<this.axes.length;i++) {
-            let xProj = vec_dot(this.proj[0], this.axes[i].unit);
-            let yProj = vec_dot(this.proj[1], this.axes[i].unit);
+            let xProj = vecDot(this.proj[0], this.axes[i].unit);
+            let yProj = vecDot(this.proj[1], this.axes[i].unit);
             
             if (this.axes[i].color) {
                 ctx.strokeStyle = '#fff';
                 ctx.fillStyle = this.axes[i].color;
             } else {
                 let r2 = xProj*xProj+yProj*yProj;
-                let alpha = (i==selectedAxis ? '' : hex_byte(r2*2*355));
+                let alpha = (i==selectedAxis ? '' : hexByte(r2*2*355));
                 ctx.strokeStyle = '#ffffff'+alpha;
                 ctx.fillStyle = '#000000'+alpha;
             }
@@ -901,7 +929,7 @@ class Langevitour {
             }
             
             /*if (selectedAxis != null) {
-                let similarity = vec_dot(this.axes[i].unit, this.axes[selectedAxis].unit)*0.5+0.5;
+                let similarity = vecDot(this.axes[i].unit, this.axes[selectedAxis].unit)*0.5+0.5;
                 ctx.fillStyle = d3.interpolateViridis(similarity);
                 ctx.strokeStyle = '#fff';
             }*/
@@ -927,7 +955,7 @@ class Langevitour {
         //this.scheduleFrame();
     }
     
-    compute(real_elapsed) {
+    compute(realElapsed) {
         let damping =     0.2  *Math.pow(10, this.get('dampInput').value);
         let temperature = 0.05 *Math.pow(10, this.get('tempInput').value);
         let repulsion =   1.0  *Math.pow(10, this.get('repulsionInput').value);
@@ -946,7 +974,7 @@ class Langevitour {
             damping = Math.max(damping, attraction*5.0);
         }
         
-        let elapsed = Math.max(1e-6, Math.min(1, real_elapsed));
+        let elapsed = Math.max(1e-6, Math.min(1, realElapsed));
         
         this.computeMessage = '';
         
@@ -955,7 +983,7 @@ class Langevitour {
         
         //Integrate dv/dt = -damping * v
         let velKeep = Math.exp(-elapsed*damping);
-        mat_scale_into(vel, velKeep);
+        matScaleInto(vel, velKeep);
 
         if (doTemp) {
             // Damping reduces the variance * velKeep^2
@@ -966,16 +994,16 @@ class Langevitour {
             
             noise = removeSpin(noise, proj);
             
-            mat_add_into(vel, noise);
+            matAddInto(vel, noise);
         }
 
         if (whatRepulsion != 'none') {
             let activeX = this.X.filter((item,i) => levelActive[this.group[i]]);
             if (activeX.length) {
                 let options = repulsionTable[whatRepulsion];
-                let grad = gradRepulsion(proj, activeX, options.power, options.fine_scale);
-                mat_scale_into(grad, -1*options.amount*repulsion);
-                mat_add_into(vel, grad);
+                let grad = gradRepulsion(proj, activeX, options.power, options.fineScale);
+                matScaleInto(grad, -1*options.amount*repulsion);
+                matAddInto(vel, grad);
             }
         }
 
@@ -985,12 +1013,12 @@ class Langevitour {
             let y = label.y;
             if (x <= -1 || y <= -1 || x >= 1 || y >= 1) continue;
             let adjustment = 4*(x*x+y*y);
-            vel[0] = vec_add(vel[0], vec_scale(label.vec, x*adjustment*attraction));
-            vel[1] = vec_add(vel[1], vec_scale(label.vec, y*adjustment*attraction));
+            vel[0] = vecAdd(vel[0], vecScale(label.vec, x*adjustment*attraction));
+            vel[1] = vecAdd(vel[1], vecScale(label.vec, y*adjustment*attraction));
         }
         
         
-        let new_proj = mat_add(proj, mat_scale(vel, elapsed));
+        let newProj = matAdd(proj, matScale(vel, elapsed));
         
         // Nuke inactive axes
         let inactive = [ ];
@@ -998,36 +1026,35 @@ class Langevitour {
         if (item.type == 'axis' && !item.active)
             inactive.push(this.axes[item.axis].unit);
         
-        let too_many = inactive.length >= this.m-1;
-        let any_dropped = false;
+        let tooMany = inactive.length >= this.m-1;
+        let anyDropped = false;
         
-        if (inactive.length && !too_many) {                                         //TODO: complain if too many
-            let { u, v, q } = SVDJS.SVD(mat_transpose(inactive));
+        if (inactive.length && !tooMany) {
+            let { u, v, q } = SVDJS.SVD(matTranspose(inactive));
             let maxQ = Math.max(...q);
-            u = mat_transpose(u);
+            u = matTranspose(u);
             for(let i=0;i<u.length;i++) {
-                // Don't nuke tiny directions (could arise from reduntant nukings).
+                // Don't nuke tiny directions (could arise from reduntant nukings). TODO: make tolerance level an option
                 if (q[i] < maxQ*1e-6) {
-                    any_dropped = true;
-                    continue;                                                                        //TODO: make option
+                    anyDropped = true;
+                    continue;
                 }
                 let vec = u[i];
                 for(let j=0;j<2;j++)
-                    new_proj[j] = vec_sub(new_proj[j], vec_scale(vec, vec_dot(vec,new_proj[j])));
+                    newProj[j] = vecSub(newProj[j], vecScale(vec, vecDot(vec,newProj[j])));
             }
         }
-        
-        
-        if (too_many) this.computeMessage += 'Error: too many axes removed';
-        if (any_dropped) this.computeMessage += 'Note: reduntant axes removed';
+                
+        if (tooMany) this.computeMessage += 'Error: too many axes removed';
+        if (anyDropped) this.computeMessage += 'Note: reduntant axes removed';
 
         // Project onto Stiefel manifold                
-        let { u, v, q } = SVDJS.SVD(mat_transpose(new_proj));
-        new_proj = mat_tcrossprod(v, u);
+        let { u, v, q } = SVDJS.SVD(matTranspose(newProj));
+        matTcrossprodInto(newProj, v, u);
         
         // "Position based dynamics"
-        this.vel = mat_scale(mat_add(new_proj,mat_scale(proj,-1)), 1/elapsed);
-        this.proj = new_proj;
+        this.vel = matScale(matAdd(newProj,matScale(proj,-1)), 1/elapsed);
+        this.proj = newProj;
     }
 }
 

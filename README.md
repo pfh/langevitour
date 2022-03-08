@@ -5,6 +5,7 @@
 * [Javascript example](https://pfh.github.io/langevitour/example.html)
 * [R examples](https://logarithmic.net/langevitour/articles/examples.html)
 
+
 ## R Installation
 
 ```{r}
@@ -13,11 +14,25 @@ install.packages("remotes")
 remotes::install_github("pfh/langevitour")
 ```
 
-## R example usage
+
+## R usage
+
+Example:
 
 ```{r}
+library(langevitour)
+
 langevitour(iris[,1:4], iris$Species)
 ```
+
+* [R documentation.](https://logarithmic.net/langevitour/reference)
+
+
+## Javascript usage
+
+* Get started by viewing source on [this example](https://pfh.github.io/langevitour/example.html).
+* [Javascript documentation.](https://logarithmic.net/langevitour/jsdoc/Langevitour.html)
+
 
 ## Copyright
 

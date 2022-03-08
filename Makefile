@@ -1,7 +1,7 @@
 
-.PHONY : all copy docs document install
+.PHONY : all copy docs jsdoc document install quick-install
 
-all: copy document docs
+all: copy jsdoc document docs
 
 document: copy
 	R -e 'devtools::document()'
@@ -11,6 +11,9 @@ copy:
 
 docs: copy document
 	R -e 'pkgdown::build_site()'
+
+jsdoc:
+	jsdoc langevitour.js -d docs/jsdoc
 
 install: copy
 	R -e 'devtools::install()'
