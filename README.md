@@ -22,7 +22,8 @@ Example:
 ```{r}
 library(langevitour)
 
-langevitour(iris[,1:4], iris$Species)
+data(zeiselPC)
+langevitour(zeiselPC[,-1], zeiselPC$type)
 ```
 
 * [R documentation.](https://logarithmic.net/langevitour/reference)

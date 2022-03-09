@@ -38,7 +38,9 @@ let extraAxes = [
 let extraAxesNames = [ 'V1+V2' ];
 let extraAxesCenter = [ 0 ];
 
+
 let container = document.getElementById("container");
+
 let tour = new langevitour.Langevitour(container, window.innerWidth, window.innerHeight);
 
 tour.renderValue({
@@ -53,5 +55,8 @@ tour.renderValue({
     
     pointSize:1,
 });
+
+
+window.addEventListener('resize', ()=>tour.resize(window.innerWidth, window.innerHeight));
 
 </script>

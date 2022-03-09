@@ -31,7 +31,15 @@
 #' @return An htmlwidget object.
 #'
 #' @examples
-#' langevitour(iris[,1:4], iris$Species)
+#' library(palmerpenguins)
+#' 
+#' completePenguins <- na.omit(penguins[,c(1,3,4,5,6)])
+#' scale <- apply(completePenguins[,-1], 2, sd)*4
+#' 
+#' langevitour(
+#'     completePenguins[,-1], 
+#'     completePenguins$species, 
+#'     scale=scale, pointSize=2)
 #'
 #' @import htmlwidgets
 #'

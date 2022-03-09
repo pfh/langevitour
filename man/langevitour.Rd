@@ -53,6 +53,14 @@ To retain the original units on plot axes within the widget, use \code{center} a
 langevitour will by default not scale variables individually. If you want this, use something like \code{scale=apply(X,2,sd)*4}.
 }
 \examples{
-langevitour(iris[,1:4], iris$Species)
+library(palmerpenguins)
+
+completePenguins <- na.omit(penguins[,c(1,3,4,5,6)])
+scale <- apply(completePenguins[,-1], 2, sd)*4
+
+langevitour(
+    completePenguins[,-1], 
+    completePenguins$species, 
+    scale=scale, pointSize=2)
 
 }

@@ -6,7 +6,16 @@
 #' @format A data frame with 2,816 rows representing brain cells and 11 columns:
 #' \describe{
 #'    \item{type}{Cell type.}
-#'    \item{PC1-10}{Principal component score.}
+#'    \item{PC1}{Principal component score.}
+#'    \item{PC2}{Principal component score.}
+#'    \item{PC3}{Principal component score.}
+#'    \item{PC4}{Principal component score.}
+#'    \item{PC5}{Principal component score.}
+#'    \item{PC6}{Principal component score.}
+#'    \item{PC7}{Principal component score.}
+#'    \item{PC8}{Principal component score.}
+#'    \item{PC9}{Principal component score.}
+#'    \item{PC10}{Principal component score.}
 #' }
 #'
 #' @usage data(zeiselPC)
