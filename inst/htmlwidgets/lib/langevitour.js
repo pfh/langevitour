@@ -957,7 +957,7 @@ class Langevitour {
     
     compute(realElapsed) {
         let damping =     0.2  *Math.pow(10, this.get('dampInput').value);
-        let temperature = 0.05 *Math.pow(10, this.get('tempInput').value);
+        let temperature = 0.1  *Math.pow(10, this.get('tempInput').value);
         let repulsion =   1.0  *Math.pow(10, this.get('repulsionInput').value);
         let attraction =  1.0  *Math.pow(10, this.get('labelInput').value);
         let doTemp = this.get('tempCheckbox').checked;
@@ -987,10 +987,14 @@ class Langevitour {
 
         if (doTemp) {
             // Damping reduces the variance * velKeep^2
-            // We need to add velReplaceVar * desired steady state variance of temperature*2
+            // We need to add velReplaceVar * desired steady state variance of temperature
+            
+            // Note the sqrt(2) that appears in the continuous form of the Langevin equation arises from 
+            // sqrt(1-velKeep*velKeep) approx= sqrt(2*elapsed*damping) for small elapsed*damping
+            
             let velReplaceVar = 1 - velKeep*velKeep;        
             let noise = times(proj.length, times, this.m,
-                jStat.normal.sample, 0, Math.sqrt(2*temperature*velReplaceVar));
+                jStat.normal.sample, 0, Math.sqrt(temperature*velReplaceVar));
             
             noise = removeSpin(noise, proj);
             

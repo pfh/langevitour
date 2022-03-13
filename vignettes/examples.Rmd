@@ -86,7 +86,7 @@ A dataset from the [tourr](http://ggobi.github.io/tourr/) package.
 
 By default, langevitour does not scale variables individually. This dataset rather requires scaling, so we supply our desired scaling.
 
-I also demonstrate adding extra axes representing principal components and rotated principal components. The package GPArotation provides many factor rotation methods. The Bentler method seems to work well.
+I also demonstrate adding extra axes representing principal components and rotated principal components. The package GPArotation provides many rotation methods. Using the Bentler method to produce sparse scores seems to highlight interesting structure.
 
 ```{r}
 olives <- tourr::olive[,3:10]
@@ -95,12 +95,13 @@ olivesGroup <- paste(tourr::olive$region, tourr::olive$area)
 
 # Find principal components
 pca <- prcomp(sweep(olives, 2, olivesScale, "/"), rank=4)
-olivesPC = sweep(pca$rotation, 1, olivesScale, "/")
+olivesPC <- sweep(pca$rotation, 1, olivesScale, "/")
 
 # Find a good rotation of the loadings from PCA
 rotation <- GPArotation::bentlerT(pca$x)$Th
 olivesR <- olivesPC %*% rotation
 colnames(olivesR) <- paste0("R",seq_len(ncol(olivesR)))
+
 
 langevitour(
     olives, 
