@@ -1,8 +1,8 @@
 ---
-title: "langevitour examples"
+title: "Further examples"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{langevitour examples}
+  %\VignetteIndexEntry{Further examples}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -20,33 +20,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r install, eval=FALSE}
-remotes::install_github("pfh/langevitour")
-```
-
 ```{r setup}
 library(langevitour)
 ```
-
-Things to try:
-
-* Drag labels onto the plot.
-* Set point repulsion to "local".
-* Experiment with "damping" and "heat".
-
-## Palmer Station Penguins
-
-Measurements of penguins. Since the measurements are in different units, we supply an appropriate scaling.
-
-```{r}
-library(palmerpenguins)
-
-completePenguins <- na.omit(penguins[,c(1,3,4,5,6)])
-scale <- apply(completePenguins[,-1], 2, sd)*4
-
-langevitour(completePenguins[,-1], completePenguins$species, scale=scale, pointSize=2)
-```
-
 
 ## Mouse brain cells
 
@@ -129,6 +105,8 @@ langevitour(geozoo::torus.flat(p=4)$points)
 ## pdfsense
 
 A dataset in the [liminal](https://sa-lee.github.io/liminal/) package. Each row has been scaled to a unit vector.
+
+* Try setting point repulsion to "outliers".
 
 ```{r}
 X <- as.matrix(liminal::pdfsense[,-(1:6)])

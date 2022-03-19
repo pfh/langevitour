@@ -1,3 +1,11 @@
 url: https://logarithmic.net/langevitour/
 template:
   bootstrap: 5
+articles:
+- title: Examples
+  navbar: ~
+  contents:
+  - usage
+  - examples
+  - rnaseq
+

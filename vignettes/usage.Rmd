@@ -1,0 +1,43 @@
+---
+title: "Usage example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Usage example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+As an example we will use measurements of penguins made at Palmer Station, Antarctica. 
+
+Since the measurements are in different units, we supply an appropriate scaling.
+
+```{r}
+library(langevitour)
+library(palmerpenguins)
+
+completePenguins <- na.omit(penguins[,c(1,3,4,5,6)])
+completePenguins
+
+scale <- apply(completePenguins[,-1], 2, sd)*4
+
+langevitour(completePenguins[,-1], completePenguins$species, scale=scale, pointSize=2)
+```
+
+<br>
+
+Things to try:
+
+* Drag labels onto the plot.
+* Set point repulsion to "PCA".
+* Experiment with "damping" and "heat".
+* Hide measurements by unchecking the checkbox on their label.
+
+
+
