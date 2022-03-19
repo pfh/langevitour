@@ -26,7 +26,7 @@ data(zeiselPC)
 langevitour(zeiselPC[,-1], zeiselPC$type)
 ```
 
-* [R documentation.](https://logarithmic.net/langevitour/reference)
+* [R documentation.](https://logarithmic.net/langevitour/reference/)
 
 
 ## Javascript usage

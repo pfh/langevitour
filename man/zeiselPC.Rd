@@ -32,6 +32,6 @@ langevitour(zeiselPC[,-1], zeiselPC$type)
 
 }
 \references{
-Zeisel, A., Muñoz-Manchado, A. B., Codeluppi, S., Lönnerberg, P., La Manno, G., Juréus, A., Marques, S., Munguba, H., He, L., Betsholtz, C., Rolny, C., Castelo-Branco, G., Hjerling-Leffler, J., & Linnarsson, S. (2015). Cell types in the mouse cortex and hippocampus revealed by single-cell RNA-seq. \emph{Science}, 347(6226), 1138–1142. \href{https://doi.org/10.1126/science.aaa1934}{https://doi.org/10.1126/science.aaa1934}
+Zeisel, A., Muñoz-Manchado, A. B., Codeluppi, S., Lönnerberg, P., La Manno, G., Juréus, A., Marques, S., Munguba, H., He, L., Betsholtz, C., Rolny, C., Castelo-Branco, G., Hjerling-Leffler, J., & Linnarsson, S. (2015). Cell types in the mouse cortex and hippocampus revealed by single-cell RNA-seq. \emph{Science}, 347(6226), 1138–1142. \doi{10.1126/science.aaa1934}
 }
 \keyword{datasets}
