@@ -40,18 +40,23 @@ langevitour(zeiselPC[,-1], zeiselPC$type)
 
 ## Mouse brain cells with k-NN averaging
 
-We can reduce the noise in this data by averaging each cell with its 30 nearest neighbors.
+We can reduce the noise in this data by repeatedly averaging each cell with its nearest neighbors.
 
 * Try to separate microglia, astrocytes_ependymal and endothelial-mural cells by dragging their labels onto the plot.
 * Find principal components components that distinguish these cells and try dragging them onto the plot instead.
 
 ```{r}
-X <- as.matrix(zeiselPC[,-1])
-neighbors <- RANN::nn2(X, k=30)$nn.idx
-XSmooth <- lapply(seq_len(nrow(X)), \(i) colMeans(X[neighbors[i,],]))
-XSmooth <- do.call(rbind, XSmooth)
+k <- 15
+iters <- 4
 
-langevitour(XSmooth, zeiselPC$type)
+X <- as.matrix(zeiselPC[,-1])
+neighbors <- RANN::nn2(X, k=k)$nn.idx
+for(iter in seq_len(iters)) {
+    X <- lapply(seq_len(nrow(X)), \(i) colMeans(X[neighbors[i,],]))
+    X <- do.call(rbind, X)
+}
+
+langevitour(X, zeiselPC$type)
 ```
 
 
