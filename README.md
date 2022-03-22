@@ -9,9 +9,7 @@
 ## R Installation
 
 ```{r}
-install.packages("remotes")
-
-remotes::install_github("pfh/langevitour")
+install.packages("langevitour")
 ```
 
 
