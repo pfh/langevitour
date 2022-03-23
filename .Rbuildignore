@@ -9,3 +9,4 @@
 ^pkgdown$
 ^Makefile$
 ^vignettes/examples.Rmd$
+^vignettes/rnaseq.Rmd$

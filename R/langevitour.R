@@ -130,30 +130,56 @@ langevitour <- function(
     )
 }
 
-##' Shiny bindings for langevitour
-##'
-##' Output and render functions for using langevitour within Shiny
-##' applications and interactive Rmd documents.
-##'
-##' @param outputId output variable to read from
-##' @param width,height Must be a valid CSS unit (like \code{'100\%'},
-##'   \code{'400px'}, \code{'auto'}) or a number, which will be coerced to a
-##'   string and have \code{'px'} appended.
-##' @param expr An expression that generates a langevitour
-##' @param env The environment in which to evaluate \code{expr}.
-##' @param quoted Is \code{expr} a quoted expression (with \code{quote()})? This
-##'   is useful if you want to save an expression in a variable.
-##'
-##' @name langevitour-shiny
-##'
-##' @export
-#langevitourOutput <- function(outputId, width = '100%', height = '400px'){
-#  htmlwidgets::shinyWidgetOutput(outputId, 'langevitour', width, height, package = 'langevitour')
-#}
+#' Shiny bindings for langevitour
+#'
+#' Output and render functions for using langevitour within Shiny
+#' applications and interactive Rmd documents.
+#'
+#' @param outputId output variable to read from
+#' @param width,height Must be a valid CSS unit (like \code{'100\%'},
+#'   \code{'400px'}, \code{'auto'}) or a number, which will be coerced to a
+#'   string and have \code{'px'} appended.
+#' @param expr An expression that generates a langevitour, usually a block of code ending with a call to \code{langevitour()}
+#' @param env The environment in which to evaluate \code{expr}.
+#' @param quoted Is \code{expr} a quoted expression (with \code{quote()})? This
+#'   is useful if you want to save an expression in a variable.
+#'
+#' @name langevitour-shiny
+#'
+#' @examples
+#' 
+#' library(shiny)
+#' library(palmerpenguins)
+#' 
+#' completePenguins <- na.omit(penguins[,c(1,3,4,5,6)])
+#' scale <- apply(completePenguins[,-1], 2, sd)*4
+#' 
+#' ui <- fluidPage(
+#'     sliderInput('zoom', 'Zoom', 0, min=-1, max=1, step=0.1),
+#'     langevitourOutput('widget')
+#' )
+#' 
+#' server <- function(input,output) { 
+#'     output$widget <- renderLangevitour({
+#'         langevitour(
+#'             completePenguins[,-1], 
+#'             completePenguins$species, 
+#'             scale=scale * 10^input$zoom, pointSize=2)
+#'     })
+#' }
+#' 
+#' app <- shinyApp(ui, server)
+#' 
+#' # Use runApp(app) or runGadget(app) to run app.
+#'
+#' @export
+langevitourOutput <- function(outputId, width = '100%', height = '600px'){
+  htmlwidgets::shinyWidgetOutput(outputId, 'langevitour', width, height, package = 'langevitour')
+}
 
-##' @rdname langevitour-shiny
-##' @export
-#renderLangevitour <- function(expr, env = parent.frame(), quoted = FALSE) {
-#  if (!quoted) { expr <- substitute(expr) } # force quoted
-#  htmlwidgets::shinyRenderWidget(expr, langevitourOutput, env, quoted = TRUE)
-#}
+#' @rdname langevitour-shiny
+#' @export
+renderLangevitour <- function(expr, env = parent.frame(), quoted = FALSE) {
+  if (!quoted) { expr <- substitute(expr) } # force quoted
+  htmlwidgets::shinyRenderWidget(expr, langevitourOutput, env, quoted = TRUE)
+}

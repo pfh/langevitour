@@ -39,5 +39,11 @@ Things to try:
 * Experiment with "damping" and "heat".
 * Hide measurements by unchecking the checkbox on their label.
 
+# Further examples
+
+Some further examples have been omitted from the CRAN package due to their large size and problematic dependencies. They can be viewed on the langevitour website:
+
+* [Further examples](https://logarithmic.net/langevitour/articles/examples.html)
+* [RNA-Seq extended example](https://logarithmic.net/langevitour/articles/rnaseq.html)
 
 
