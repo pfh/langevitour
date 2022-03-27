@@ -202,25 +202,37 @@ function removeSpin(motion, proj) {
 }
 
 function gradRepulsion(proj, X, power, fineScale) {
-    let iters = 1000;
+    /* 
+    Ideally we would perform repulsion between all pairs of points. However this would be O(n^2). Instead we only do a fraction of this -- it's a stochastic gradient.
+    
+    Unfortunately this means there is a little jitter even if heat is completely turned off. 
+    */
+    
+    let iters = 1;
+    
     let m = proj.length, n = proj[0].length;
     let p = [ ];
     let grad = zeroMat(m,n);
     
-    for(let i=0;i<iters;i++) {
-        let a = vecSub(X[randInt(X.length)],X[randInt(X.length)]);
+    for(let j=0;j<iters;j++) {
+        let perm = permutation(X.length);
+        perm.push(perm[0]);
         
-        for(let j=0;j<m;j++)
-            p[j] = vecDot(a, proj[j]);
-        
-        let scale = (vecDot(p,p)+fineScale)**(power-1);
-        
-        for(let j=0;j<m;j++)
-        for(let k=0;k<n;k++)
-            grad[j][k] += a[k] * p[j] * scale;
+        for(let i=0;i<X.length;i++) {
+            let a = vecSub(X[perm[i]],X[perm[i+1]]);
+            
+            for(let j=0;j<m;j++)
+                p[j] = vecDot(a, proj[j]);
+            
+            let scale = (vecDot(p,p)+fineScale*fineScale)**(power-1);
+            
+            for(let j=0;j<m;j++)
+            for(let k=0;k<n;k++)
+                grad[j][k] += a[k] * p[j] * scale;
+        }
     }
     
-    matScaleInto(grad, -2/iters);
+    matScaleInto(grad, -2/(iters*X.length));
     
     return removeSpin( grad, proj );
 }
