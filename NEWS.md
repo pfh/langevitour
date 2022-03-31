@@ -1,3 +1,8 @@
+# langevitour 0.3
+
+* Adjustments to point repulsion.
+* Can now draw lines between points.
+
 # langevitour 0.2
 
 * Remove RNA-Seq example from CRAN package -- dependency not available on CRAN build servers.

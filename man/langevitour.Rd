@@ -11,6 +11,8 @@ langevitour(
   center = NULL,
   scale = NULL,
   extraAxes = NULL,
+  lineFrom = NULL,
+  lineTo = NULL,
   axisColors = NULL,
   pointSize = 1,
   width = NULL,
@@ -30,6 +32,10 @@ langevitour(
 \item{scale}{Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen, equal for all variables. (The default is the largest singular value of the centered X times 2.5.)}
 
 \item{extraAxes}{A matrix with each column defining a projection of interest. The columns of \code{X \%*\% extraAxes} will be presented as extra "variables".}
+
+\item{lineFrom}{A vector of row numbers. Draw lines starting at these rows.}
+
+\item{lineTo}{A vector of row numbers. Draw lines ending at these rows.}
 
 \item{axisColors}{Character vector. Colors for each variable and then each extra axis.}
 

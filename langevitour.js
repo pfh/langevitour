@@ -208,31 +208,26 @@ function gradRepulsion(proj, X, power, fineScale) {
     Unfortunately this means there is a little jitter even if heat is completely turned off. 
     */
     
-    let iters = 1;
+    let iters = 5000;
     
     let m = proj.length, n = proj[0].length;
     let p = [ ];
     let grad = zeroMat(m,n);
     
-    for(let j=0;j<iters;j++) {
-        let perm = permutation(X.length);
-        perm.push(perm[0]);
+    for(let i=0;i<iters;i++) {
+        let a = vecSub(X[randInt(X.length)],X[randInt(X.length)]);
         
-        for(let i=0;i<X.length;i++) {
-            let a = vecSub(X[perm[i]],X[perm[i+1]]);
-            
-            for(let j=0;j<m;j++)
-                p[j] = vecDot(a, proj[j]);
-            
-            let scale = (vecDot(p,p)+fineScale*fineScale)**(power-1);
-            
-            for(let j=0;j<m;j++)
-            for(let k=0;k<n;k++)
-                grad[j][k] += a[k] * p[j] * scale;
-        }
+        for(let j=0;j<m;j++)
+            p[j] = vecDot(a, proj[j]);
+        
+        let scale = (vecDot(p,p)+fineScale*fineScale)**(power-1);
+        
+        for(let j=0;j<m;j++)
+        for(let k=0;k<n;k++)
+            grad[j][k] += a[k] * p[j] * scale;
     }
     
-    matScaleInto(grad, -2/(iters*X.length));
+    matScaleInto(grad, -2/iters);
     
     return removeSpin( grad, proj );
 }
@@ -473,8 +468,10 @@ class Langevitour {
      * @param {Array.<number>} [data.group] Group number for each point. Integer values starting from 0.
      * @param {Array.<string>} [data.levels] Group names for each group in data.group.
      * @param {Array.<Array.<number>>} [data.extraAxes] A matrix with each column defining a projection of interest.
-     * @param {Array.<number>} [data.center] Center to restore original units of extra axes. Scaling is assumed already included in data.extraAxes.
+     * @param {Array.<number>} [data.extraAxesCenter] Center to restore original units of extra axes. Scaling is assumed already included in data.extraAxes.
      * @param {Array.<string>} [data.extraAxesNames] A name for each extra axis.
+     * @param {Array.<number>} [data.lineFrom] Rows of X to draw lines from.
+     * @param {Array.<number>} [data.lineTo] Rows of X to draw lines to.
      * @param {Array.<string>} [data.axisColors] CSS colors for each variable and then optionally for each extra axis.
      * @param {number} [data.pointSize] Radius of points in pixels.
      */
@@ -494,14 +491,21 @@ class Langevitour {
         
         // Shuffling is not optional.
         this.permutor = permutation(this.n);
-        this.X = this.permutor.map(i => data.X[i]);
+        this.unpermutor = Array(this.n);
+        for(let i=0;i<this.n;i++) 
+            this.unpermutor[this.permutor[i]] = i;
         
+        this.X = this.permutor.map(i => data.X[i]);
+                
         if (!data.rownames || data.rownames.length == 0) 
             this.rownames = null;
         else
             this.rownames = this.permutor.map(i => data.rownames[i]);
         
         this.colnames = data.colnames;
+        
+        this.lineFrom = (data.lineFrom || []).map(i => this.unpermutor[i]);
+        this.lineTo = (data.lineTo || []).map(i => this.unpermutor[i]);
         
         this.axes = [ ];
         
@@ -819,9 +823,22 @@ class Langevitour {
             ctx.stroke();
         }
 
-        // Points
+        // Projection
         matTcrossprodInto(this.xy, this.proj, this.X);
+        
+        // Lines
+        ctx.strokeStyle = '#888';
+        for(let i=0;i<this.lineFrom.length;i++) {
+            let a = this.lineFrom[i],
+                b = this.lineTo[i];
+            ctx.beginPath();
+            ctx.moveTo(this.xScale(this.xy[0][a]), this.yScale(this.xy[1][a]));
+            ctx.lineTo(this.xScale(this.xy[0][b]), this.yScale(this.xy[1][b]));
+            ctx.stroke();
+        }
 
+        // Points
+        
         for(let i=0;i<this.n;i++)
         if (levelActive[this.group[i]])
             this.fillsFrame[i] = this.fills[i];

@@ -1,6 +1,6 @@
 Package: langevitour
 Title: Langevin Tour
-Version: 0.2
+Version: 0.2.999
 Authors@R: 
     person("Paul", "Harrison", , "pfh@logarithmic.net", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3980-268X"))
@@ -12,23 +12,9 @@ Imports:
     htmlwidgets
 Suggests:
     shiny,
-    GPArotation,
-    tourr,
-    liminal,
-    geozoo,
     palmerpenguins,
-    RANN,
-    MASS,
-    ggplot2,
-    dplyr,
-    tibble,
     knitr,
-    rmarkdown,
-    airway,
-    limma,
-    edgeR,
-    EnsDb.Hsapiens.v86,
-    AnnotationDbi
+    rmarkdown
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

@@ -18,6 +18,10 @@
 #'
 #' @param extraAxes A matrix with each column defining a projection of interest. The columns of \code{X \%*\% extraAxes} will be presented as extra "variables".
 #'
+#' @param lineFrom A vector of row numbers. Draw lines starting at these rows.
+#'
+#' @param lineTo A vector of row numbers. Draw lines ending at these rows.
+#'
 #' @param axisColors Character vector. Colors for each variable and then each extra axis.
 #'
 #' @param pointSize Point radius in pixels.
@@ -46,7 +50,10 @@
 #' @export
 langevitour <- function(
         X, group=NULL, name=NULL, center=NULL, scale=NULL, 
-        extraAxes=NULL, axisColors=NULL, pointSize=1,
+        extraAxes=NULL, 
+        lineFrom=NULL,
+        lineTo=NULL,
+        axisColors=NULL, pointSize=1,
         width=NULL, height=NULL, elementId=NULL) {
 
     X <- as.matrix(X)
@@ -109,6 +116,10 @@ langevitour <- function(
         extraAxes = extraAxes,
         extraAxesCenter = as.list(as.numeric(extraAxesCenter)),
         extraAxesNames = as.list(colnames(extraAxes)),
+        
+        # Convert from 1 based to 0 based indices
+        lineFrom = as.list(as.numeric(lineFrom) - 1), 
+        lineTo = as.list(as.numeric(lineTo) - 1),
         
         axisColors=as.list(as.character(axisColors)),
         pointSize=as.numeric(pointSize))
