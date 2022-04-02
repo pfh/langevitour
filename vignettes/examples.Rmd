@@ -86,7 +86,7 @@ langevitour(XDenoised, zeiselPC$type)
 * Notice that interneurons and the pyramidal CA1 and SS neurons parallel each other. This was not clear in the UMAP layout above.
 
 
-## Mouse brain cell denoised vs original
+## Mouse brain cells denoised vs original
 
 The denoised version looks much better, but is it a faithful representation of the data? 
 

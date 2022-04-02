@@ -827,10 +827,16 @@ class Langevitour {
         matTcrossprodInto(this.xy, this.proj, this.X);
         
         // Lines
-        ctx.strokeStyle = '#888';
         for(let i=0;i<this.lineFrom.length;i++) {
             let a = this.lineFrom[i],
                 b = this.lineTo[i];
+                
+            // Make short lines darker so they have equal visual weight to longer lines
+            // Clipped for d < 1/4, d > 1
+            let d = Math.sqrt( (this.xy[0][a]-this.xy[0][b])**2 + (this.xy[1][a]-this.xy[1][b])**2 );
+            //ctx.strokeStyle = '#00000044';
+            d = Math.max(1/4,Math.min(1,d));
+            ctx.strokeStyle = '#000000'+hexByte(128/(4*d));
             ctx.beginPath();
             ctx.moveTo(this.xScale(this.xy[0][a]), this.yScale(this.xy[1][a]));
             ctx.lineTo(this.xScale(this.xy[0][b]), this.yScale(this.xy[1][b]));
