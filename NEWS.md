@@ -2,6 +2,7 @@
 
 * Adjustments to point repulsion.
 * Can now draw lines between points.
+* Axis deactivation is now animated.
 
 # langevitour 0.2
 

@@ -7,6 +7,12 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+<script>
+function setState(state) {
+    document.getElementById('myWidget').langevitour.setState(state);
+}
+</script>
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -27,17 +33,22 @@ completePenguins
 
 scale <- apply(completePenguins[,-1], 2, sd)*4
 
-langevitour(completePenguins[,-1], completePenguins$species, scale=scale, pointSize=2)
+langevitour(
+    completePenguins[,-1], completePenguins$species, 
+    scale=scale, pointSize=2, elementId="myWidget")
 ```
 
 <br>
 
 Things to try:
 
-* Drag labels onto the plot.
-* Set point repulsion to "PCA".
-* Experiment with "damping" and "heat".
-* Hide measurements by unchecking the checkbox on their label.
+* Drag labels onto the plot. <button onclick="setState({labelPos:{'Adelie':[-0.6553191489361703,0.7595744680851064],'Chinstrap':[-0.5957446808510638,-0.7723404255319148],'Gentoo':[0.7829787234042553,0.06595744680851068]}})">Example</button> <button onclick="setState({labelPos:{}})">Clear</button>
+
+* Set point repulsion. <button onclick="setState({pointRepulsionType:'pca'})">PCA</button> <button onclick="setState({pointRepulsionType:'none'})">None</button>
+
+* Experiment with "damping" and "heat". <button onclick="setState({damping:0,heat:3})">Hot</button> <button onclick="setState({damping:0,heat:-3})">Cool</button> <button onclick="setState({damping:2,heat:1})">Twitchy</button> <button onclick="setState({damping:-2,heat:0})">Smooth</button> <button onclick="setState({damping:0,heat:0})">Default</button>
+
+* Hide measurements by unchecking the checkbox on their label. <button onclick="setState({labelInactive:['bill_length_mm']})">Hide bill length</button> <button onclick="setState({labelInactive:[]})">Show all</button>
 
 # Further examples
 

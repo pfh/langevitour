@@ -11,6 +11,10 @@ let langevitour = (function(){
 
 /**** Utility functions ****/
 
+function has(object, name) {
+    return object.hasOwnProperty(name);
+}
+
 function elementVisible(el) {
     //https://stackoverflow.com/a/22480938
     
@@ -309,6 +313,8 @@ let template = `<div>
             <div class=infoBoxInfo></div>
             <div>Projection:</div>
             <textarea class=infoBoxProj rows=6 cols=30 wrap=off></textarea>
+            <div>State:</div>
+            <textarea class=infoBoxState rows=2, cols=30 wrap=off></textarea>
         </div>
     </div>
 
@@ -330,7 +336,7 @@ let template = `<div>
         
         ><div class=box>Damping<input type=range min=-3 max=3 step=0.01 value=0 class=dampInput></div
         
-        ><div class=box>Heat<input class=tempCheckbox type=checkbox checked><input type=range min=-2 max=4 step=0.01 value=0 class=tempInput></div
+        ><div class=box>Heat<input class=heatCheckbox type=checkbox checked><input type=range min=-2 max=4 step=0.01 value=0 class=heatInput></div
         
         ><br/
         
@@ -369,6 +375,9 @@ class Langevitour {
         this.shadow.innerHTML = template;
         this.canvas = this.get('canvas');
         this.overlay = this.get('overlay');
+        
+        // Allow this to be found using document.getElementById(name).langevitour
+        this.container.langevitour = this;
         
         this.X = null;
         this.n = 0;
@@ -447,6 +456,8 @@ class Langevitour {
                 matStr += '))\nprojected <- as.matrix(X) %*% projection';
                 
                 this.get('infoBoxProj').value = matStr;
+                
+                this.get('infoBoxState').value = JSON.stringify( this.getState() );
             
                 this.get('infoBoxInfo').innerHTML = `<p>${this.X.length.toLocaleString("en-US")} points.</p>`;
             }        
@@ -762,6 +773,71 @@ class Langevitour {
         refreshLabels();
     }
     
+    getState() {
+        let result = { };
+        
+        result.axesOn = this.get('axesCheckbox').checked;
+        result.heatOn = this.get('heatCheckbox').checked;
+        result.pointRepulsionType = this.get('repulsionSelect').value;
+        result.labelAttractionOn = this.get('labelCheckbox').checked;
+        
+        result.damping = this.get('dampInput').value;
+        result.heat = this.get('heatInput').value;
+        result.pointRepulsion = this.get('repulsionInput').value;
+        result.labelAttraction = this.get('labelInput').value;
+        
+        result.labelInactive = [ ];
+        result.labelPos = { };
+        for(let item of this.labelData) {
+            if (!item.active)
+               result.labelInactive.push(item.label);
+            if (item.x < 1)
+               result.labelPos[ item.label ] = [ item.x, item.y ];
+        }
+        
+        result.projection = this.proj;
+        
+        return result;
+    }
+    
+    setState(state) {
+        if (has(state,'axesOn'))
+            this.get('axesCheckbox').checked = state.axesOn;
+        if (has(state,'heatOn'))
+            this.get('heatCheckbox').checked = state.heatOn;
+        if (has(state,'pointRepulsionType'))
+            this.get('repulsionSelect').value = state.pointRepulsionType;
+        if (has(state,'labelAttractionOn'))
+            this.get('labelCheckbox').checked = state.labelAttractionOn;
+        
+        if (has(state,'damping'))
+            this.get('dampInput').value = state.damping;
+        if (has(state,'heat'))
+            this.get('heatInput').value = state.heat;
+        if (has(state,'pointRepulsion'))
+            this.get('repulsionInput').value = state.pointRepulsion;
+        if (has(state,'labelAttraction'))
+            this.get('labelInput').value = state.labelAttraction;
+
+        if (has(state,'labelInactive'))
+        for(let item of this.labelData)
+            item.active = !state.labelInactive.includes(item.label);
+        
+        if (has(state,'labelPos'))
+        for(let item of this.labelData)
+        if (has(state.labelPos,item.label)) {
+            item.x = state.labelPos[item.label][0];
+            item.y = state.labelPos[item.label][1];
+        } else {
+            item.x = 1;
+        }
+        
+        if (has(state,'projection'))
+            this.proj = Array.from(state.projection.map(item => Array.from(item)));
+
+        this.configure();        
+    }
+    
     scheduleFrame() {
         window.requestAnimationFrame(this.doFrame.bind(this))
     }
@@ -992,10 +1068,10 @@ class Langevitour {
     
     compute(realElapsed) {
         let damping =     0.2  *Math.pow(10, this.get('dampInput').value);
-        let temperature = 0.1  *Math.pow(10, this.get('tempInput').value);
+        let heat =        0.1  *Math.pow(10, this.get('heatInput').value);
         let repulsion =   1.0  *Math.pow(10, this.get('repulsionInput').value);
         let attraction =  1.0  *Math.pow(10, this.get('labelInput').value);
-        let doTemp = this.get('tempCheckbox').checked;
+        let doHeat = this.get('heatCheckbox').checked;
         let whatRepulsion = this.get('repulsionSelect').value;
         let doAttraction = this.get('labelCheckbox').checked;
 
@@ -1020,7 +1096,7 @@ class Langevitour {
         let velKeep = Math.exp(-elapsed*damping);
         matScaleInto(vel, velKeep);
 
-        if (doTemp) {
+        if (doHeat) {
             // Damping reduces the variance * velKeep^2
             // We need to add velReplaceVar * desired steady state variance of temperature
             
@@ -1029,7 +1105,7 @@ class Langevitour {
             
             let velReplaceVar = 1 - velKeep*velKeep;        
             let noise = times(proj.length, times, this.m,
-                jStat.normal.sample, 0, Math.sqrt(temperature*velReplaceVar));
+                jStat.normal.sample, 0, Math.sqrt(heat*velReplaceVar));
             
             noise = removeSpin(noise, proj);
             
@@ -1057,9 +1133,10 @@ class Langevitour {
         }
         
         
-        let newProj = matAdd(proj, matScale(vel, elapsed));
-        
         // Nuke inactive axes
+        // - remove from velocity
+        // - gradually remove from position
+        
         let inactive = [ ];
         for(let item of this.labelData)
         if (item.type == 'axis' && !item.active)
@@ -1069,6 +1146,9 @@ class Langevitour {
         let anyDropped = false;
         
         if (inactive.length && !tooMany) {
+            // How fast inactive axes are removed
+            let nuke_amount = Math.min(2, 1/elapsed);
+        
             let { u, v, q } = SVDJS.SVD(matTranspose(inactive));
             let maxQ = Math.max(...q);
             u = matTranspose(u);
@@ -1079,13 +1159,19 @@ class Langevitour {
                     continue;
                 }
                 let vec = u[i];
-                for(let j=0;j<2;j++)
-                    newProj[j] = vecSub(newProj[j], vecScale(vec, vecDot(vec,newProj[j])));
+                for(let j=0;j<2;j++) {
+                    vel[j] = vecSub(vel[j], 
+                        vecScale(vec, vecDot(vec, vel[j]) + nuke_amount*vecDot(vec, proj[j])))
+                }
             }
         }
                 
         if (tooMany) this.computeMessage += 'Error: too many axes removed';
         if (anyDropped) this.computeMessage += 'Note: reduntant axes removed';
+
+
+        // Velocity step        
+        let newProj = matAdd(proj, matScale(vel, elapsed));
 
         // Project onto Stiefel manifold                
         let { u, v, q } = SVDJS.SVD(matTranspose(newProj));
