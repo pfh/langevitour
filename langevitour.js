@@ -215,11 +215,14 @@ function gradRepulsion(proj, X, power, fineScale) {
     let iters = 5000;
     
     let m = proj.length, n = proj[0].length;
-    let p = [ ];
+    let p = Array(m);
     let grad = zeroMat(m,n);
     
+    let off1 = randInt(X.length);
+    let off2 = randInt(X.length);
     for(let i=0;i<iters;i++) {
-        let a = vecSub(X[randInt(X.length)],X[randInt(X.length)]);
+        //let a = vecSub(X[randInt(X.length)],X[randInt(X.length)]);
+        let a = vecSub(X[(i+off1)%X.length],X[(i+off2)%X.length]);
         
         for(let j=0;j<m;j++)
             p[j] = vecDot(a, proj[j]);
@@ -312,9 +315,9 @@ let template = `<div>
             <div><b><a href="https://logarithmic.net/langevitour/">langevitour</a></b></div>
             <div class=infoBoxInfo></div>
             <div>Projection:</div>
-            <textarea class=infoBoxProj rows=6 cols=30 wrap=off></textarea>
-            <div>State:</div>
-            <textarea class=infoBoxState rows=2, cols=30 wrap=off></textarea>
+            <textarea class=infoBoxProj rows=5 cols=30 wrap=off onclick="this.select()"></textarea>
+            <div><br>State:</div>
+            <textarea class=infoBoxState rows=5 cols=30 wrap=on onfocus="this.setSelectionRange(0,this.value.length,'backward');" spellcheck=false></textarea>
         </div>
     </div>
 
@@ -344,6 +347,7 @@ let template = `<div>
         Point repulsion
         <select class=repulsionSelect value=none>
             <option value=none>none</option>
+            <option value=ultralocal>ultralocal</option>
             <option value=local>local</option>
             <option value=pca>PCA</option>
             <option value=outlier>outlier</option>
@@ -355,6 +359,7 @@ let template = `<div>
 </div>`;
 
 let repulsionTable = {
+    "ultralocal": {amount:0.01, power:-1, fineScale:0.05},
     "local": {amount:0.5, power:0, fineScale:0.01},
     "pca": {amount:0.5, power:1, fineScale:0},
     "outlier": {amount:5, power:2, fineScale:0},
@@ -457,7 +462,7 @@ class Langevitour {
                 
                 this.get('infoBoxProj').value = matStr;
                 
-                this.get('infoBoxState').value = JSON.stringify( this.getState() );
+                this.get('infoBoxState').value = JSON.stringify(this.getState(), null, 4);
             
                 this.get('infoBoxInfo').innerHTML = `<p>${this.X.length.toLocaleString("en-US")} points.</p>`;
             }        
@@ -626,7 +631,10 @@ class Langevitour {
             this.running = true;
         }
         
-        this.configure();        
+        this.configure();
+        
+        if (has(data,"state"))
+            this.setState(data.state);    
     }
     
     /** 
@@ -773,6 +781,9 @@ class Langevitour {
         refreshLabels();
     }
     
+    /**
+     * Get the current widget state.
+     */
     getState() {
         let result = { };
         
@@ -781,10 +792,10 @@ class Langevitour {
         result.pointRepulsionType = this.get('repulsionSelect').value;
         result.labelAttractionOn = this.get('labelCheckbox').checked;
         
-        result.damping = this.get('dampInput').value;
-        result.heat = this.get('heatInput').value;
-        result.pointRepulsion = this.get('repulsionInput').value;
-        result.labelAttraction = this.get('labelInput').value;
+        result.damping = Number(this.get('dampInput').value);
+        result.heat = Number(this.get('heatInput').value);
+        result.pointRepulsion = Number(this.get('repulsionInput').value);
+        result.labelAttraction = Number(this.get('labelInput').value);
         
         result.labelInactive = [ ];
         result.labelPos = { };
@@ -800,7 +811,20 @@ class Langevitour {
         return result;
     }
     
+    /**
+     * Set the widget state. 
+     *
+     * Can be used to restore a previous state of the widget obtained with getState().
+     *
+     * @param state A JSON string or an Object containing the desired state.
+     */
     setState(state) {
+        if (typeof state == "string")
+            state = JSON.parse(state);
+            
+        if (!state)
+            return;
+    
         if (has(state,'axesOn'))
             this.get('axesCheckbox').checked = state.axesOn;
         if (has(state,'heatOn'))
@@ -906,16 +930,19 @@ class Langevitour {
         for(let i=0;i<this.lineFrom.length;i++) {
             let a = this.lineFrom[i],
                 b = this.lineTo[i];
-                
+            
+            if (!levelActive[this.group[a]] || !levelActive[this.group[b]])
+                continue;
+            
             // Make short lines darker so they have equal visual weight to longer lines
             // Clipped for d < 1/4, d > 1
             let d = Math.sqrt( (this.xy[0][a]-this.xy[0][b])**2 + (this.xy[1][a]-this.xy[1][b])**2 );
-            //ctx.strokeStyle = '#00000044';
             d = Math.max(1/4,Math.min(1,d));
             ctx.strokeStyle = '#000000'+hexByte(128/(4*d));
+            
             ctx.beginPath();
-            ctx.moveTo(this.xScale(this.xy[0][a]), this.yScale(this.xy[1][a]));
-            ctx.lineTo(this.xScale(this.xy[0][b]), this.yScale(this.xy[1][b]));
+            ctx.moveTo(this.xScaleClamped(this.xy[0][a]), this.yScaleClamped(this.xy[1][a]));
+            ctx.lineTo(this.xScaleClamped(this.xy[0][b]), this.yScaleClamped(this.xy[1][b]));
             ctx.stroke();
         }
 

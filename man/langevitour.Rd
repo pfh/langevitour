@@ -15,6 +15,8 @@ langevitour(
   lineTo = NULL,
   axisColors = NULL,
   pointSize = 1,
+  subsample = NULL,
+  state = NULL,
   width = NULL,
   height = NULL,
   elementId = NULL
@@ -41,6 +43,10 @@ langevitour(
 
 \item{pointSize}{Point radius in pixels.}
 
+\item{subsample}{For speed, randomly subsample down to this many rows.}
+
+\item{state}{A JSON string, or an object that htmlwidgets will convert to the correct JSON. Initial widget state settings. The state of a widget can be obtained by pressing the "?" button. I am not going to guarantee that states will be compatible between versions of langevitour.}
+
 \item{width}{Width of widget.}
 
 \item{height}{Height of widget.}
@@ -56,7 +62,9 @@ Make a Langevin Tour HTML widget, which can be used to explore high-dimensional 
 \details{
 To retain the original units on plot axes within the widget, use \code{center} and \code{scale} rather than altering X.
 
-langevitour will by default not scale variables individually. If you want this, use something like \code{scale=apply(X,2,sd)*4}.
+langevitour will by default not scale variables individually. If you want variables to be individually scaled, use something like \code{scale=apply(X,2,sd)*4}.
+
+In Javascript, the langevitour object can be obtained using \code{document.getElementById(elementId).langevitour}. For example you could have a button that sets the state of a widget using \code{document.getElementById(elementId).langevitour.setState(desiredState)}.
 }
 \examples{
 library(palmerpenguins)

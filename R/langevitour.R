@@ -4,7 +4,9 @@
 #'
 #' To retain the original units on plot axes within the widget, use \code{center} and \code{scale} rather than altering X.
 #'
-#' langevitour will by default not scale variables individually. If you want this, use something like \code{scale=apply(X,2,sd)*4}.
+#' langevitour will by default not scale variables individually. If you want variables to be individually scaled, use something like \code{scale=apply(X,2,sd)*4}.
+#'
+#' In Javascript, the langevitour object can be obtained using \code{document.getElementById(elementId).langevitour}. For example you could have a button that sets the state of a widget using \code{document.getElementById(elementId).langevitour.setState(desiredState)}.
 #'
 #' @param X The data to plot. A matrix of numeric data, or something that can be cast to a matrix. Rows will be shown as points in the widget. Columns are the variables of your data.
 #'
@@ -25,6 +27,10 @@
 #' @param axisColors Character vector. Colors for each variable and then each extra axis.
 #'
 #' @param pointSize Point radius in pixels.
+#'
+#' @param subsample For speed, randomly subsample down to this many rows.
+#'
+#' @param state A JSON string, or an object that htmlwidgets will convert to the correct JSON. Initial widget state settings. The state of a widget can be obtained by pressing the "?" button. I am not going to guarantee that states will be compatible between versions of langevitour.
 #'
 #' @param width Width of widget.
 #'
@@ -50,10 +56,8 @@
 #' @export
 langevitour <- function(
         X, group=NULL, name=NULL, center=NULL, scale=NULL, 
-        extraAxes=NULL, 
-        lineFrom=NULL,
-        lineTo=NULL,
-        axisColors=NULL, pointSize=1,
+        extraAxes=NULL, lineFrom=NULL, lineTo=NULL,
+        axisColors=NULL, pointSize=1, subsample=NULL, state=NULL,
         width=NULL, height=NULL, elementId=NULL) {
 
     X <- as.matrix(X)
@@ -104,6 +108,26 @@ langevitour <- function(
     names(scale) <- NULL
     names(group) <- NULL
     
+    # Subsampling
+    
+    if (!is.null(subsample) && subsample < nrow(X)) {
+        ind <- sample.int(nrow(X), subsample)
+        
+        X_centered_scaled <- X_centered_scaled[ind,,drop=FALSE]
+        group <- group[ind]
+        if (!is.null(name))
+            name <- name[ind]
+        if (!is.null(lineFrom)) {
+            lineFrom <- match(lineFrom, ind)
+            lineTo <- match(lineTo, ind)
+            keep <- !is.na(lineFrom) & !is.na(lineTo)
+            lineFrom <- lineFrom[keep]
+            lineTo <- lineTo[keep]
+        }
+    }
+    
+    # Convert to form that will JSON-ify correctly
+    
     data <- list(
         X = X_centered_scaled,
         center = as.list(as.numeric(center)),
@@ -122,7 +146,9 @@ langevitour <- function(
         lineTo = as.list(as.numeric(lineTo) - 1),
         
         axisColors=as.list(as.character(axisColors)),
-        pointSize=as.numeric(pointSize))
+        pointSize=as.numeric(pointSize),
+        
+        state=state)
     
     htmlwidgets::createWidget(
         name = 'langevitour',

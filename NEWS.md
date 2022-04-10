@@ -1,8 +1,9 @@
 # langevitour 0.3
 
-* Adjustments to point repulsion.
 * Can now draw lines between points.
 * Axis deactivation is now animated.
+* Added ultralocal point repulsion.
+* Ability to get and set state with Javascript.
 
 # langevitour 0.2
 

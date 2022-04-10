@@ -10,3 +10,5 @@
 ^Makefile$
 ^vignettes/examples.Rmd$
 ^vignettes/rnaseq.Rmd$
+^doc$
+^Meta$
