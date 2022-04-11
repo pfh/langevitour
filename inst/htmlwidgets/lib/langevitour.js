@@ -1154,6 +1154,7 @@ class Langevitour {
             let x = label.x;
             let y = label.y;
             if (x <= -1 || y <= -1 || x >= 1 || y >= 1) continue;
+            if (label.type == 'level' && !levelActive[label.level]) continue;
             let adjustment = 4*(x*x+y*y);
             vel[0] = vecAdd(vel[0], vecScale(label.vec, x*adjustment*attraction));
             vel[1] = vecAdd(vel[1], vecScale(label.vec, y*adjustment*attraction));
