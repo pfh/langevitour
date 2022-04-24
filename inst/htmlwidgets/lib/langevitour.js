@@ -83,15 +83,14 @@ function zeroMat(n,m) { return times(n,zeros,m); }
 
 function matMulInto(result, A, B) {
     let a = A.length, b = A[0].length, c = B[0].length;
+
     for(let i=0;i<a;i++)
-    for(let k=0;k<c;k++)
-        result[i][k] = 0;
-    
-    for(let i=0;i<a;i++)
-    for(let j=0;j<b;j++)
-    for(let k=0;k<c;k++)
-        result[i][k] += A[i][j] * B[j][k];
-    return result;
+    for(let k=0;k<c;k++) {
+        let s = 0;
+        for(let j=0;j<b;j++)
+            s += A[i][j] * B[j][k];
+        result[i][k] = s;
+    }
 }
 
 function matMul(A,B) {
@@ -102,15 +101,14 @@ function matMul(A,B) {
 
 function matTcrossprodInto(result, A, B) {
     let a = A.length, b = A[0].length, c = B.length;
+
     for(let i=0;i<a;i++)
-    for(let k=0;k<c;k++)
-        result[i][k] = 0;
-    
-    for(let i=0;i<a;i++)
-    for(let j=0;j<b;j++)
-    for(let k=0;k<c;k++)
-        result[i][k] += A[i][j] * B[k][j];
-    return result;
+    for(let k=0;k<c;k++) {
+        let s = 0;
+        for(let j=0;j<b;j++) 
+             s += A[i][j] * B[k][j];
+        result[i][k] = s;
+    }
 }
 
 function matTcrossprod(A,B) {
