@@ -598,7 +598,7 @@ class Langevitour {
                 vec: vec,
                 color: this.levelColors[i],
                 active: true,
-                x:2, y:0, //Outside plot area will be reposition in configure()
+                x:2, y:0, //Outside plot area will be repositioned in configure()
             });
         }
 
@@ -610,7 +610,7 @@ class Langevitour {
                 vec: this.axes[i].unit,
                 color: '#000',
                 active: true,
-                x:2, y:0, //Outside plot area will be reposition in configure()
+                x:2, y:0, //Outside plot area will be repositioned in configure()
             });
         }
         
