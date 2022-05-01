@@ -487,6 +487,8 @@ class Langevitour {
      * @param {Array.<number>} [data.lineFrom] Rows of X to draw lines from.
      * @param {Array.<number>} [data.lineTo] Rows of X to draw lines to.
      * @param {Array.<string>} [data.axisColors] CSS colors for each variable and then optionally for each extra axis.
+     * @param {Array.<string>} [data.levelColors] CSS colors for each level.
+     * @param {number} [data.colorVariation] Amount of brightness variation of points, between 0 and 1.
      * @param {number} [data.pointSize] Radius of points in pixels.
      */
     renderValue(data) {
@@ -533,7 +535,7 @@ class Langevitour {
                 unit:unit,
                 scale: scale,
                 center: data.extraAxesCenter[i],
-                color: axisColors[i+this.m],
+                color: axisColors[i+this.m] || '#000000',
             });
         }
 
@@ -545,7 +547,7 @@ class Langevitour {
                 center: this.center[i],
                 scale: this.scale[i],
                 unit: unit,
-                color: axisColors[i],
+                color: axisColors[i] || '#000000',
             });
         }
         
@@ -558,27 +560,34 @@ class Langevitour {
         this.group = this.permutor.map(i => data.group[i]);
         
         let nGroups = this.levels.length;
+
+        this.levelColors = (data.levelColors || []).slice();
+        
+        // Pick a palette if not given
+        for(let i=this.levelColors.length;i<nGroups;i++) {
+            let angle = (i+1/3)/nGroups;
+            let value = 104;
+            let r = value*(1+Math.cos(angle*Math.PI*2));
+            let g = value*(1+Math.cos((angle+1/3)*Math.PI*2));
+            let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
+            this.levelColors[i] = d3.rgb(r,g,b).formatHex();
+        }
+
+        // Point colors are given a small back-to-front brightness gradient,
+        // to add some variation and give a pseudo-3D effect.
+        let colorVariation = data.colorVariation == null ? 0.3 : data.colorVariation;
         this.fills = [ ];
         this.fillsFaded = [ ];
         for(let i=0;i<this.n;i++) {
-            let angle = (this.group[i]+1/3)/nGroups;
-            let value = 80+48*i/this.n;
-            let r = hexByte( value*(1+Math.cos(angle*Math.PI*2)) );
-            let g = hexByte( value*(1+Math.cos((angle+1/3)*Math.PI*2)) );
-            let b = hexByte( value*(1+Math.cos((angle+2/3)*Math.PI*2)) );
-            this.fills[i] = '#'+r+g+b;;
-            this.fillsFaded[i] = '#'+r+g+b+'1f';
+            let color = d3.color(this.levelColors[this.group[i]]);
+            let value = 1+colorVariation*(i/this.n*2-1);
+            color.r *= value;
+            color.g *= value;
+            color.b *= value;
+            this.fills[i] = color.formatHex();
+            this.fillsFaded[i] = this.fills[i] + '1f';
         }
         
-        this.levelColors = [ ];
-        for(let i=0;i<nGroups;i++) {
-            let angle = (i+1/3)/nGroups;
-            let value = 104;
-            let r = hexByte( value*(1+Math.cos(angle*Math.PI*2)) );
-            let g = hexByte( value*(1+Math.cos((angle+1/3)*Math.PI*2)) );
-            let b = hexByte( value*(1+Math.cos((angle+2/3)*Math.PI*2)) );
-            this.levelColors[i] = '#'+r+g+b;
-        }
 
         
         this.labelData = [ ];
@@ -608,7 +617,7 @@ class Langevitour {
                 axis: i,
                 label: this.axes[i].name, 
                 vec: this.axes[i].unit,
-                color: '#000',
+                color: this.axes[i].color,
                 active: true,
                 x:2, y:0, //Outside plot area will be repositioned in configure()
             });

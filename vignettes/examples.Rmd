@@ -31,7 +31,9 @@ Single-cell RNA-Seq gene expression of 2,816 mouse brain cells ([Zeisel, 2015](h
 ```{r}
 data(zeiselPC)
 
-langevitour(zeiselPC[,-1], zeiselPC$type)
+palette <- rainbow(7, v=0.75)
+
+langevitour(zeiselPC[,-1], zeiselPC$type, levelColors=palette)
 ```
 
 <br>
@@ -57,7 +59,10 @@ ggplot() +
     labs(x="",y="",color="",title="UMAP layout") + 
     coord_fixed() + 
     scale_x_continuous(breaks=c()) + 
-    scale_y_continuous(breaks=c())
+    scale_y_continuous(breaks=c()) +
+    scale_color_discrete(type=palette) +
+    guides(colour = guide_legend(override.aes = list(size=5))) +
+    theme_bw()
 ```
 
 My current suggestion to reduce noise is to repeatedly average each cell with its nearest neighbors.
@@ -76,15 +81,14 @@ for(iter in seq_len(iters)) {
     XDenoised <- do.call(rbind, XDenoised)
 }
 
-langevitour(XDenoised, zeiselPC$type)
+langevitour(XDenoised, zeiselPC$type, levelColors=palette)
 ```
 
 <br>
 
-* Try to separate microglia, astrocytes_ependymal and endothelial-mural cells by dragging their labels onto the plot.
-* Find principal components components that distinguish these cells and try dragging them onto the plot instead.
 * Notice that interneurons and the pyramidal CA1 and SS neurons parallel each other. This was not clear in the UMAP layout above.
-
+* Try setting point repulsion to "ultralocal". Ultralocal repulsion may need some fine-tuning of setting to work nicely, such as turning down the heat.
+* Construct a manual layout separating all the clusters by dragging PC labels onto the plot.
 
 ## Mouse brain cells denoised vs original
 

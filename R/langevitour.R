@@ -26,6 +26,10 @@
 #'
 #' @param axisColors Character vector. Colors for each variable and then each extra axis.
 #'
+#' @param levelColors Character vector. Colors for each level of \code{group}.
+#'
+#' @param colorVariation Number between 0 and 1. Individual points are given slightly different brightnesses. How strong should this effect be?
+#'
 #' @param pointSize Point radius in pixels.
 #'
 #' @param subsample For speed, randomly subsample down to this many rows.
@@ -57,8 +61,8 @@
 langevitour <- function(
         X, group=NULL, name=NULL, center=NULL, scale=NULL, 
         extraAxes=NULL, lineFrom=NULL, lineTo=NULL,
-        axisColors=NULL, pointSize=1, subsample=NULL, state=NULL,
-        width=NULL, height=NULL, elementId=NULL) {
+        axisColors=NULL, levelColors=NULL, colorVariation=0.3, pointSize=1, subsample=NULL, 
+        state=NULL, width=NULL, height=NULL, elementId=NULL) {
 
     X <- as.matrix(X)
     
@@ -146,6 +150,8 @@ langevitour <- function(
         lineTo = as.list(as.numeric(lineTo) - 1),
         
         axisColors=as.list(as.character(axisColors)),
+        levelColors=as.list(as.character(levelColors)),
+        colorVariation=as.numeric(colorVariation),
         pointSize=as.numeric(pointSize),
         
         state=state)

@@ -1,9 +1,10 @@
 # langevitour 0.3
 
+* Ability to get and set state with Javascript.
 * Can now draw lines between points.
 * Axis deactivation is now animated.
 * Added ultralocal point repulsion.
-* Ability to get and set state with Javascript.
+* Level colors can be specified.
 
 # langevitour 0.2
 

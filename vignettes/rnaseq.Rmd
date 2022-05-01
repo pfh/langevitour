@@ -139,7 +139,7 @@ Notes:
 
 ```{r plot}
 langevitour(
-    y, scale=15, axisColor=colors, name=name, 
+    y, scale=15, axisColors=colors, name=name, 
     extraAxes=cbind(contrastAxes, pcaAxes, bentlerAxes))
 ```
 

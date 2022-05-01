@@ -14,6 +14,8 @@ langevitour(
   lineFrom = NULL,
   lineTo = NULL,
   axisColors = NULL,
+  levelColors = NULL,
+  colorVariation = 0.3,
   pointSize = 1,
   subsample = NULL,
   state = NULL,
@@ -40,6 +42,10 @@ langevitour(
 \item{lineTo}{A vector of row numbers. Draw lines ending at these rows.}
 
 \item{axisColors}{Character vector. Colors for each variable and then each extra axis.}
+
+\item{levelColors}{Character vector. Colors for each level of \code{group}.}
+
+\item{colorVariation}{Number between 0 and 1. Individual points are given slightly different brightnesses. How strong should this effect be?}
 
 \item{pointSize}{Point radius in pixels.}
 
