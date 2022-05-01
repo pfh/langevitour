@@ -535,7 +535,7 @@ class Langevitour {
                 unit:unit,
                 scale: scale,
                 center: data.extraAxesCenter[i],
-                color: axisColors[i+this.m] || '#000000',
+                color: axisColors[i+this.m],
             });
         }
 
@@ -547,7 +547,7 @@ class Langevitour {
                 center: this.center[i],
                 scale: this.scale[i],
                 unit: unit,
-                color: axisColors[i] || '#000000',
+                color: axisColors[i],
             });
         }
         
@@ -617,7 +617,7 @@ class Langevitour {
                 axis: i,
                 label: this.axes[i].name, 
                 vec: this.axes[i].unit,
-                color: this.axes[i].color,
+                color: this.axes[i].color || '#000000',
                 active: true,
                 x:2, y:0, //Outside plot area will be repositioned in configure()
             });

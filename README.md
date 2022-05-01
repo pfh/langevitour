@@ -7,13 +7,19 @@
 * [Javascript example](https://pfh.github.io/langevitour/example.html)
 * [R examples](https://logarithmic.net/langevitour/articles/examples.html)
 
+<br>
 
 ## R Installation
 
 ```{r}
+# Released version
 install.packages("langevitour")
 ```
 
+```{r}
+# Development version
+remotes::install_github("pfh/langevitour")
+```
 
 ## R usage
 
@@ -28,12 +34,14 @@ langevitour(zeiselPC[,-1], zeiselPC$type)
 
 * [R documentation.](https://logarithmic.net/langevitour/reference/)
 
+<br>
 
 ## Javascript usage
 
 * Get started by viewing source on [this example](https://pfh.github.io/langevitour/example.html).
 * [Javascript documentation.](https://logarithmic.net/langevitour/jsdoc/Langevitour.html)
 
+<br>
 
 ## Copyright
 
