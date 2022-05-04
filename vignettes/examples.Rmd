@@ -65,23 +65,12 @@ ggplot() +
     theme_bw()
 ```
 
-My current suggestion to reduce noise is to repeatedly average each cell with its nearest neighbors.
+My current suggestion to reduce noise is, for each point, to take the average of cells reachable in a certain number of steps along the directed k-nearest neighbor graph. See the function `knnDenoise`.
 
 ```{r}
-k <- 15
-iters <- 4
+zeiselDenoised <- knnDenoise(zeiselPC[,-1], k=30, steps=2)
 
-X <- as.matrix(zeiselPC[,-1])
-
-neighbors <- RANN::nn2(X, k=k)$nn.idx
-
-XDenoised <- X
-for(iter in seq_len(iters)) {
-    XDenoised <- lapply(seq_len(nrow(X)), \(i) colMeans(XDenoised[neighbors[i,],]))
-    XDenoised <- do.call(rbind, XDenoised)
-}
-
-langevitour(XDenoised, zeiselPC$type, levelColors=palette)
+langevitour(zeiselDenoised, zeiselPC$type, levelColors=palette)
 ```
 
 <br>
@@ -99,12 +88,13 @@ UMAP and t-SNE can produce arbitrary distortions and ripping apart of nearby poi
 Let's compare the original and denoised versions. You can judge for yourself if the original geometry is faithfully retained. 
 
 ```{r}
-lineFrom <- seq_len(nrow(X))
-lineTo   <- lineFrom + nrow(X)
+n <- nrow(zeiselPC)
+lineFrom <- seq_len(n)
+lineTo <- lineFrom + n
 
 langevitour(
-    rbind(X,XDenoised), 
-    rep(c("Original","Denoised"),each=nrow(X)), 
+    rbind(zeiselPC[,-1], zeiselDenoised), 
+    rep(c("Original","Denoised"), each=n), 
     lineFrom=lineFrom, lineTo=lineTo)
 ```
 

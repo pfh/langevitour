@@ -11,6 +11,7 @@ BugReports: https://github.com/pfh/langevitour/issues/
 Imports:
     htmlwidgets
 Suggests:
+    RANN,
     shiny,
     palmerpenguins,
     knitr,

@@ -5,6 +5,7 @@
 * Axis deactivation is now animated.
 * Added ultralocal point repulsion.
 * Level colors can be specified.
+* Add knnDenoise function.
 
 # langevitour 0.2
 
