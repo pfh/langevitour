@@ -12,6 +12,15 @@ editor_options:
 <style>
 h2,h3,h4 { margin-top: 200px; }
 </style>
+<script>
+
+function bindButton(widget, button, state) {
+    document.getElementById(button).onclick = function() {
+        document.getElementById(widget).langevitour.setState(state);
+    }
+}
+
+</script>
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -33,14 +42,34 @@ data(zeiselPC)
 
 palette <- rainbow(7, v=0.75)
 
-langevitour(zeiselPC[,-1], zeiselPC$type, levelColors=palette)
+langevitour(
+    zeiselPC[,-1], zeiselPC$type, 
+    levelColors=palette, elementId="brain1")
 ```
 
 <br>
 
-* Try setting point repulsion to "local".
-* Examine particular cell types in detail by turning off the other cell types.
+* Try setting point repulsion to <button id=brain1Local>local</button>.
 
+* Examine particular cell types in detail by <button id=brain1Examine>turning off</button> the other cell types. (<button id=brain1Reset>show all</button>)
+
+<script>
+bindButton('brain1','brain1Local', {"pointRepulsionType": "local"});
+
+bindButton('brain1','brain1Examine', {
+    "pointRepulsionType": "local",
+    "labelInactive": [
+        "astrocytes_ependymal",
+        "endothelial-mural",
+        "microglia",
+        "oligodendrocytes"
+    ],
+});
+
+bindButton('brain1','brain1Reset', {
+    "labelInactive": [ ],
+});
+</script>
 
 
 
@@ -65,19 +94,81 @@ ggplot() +
     theme_bw()
 ```
 
-My current suggestion to reduce noise is, for each point, to take the average of cells reachable in a certain number of steps along the directed k-nearest neighbor graph. See the function `knnDenoise`.
+My current suggestion to reduce noise is, for each point, to take the average of cells reachable in a certain number of steps along the directed k-nearest neighbor graph. See the function `knnDenoise()`.
 
 ```{r}
 zeiselDenoised <- knnDenoise(zeiselPC[,-1], k=30, steps=2)
 
-langevitour(zeiselDenoised, zeiselPC$type, levelColors=palette)
+langevitour(
+    zeiselDenoised, zeiselPC$type, 
+    levelColors=palette, elementId="brain2")
 ```
 
 <br>
 
+* Try setting point repulsion to <button id=brain2UltraLocal>ultralocal</button>. Ultralocal repulsion may need some fine-tuning of settings to work nicely, such as turning down the heat.
+
 * Notice that interneurons and the pyramidal CA1 and SS neurons parallel each other. This was not clear in the UMAP layout above.
-* Try setting point repulsion to "ultralocal". Ultralocal repulsion may need some fine-tuning of setting to work nicely, such as turning down the heat.
-* Construct a manual layout separating all the clusters by dragging PC labels onto the plot.
+
+* Construct a <button id=brain2Manual>manual layout</button> separating all the clusters by dragging PC labels onto the plot. (<button id=brain2Reset>reset</button>)
+
+<script>
+bindButton('brain2','brain2UltraLocal', {
+    "pointRepulsionType": "ultralocal", 
+    "heat": -1,
+    "labelPos": [ ],
+});
+
+bindButton('brain2', 'brain2Manual', {
+    "pointRepulsionType": "none",
+    "labelAttractionOn": true,
+    "labelAttraction": 0,
+    "labelInactive": [],
+    "labelPos": {
+        "PC1": [
+            0.4171717171717171,
+            0.8959595959595958
+        ],
+        "PC2": [
+            -0.8313131313131312,
+            0.44949494949494945
+        ],
+        "PC3": [
+            -0.36868686868686873,
+            -0.7343434343434343
+        ],
+        "PC4": [
+            0.6151515151515152,
+            -0.25151515151515147
+        ],
+        "PC5": [
+            0.603030303030303,
+            -0.03737373737373728
+        ],
+        "PC6": [
+            -0.8090909090909091,
+            0.5565656565656565
+        ],
+        "PC7": [
+            -0.6313131313131313,
+            -0.009090909090909038
+        ],
+        "PC8": [
+            -0.24901960784313726,
+            -0.19078428979013484
+        ],
+        "PC9": [
+            0.4575757575757575,
+            -0.31414141414141405
+        ]
+    },
+});
+
+bindButton('brain2', 'brain2Reset', {
+    "labelPos": { },
+});
+</script>
+
 
 ## Mouse brain cells denoised vs original
 

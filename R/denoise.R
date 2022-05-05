@@ -19,7 +19,7 @@ knnDenoiseVecList <- function(vecList, k, steps) {
 
     lapply(seq_len(n), function(reachable) {
         for(i in seq_len(steps))
-            reachable <- unique(c(reachable, unlist(neighbors[reachable])))
+            reachable <- unique(unlist(neighbors[reachable]))
         colMeans(X[reachable,,drop=FALSE])
     })
 }
@@ -27,11 +27,9 @@ knnDenoiseVecList <- function(vecList, k, steps) {
 
 #' k-nearest neighbor denoising of a set of points
 #'
-#' Attempt to reduce noise in a high-dimensional dataset.
+#' Reduce noise in a high-dimensional dataset by averaging each point with its nearby neighbors.
 #'
-#' knnDenoise first finds the \code{k} nearest neighbors to each point (including the point itself). Then for each point the average is found of the points reachable in \code{steps} steps along the directed k-nearest neighbor graph.
-#'
-#' Requires the \code{RANN} package.
+#' \code{knnDenoise} first finds the \code{k}-nearest neighbors to each point (including the point itself). Then, for each point, the average is found of the points reachable in \code{steps} steps along the directed k-nearest neighbor graph.
 #'
 #' @param X A matrix of numeric data, or something that can be cast to a matrix. Each row represents a point.
 #'

@@ -16,12 +16,10 @@ knnDenoise(X, block = rep(1, nrow(X)), k = 30, steps = 2)
 \item{steps}{Number of steps to take along the directed k-nearest neighbor graph. \code{steps=1} uses the k-nearest neighbors, \code{steps=2} uses the k-nearest neighbors and their k-nearest neighbors, etc.}
 }
 \description{
-Attempt to reduce noise in a high-dimensional dataset.
+Reduce noise in a high-dimensional dataset by averaging each point with its nearby neighbors.
 }
 \details{
-knnDenoise first finds the \code{k} nearest neighbors to each point (including the point itself). Then for each point the average is found of the points reachable in \code{steps} steps along the directed k-nearest neighbor graph.
-
-Requires the \code{RANN} package.
+\code{knnDenoise} first finds the \code{k}-nearest neighbors to each point (including the point itself). Then, for each point, the average is found of the points reachable in \code{steps} steps along the directed k-nearest neighbor graph.
 }
 \examples{
 library(palmerpenguins)

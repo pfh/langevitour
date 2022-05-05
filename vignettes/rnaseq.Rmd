@@ -54,7 +54,7 @@ dge <- airway |>
 rpms <- cpm(dge, log=TRUE, prior.count=5)
 
 # Only show variable genes (mostly for speed)
-keep <- apply(rpms,1,sd) >= 0.5
+keep <- apply(rpms,1,sd) >= 0.25
 table(keep)
 y <- rpms[keep,,drop=F]
 
@@ -105,7 +105,7 @@ contrastAxes
 
 # Principal Components
 
-I will also supply Principal Components as extra axes in the plot. When doing the PCA, I don't use scaling because the data is already all in comparable units of measurement (log2 RPM). From the scree plot, four components seems reasonable. I also supply the Bentler rotation of these axes, which may be more easily interpretable.
+I will also supply Principal Components as extra axes in the plot. When doing the PCA, I don't use scaling because the data is already all in comparable units of measurement (log2 RPM). From the scree plot, four components seems reasonable. I then apply Bentler rotation of these axes to make them more easily interpretable.
 
 ```{r components}
 y_centered <- sweep(y, 1, rowMeans(y), "-")
@@ -126,20 +126,77 @@ We are now ready to do the langevitour plot.
 
 Things to try:
 
-* Your first step will be to deactivate the "average" axis, since this is large and uninformative.
+* Your first step will be to <button id=hideAverage>deactivate the "average" axis</button>, since this is large and uninformative.
+
 * Try dragging different axes onto the plot.
-* Try the various point repulsion methods. You will need to increase the amount of point repulsion for these to work.
-* Drag treatment onto the plot, and deactivate the "average" axis and each of the "cell vs others" axes. Also ensure point repulsion is "none". The remaining variation orthogonal to the treatment axis should be purely random variation. You can compare this to the variation along the treatment axis. This is a visual version of a statistical test called a ["rotation test"](https://link.springer.com/article/10.1007/s11222-005-4789-5). For each gene, we can compare its projection along the treatment axis to the random projections being shown orthogonal to the treatment axis. If it is extreme compared to these random projections we reject that treatment had no effect on the gene. ((There is a bit more that needs to be said here, about multiple testing.))
+
+* Try setting the point repulsion method to <button id=showOutliers>outlier</button>. You may also need to increase the amount of point repulsion. This will look for projections in which some genes have large differential expression.
+
+* Drag treatment onto the plot, and deactivate the "average" axis and each of the "cell vs others" axes. Also ensure point repulsion is "none". The remaining variation orthogonal to the treatment axis should be purely random variation. You can compare this to the variation along the treatment axis. This is a visual version of a statistical test called a ["rotation test"](https://link.springer.com/article/10.1007/s11222-005-4789-5). For each gene, we can compare its projection along the treatment axis to the random projections being shown orthogonal to the treatment axis. If it is extreme compared to these random projections we reject that treatment had no effect on the gene. ((There is a bit more that needs to be said here, about multiple testing.)) <button id=rotationTest>That sounds complicated, do it for me.</button> (<button id=reset>reset</button>)
+
+```{r plot}
+langevitour(
+    y, scale=15, axisColors=colors, name=name, 
+    extraAxes=cbind(contrastAxes, bentlerAxes),
+    elementId="myWidget")
+```
 
 Notes:
 
 * The main interest is a small number of genes affected by the treatment.
 * We can also see small numbers of genes expressing differently in the different cell-lines.
-* The Principal Component and Bentler axes are fairly similar, but Bentler3 seems somewhat superior to PC3. It highlights a set of genes that are down in the fourth cell line.
 
-```{r plot}
-langevitour(
-    y, scale=15, axisColors=colors, name=name, 
-    extraAxes=cbind(contrastAxes, pcaAxes, bentlerAxes))
-```
+
+<script>
+function bindButton(id, state) {
+    document.getElementById(id).onclick = function() {
+        document.getElementById('myWidget').langevitour.setState(state);
+    }
+}
+
+bindButton('hideAverage', {
+    "labelInactive": ["average"]
+});
+
+bindButton('showOutliers', {
+    "pointRepulsionType": "outlier",
+    "pointRepulsion": 2,
+    "labelInactive": ["average"],
+    "labelPos": { },
+});
+
+bindButton('rotationTest', {
+    "axesOn": true,
+    "heatOn": true,
+    "pointRepulsionType": "none",
+    "labelAttractionOn": true,
+    "damping": 0,
+    "heat": 0,
+    "pointRepulsion": 0,
+    "labelAttraction": 0,
+    "labelInactive": [
+        "average",
+        "cell1 vs others",
+        "cell2 vs others",
+        "cell3 vs others",
+        "cell4 vs others"
+    ],
+    "labelPos": {
+        "treatment": [0.0,0.9]
+    },
+});
+
+bindButton('reset', {
+    "axesOn": true,
+    "heatOn": true,
+    "pointRepulsionType": "none",
+    "labelAttractionOn": true,
+    "damping": 0,
+    "heat": 0,
+    "pointRepulsion": 0,
+    "labelAttraction": 0,
+    "labelInactive": [ ],
+    "labelPos": { },
+});
+</script>
 
