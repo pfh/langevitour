@@ -136,9 +136,9 @@ Things to try:
 
 ```{r plot}
 langevitour(
-    y, scale=15, axisColors=colors, name=name, 
-    extraAxes=cbind(contrastAxes, bentlerAxes),
-    elementId="myWidget")
+    y, name=name, scale=15, center=rep(3,8), 
+    extraAxes=cbind(contrastAxes, bentlerAxes), 
+    axisColors=colors, elementId="myWidget")
 ```
 
 Notes:
