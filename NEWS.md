@@ -1,3 +1,7 @@
+# langevitour 0.4
+
+* Fix README.md, remove redundant brackets.
+
 # langevitour 0.3
 
 * Ability to get and set state with Javascript.
