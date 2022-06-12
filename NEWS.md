@@ -1,3 +1,7 @@
+
+* Improved widget visibilty detection, should work in slideshows.
+* Hopefully fix weird shrinkage on resizing.
+
 # langevitour 0.4
 
 * Fix README.md, remove redundant brackets.

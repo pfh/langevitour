@@ -16,17 +16,20 @@ function has(object, name) {
 }
 
 function elementVisible(el) {
-    //https://stackoverflow.com/a/22480938
-    
-    let rect = el.getBoundingClientRect();
-    let elemTop = rect.top;
-    let elemBottom = rect.bottom;
+    // Check several ways of hiding an element or its parents.
+    // Hopefully this will work for slideshows.
+    let parent = el;
+    while(parent != null) {
+        let style = window.getComputedStyle(parent);
+        if (style.opacity <= 0 || style.display == "none" || style.visibility != "visible")
+            return false;
+        parent = parent.parentElement;
+    }
 
-    // Only completely visible elements return true:
-    //return (elemTop >= 0) && (elemBottom <= window.innerHeight);
-    
-    // Partially visible elements return true:
-    return elemTop < window.innerHeight && elemBottom >= 0;
+    //https://stackoverflow.com/a/22480938    
+    let rect = el.getBoundingClientRect();
+    return rect.top < window.innerHeight && rect.bottom >= 0 &&
+           rect.left < window.innerWidth && rect.right >= 0;
 }
 
 function randInt(n) { 
@@ -372,9 +375,11 @@ class Langevitour {
      * @param {number} height Desired initial height of widget.
      */
     constructor(container, width, height) {
-        /* Set up elements in a shadow DOM to isolate from document style. */
+        // Set up elements in a shadow DOM to isolate from document style.
+        // The extra div seems necessary to avoid weird shrinkage with resizing.
         this.container = container;
-        this.shadow = this.container.attachShadow({mode: 'open'});
+        this.container.innerHTML = "<div></div>";
+        this.shadow = this.container.firstChild.attachShadow({mode: 'open'});
         this.shadow.innerHTML = template;
         this.canvas = this.get('canvas');
         this.overlay = this.get('overlay');
@@ -879,7 +884,7 @@ class Langevitour {
         let elapsed = time - this.lastTime;
         this.lastTime = time;
         
-        if (this.X == null || !elementVisible(this.canvas)) {
+        if (this.X == null || !elementVisible(this.container)) {
             // We aren't visible. Wait a while.
             window.setTimeout(this.scheduleFrame.bind(this), 100);
             return;
