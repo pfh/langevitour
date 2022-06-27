@@ -49,15 +49,15 @@ langevitour(
 
 <br>
 
-* Try setting point repulsion to <button id=brain1Local>local</button>.
+* Try setting the guide to <button id=brain1Local>local</button>.
 
 * Examine particular cell types in detail by <button id=brain1Examine>turning off</button> the other cell types. (<button id=brain1Reset>show all</button>)
 
 <script>
-bindButton('brain1','brain1Local', {"pointRepulsionType": "local"});
+bindButton('brain1','brain1Local', {"guideType": "local"});
 
 bindButton('brain1','brain1Examine', {
-    "pointRepulsionType": "local",
+    "guideType": "local",
     "labelInactive": [
         "astrocytes_ependymal",
         "endothelial-mural",
@@ -106,7 +106,7 @@ langevitour(
 
 <br>
 
-* Try setting point repulsion to <button id=brain2UltraLocal>ultralocal</button>. Ultralocal repulsion may need some fine-tuning of settings to work nicely, such as turning down the heat.
+* Try setting the guide to <button id=brain2UltraLocal>ultralocal</button>. Ultralocal mode may need some fine-tuning of settings to work nicely, such as turning down the heat.
 
 * Notice that interneurons and the pyramidal CA1 and SS neurons parallel each other. This was not clear in the UMAP layout above.
 
@@ -114,13 +114,13 @@ langevitour(
 
 <script>
 bindButton('brain2','brain2UltraLocal', {
-    "pointRepulsionType": "ultralocal", 
+    "guideType": "ultralocal", 
     "heat": -1,
     "labelPos": [ ],
 });
 
 bindButton('brain2', 'brain2Manual', {
-    "pointRepulsionType": "none",
+    "guideType": "none",
     "labelAttractionOn": true,
     "labelAttraction": 0,
     "labelInactive": [],
@@ -253,7 +253,7 @@ langevitour(X, liminal::pdfsense$Type)
 
 <br>
 
-* Try setting point repulsion to "outliers".
+* Try setting the guide to "outliers".
 
 
 ## Stiefel manifold $V_a(\mathbb{R}^b)$

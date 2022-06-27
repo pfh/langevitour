@@ -46,8 +46,8 @@ langevitour(
   <div>Drag labels onto the plot.</div>
   <div><button onclick="setState({labelPos:{'Adelie':[-0.6553191489361703,0.7595744680851064],'Chinstrap':[-0.5957446808510638,-0.7723404255319148],'Gentoo':[0.7829787234042553,0.06595744680851068]}})">Example</button> <button onclick="setState({labelPos:{}})">Clear</button></div>
   
-  <div>Set point repulsion.</div>
-  <div><button onclick="setState({pointRepulsionType:'pca'})">PCA</button> <button onclick="setState({pointRepulsionType:'none'})">None</button></div>
+  <div>Turn on a guide.</div>
+  <div><button onclick="setState({pointRepulsionType:'pca'})">PCA</button> <button onclick="setState({guideType:'none'})">None</button></div>
   
   <div>Experiment with "damping" and "heat".</div>
   <div>

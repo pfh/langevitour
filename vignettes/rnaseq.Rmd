@@ -130,7 +130,7 @@ Things to try:
 
 * Try dragging different axes onto the plot.
 
-* Try setting the point repulsion method to <button id=showOutliers>outlier</button>. You may also need to increase the amount of point repulsion. This will look for projections in which some genes have large differential expression.
+* Try setting the guide to <button id=showOutliers>outlier</button>. You may also need to increase the strength of the guide. This will look for projections in which some genes have large differential expression.
 
 * Drag treatment onto the plot, and deactivate the "average" axis and each of the "cell vs others" axes. Also ensure point repulsion is "none". The remaining variation orthogonal to the treatment axis should be purely random variation. You can compare this to the variation along the treatment axis. This is a visual version of a statistical test called a ["rotation test"](https://link.springer.com/article/10.1007/s11222-005-4789-5). For each gene, we can compare its projection along the treatment axis to the random projections being shown orthogonal to the treatment axis. If it is extreme compared to these random projections we reject that treatment had no effect on the gene. ((There is a bit more that needs to be said here, about multiple testing.)) <button id=rotationTest>That sounds complicated, do it for me.</button> (<button id=reset>reset</button>)
 
@@ -159,8 +159,8 @@ bindButton('hideAverage', {
 });
 
 bindButton('showOutliers', {
-    "pointRepulsionType": "outlier",
-    "pointRepulsion": 2,
+    "guideType": "outlier",
+    "guide": 2,
     "labelInactive": ["average"],
     "labelPos": { },
 });
@@ -168,11 +168,11 @@ bindButton('showOutliers', {
 bindButton('rotationTest', {
     "axesOn": true,
     "heatOn": true,
-    "pointRepulsionType": "none",
+    "guideType": "none",
     "labelAttractionOn": true,
     "damping": 0,
     "heat": 0,
-    "pointRepulsion": 0,
+    "guide": 0,
     "labelAttraction": 0,
     "labelInactive": [
         "average",
@@ -189,11 +189,11 @@ bindButton('rotationTest', {
 bindButton('reset', {
     "axesOn": true,
     "heatOn": true,
-    "pointRepulsionType": "none",
+    "guideType": "none",
     "labelAttractionOn": true,
     "damping": 0,
     "heat": 0,
-    "pointRepulsion": 0,
+    "guide": 0,
     "labelAttraction": 0,
     "labelInactive": [ ],
     "labelPos": { },

@@ -1,6 +1,8 @@
 
 * Improved widget visibilty detection, should work in slideshows.
 * Hopefully fix weird shrinkage on resizing.
+* Now call point repulsions guide, new guides added.
+* Slightly reduce default damping.
 
 # langevitour 0.4
 

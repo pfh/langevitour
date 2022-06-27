@@ -206,7 +206,7 @@ function removeSpin(motion, proj) {
     return matAdd(motion, matScale(rotProj, -dot));
 }
 
-function gradRepulsion(proj, X, power, fineScale) {
+function gradRepulsion(proj, X, power, fineScale, strength) {
     /* 
     Ideally we would perform repulsion between all pairs of points. However this would be O(n^2). Instead we only do a fraction of this -- it's a stochastic gradient.
     
@@ -235,10 +235,68 @@ function gradRepulsion(proj, X, power, fineScale) {
             grad[j][k] += a[k] * p[j] * scale;
     }
     
-    matScaleInto(grad, -2/iters);
+    matScaleInto(grad, -2/iters * strength);
     
     return removeSpin( grad, proj );
 }
+
+
+function gradCentralRepulsion(proj, X, power, fineScale, strength) {
+    let m = proj.length, n = proj[0].length;
+    let p = Array(m);
+    let grad = zeroMat(m,n);
+    
+    for(let i=0;i<X.length;i++) {
+        let a = X[i];
+        
+        for(let j=0;j<m;j++)
+            p[j] = vecDot(a, proj[j]);
+        
+        let scale = (vecDot(p,p)+fineScale*fineScale)**(power-1);
+        
+        for(let j=0;j<m;j++)
+        for(let k=0;k<n;k++)
+            grad[j][k] += a[k] * p[j] * scale;
+    }
+    
+    matScaleInto(grad, -2/X.length * strength);
+    
+    return grad;
+}
+
+
+function gradSparseRank(proj, strength) {
+    let m = proj.length, n = proj[0].length;
+    let mag2 = zeros(n);
+    for(let i=0;i<m;i++)
+        for(let j=0;j<n;j++)
+            mag2[j] += proj[i][j]**2;
+            
+    let order = [...Array(n).keys()];
+    order.sort((i,j) => mag2[j]-mag2[i]);
+    
+    let grad = zeroMat(m,n);
+    for(let j=3;j<n;j++)
+        for(let i=0;i<m;i++)
+            grad[i][order[j]] = strength*proj[i][order[j]];
+    
+    return grad;
+}
+
+
+
+
+let gradTable = {
+    "sparse": (proj,X) => gradSparseRank(proj, 0.1),
+
+    "ultralocal": (proj,X) => gradRepulsion(proj,X,-1,0.05,0.01),
+    "local": (proj,X) => gradRepulsion(proj,X,0,0.01,0.5),
+    "pca": (proj,X) => gradRepulsion(proj,X,1,0,0.5),
+    "outlier": (proj,X) => gradRepulsion(proj,X,2,0,5),
+    
+    "push": (proj,X) => gradCentralRepulsion(proj,X, 0.0, 0.15,  0.5),
+    "pull": (proj,X) => gradCentralRepulsion(proj,X, 0.0, 0.15, -0.2),    
+};
 
 
 /**** Main class ****/
@@ -345,26 +403,29 @@ let template = `<div>
         ><br/
         
         ><div class=box>
-        Point repulsion
-        <select class=repulsionSelect value=none>
-            <option value=none>none</option>
-            <option value=ultralocal>ultralocal</option>
-            <option value=local>local</option>
-            <option value=pca>PCA</option>
-            <option value=outlier>outlier</option>
+        Guide
+        <select class=guideSelect value=none>
+            <optgroup label="Explore">
+                <option value=none title="Look at completely random projections.">free</option>
+                <option value=sparse title="Look at projections mostly in only three variables.">sparse</option>
+            </optgroup>
+            <optgroup label="Layout">
+                <option value=ultralocal title="Try to ensure small things don't overlap. May be unstable.">ultralocal</option>
+                <option value=local title="Try to ensure things don't overlap. A good default.">local</option>
+                <option value=pca title="Equivalent to Principal Components Analysis.">PCA</option>
+                <option value=outlier title="Find projections with some points very far from other points.">outlier</option>
+            </optgroup>
+            <optgroup label="Central force">
+                <option value=push title="Push points away from the center.">push</option>
+                <option value=pull title="Pull points towards the center.">pull</option>
+            </optgroup>
         </select> 
-        <input type=range min=-2 max=2 step=0.01 value=0 class=repulsionInput></div
+        <input type=range min=-2 max=2 step=0.01 value=0 class=guideInput></div
         
         ><div class=box>Label attraction<input class=labelCheckbox type=checkbox checked><input type=range min=-3 max=1 step=0.01 value=0 class=labelInput></div
     ></div>
 </div>`;
 
-let repulsionTable = {
-    "ultralocal": {amount:0.01, power:-1, fineScale:0.05},
-    "local": {amount:0.5, power:0, fineScale:0.01},
-    "pca": {amount:0.5, power:1, fineScale:0},
-    "outlier": {amount:5, power:2, fineScale:0},
-};
 
 /** Class to create and animate a Langevin Tour widget */
 class Langevitour {
@@ -801,12 +862,12 @@ class Langevitour {
         
         result.axesOn = this.get('axesCheckbox').checked;
         result.heatOn = this.get('heatCheckbox').checked;
-        result.pointRepulsionType = this.get('repulsionSelect').value;
+        result.guideType = this.get('guideSelect').value;
         result.labelAttractionOn = this.get('labelCheckbox').checked;
         
         result.damping = Number(this.get('dampInput').value);
         result.heat = Number(this.get('heatInput').value);
-        result.pointRepulsion = Number(this.get('repulsionInput').value);
+        result.guide = Number(this.get('guideInput').value);
         result.labelAttraction = Number(this.get('labelInput').value);
         
         result.labelInactive = [ ];
@@ -841,8 +902,14 @@ class Langevitour {
             this.get('axesCheckbox').checked = state.axesOn;
         if (has(state,'heatOn'))
             this.get('heatCheckbox').checked = state.heatOn;
+        
+        // Old    
         if (has(state,'pointRepulsionType'))
-            this.get('repulsionSelect').value = state.pointRepulsionType;
+            this.get('guideSelect').value = state.pointRepulsionType;
+        // New
+        if (has(state,'guideType'))
+            this.get('guideSelect').value = state.guideType;
+        
         if (has(state,'labelAttractionOn'))
             this.get('labelCheckbox').checked = state.labelAttractionOn;
         
@@ -850,8 +917,14 @@ class Langevitour {
             this.get('dampInput').value = state.damping;
         if (has(state,'heat'))
             this.get('heatInput').value = state.heat;
+        
+        // Old
         if (has(state,'pointRepulsion'))
-            this.get('repulsionInput').value = state.pointRepulsion;
+            this.get('guideInput').value = state.pointRepulsion;
+        // New
+        if (has(state,'guide'))
+            this.get('guideInput').value = state.guide;
+        
         if (has(state,'labelAttraction'))
             this.get('labelInput').value = state.labelAttraction;
 
@@ -1106,12 +1179,12 @@ class Langevitour {
     }
     
     compute(realElapsed) {
-        let damping =     0.2  *Math.pow(10, this.get('dampInput').value);
+        let damping =     0.1  *Math.pow(10, this.get('dampInput').value);
         let heat =        0.1  *Math.pow(10, this.get('heatInput').value);
-        let repulsion =   1.0  *Math.pow(10, this.get('repulsionInput').value);
+        let guide     =   1.0  *Math.pow(10, this.get('guideInput').value);
         let attraction =  1.0  *Math.pow(10, this.get('labelInput').value);
         let doHeat = this.get('heatCheckbox').checked;
-        let whatRepulsion = this.get('repulsionSelect').value;
+        let whatGuide = this.get('guideSelect').value;
         let doAttraction = this.get('labelCheckbox').checked;
 
         let levelActive = Array(this.levels.length).fill(true);
@@ -1151,12 +1224,11 @@ class Langevitour {
             matAddInto(vel, noise);
         }
 
-        if (whatRepulsion != 'none') {
+        if (whatGuide != 'none') {
             let activeX = this.X.filter((item,i) => levelActive[this.group[i]]);
             if (activeX.length) {
-                let options = repulsionTable[whatRepulsion];
-                let grad = gradRepulsion(proj, activeX, options.power, options.fineScale);
-                matScaleInto(grad, -1*options.amount*repulsion);
+                let grad = gradTable[whatGuide](proj, activeX);
+                matScaleInto(grad, -guide);
                 matAddInto(vel, grad);
             }
         }
