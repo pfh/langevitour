@@ -74,12 +74,33 @@ langevitour <- function(
     
     group <- as.factor(group)
     
+    
+    # Check for problems (not exhaustive!)
+    
+    assertthat::assert_that( 
+        ncol(X) >= 2,
+        length(group) == nrow(X),
+        length(name) == 0 || length(name) == nrow(X),
+        length(lineFrom) == length(lineTo),
+        all(lineFrom >= 1), 
+        all(lineTo >= 1), 
+        all(lineFrom <= nrow(X)), 
+        all(lineTo <= nrow(X)),
+        assertthat::noNA(X),
+        assertthat::noNA(group),
+        assertthat::noNA(name),
+        assertthat::noNA(lineFrom),
+        assertthat::noNA(lineTo))
+    
+        
     # Centering
     
     if (is.null(center))
         center <- colMeans(X, na.rm=TRUE)
     if (length(center) == 1)
         center <- rep(ncol(X), center)
+        
+    assertthat::assert_that( length(center) == ncol(X) )
         
     X_centered <- sweep(X, 2, center, "-")
     
@@ -91,7 +112,10 @@ langevitour <- function(
     if (length(scale) == 1)
         scale <- rep(scale, ncol(X))
         
+    assertthat::assert_that( length(scale) == ncol(X) )
+
     X_centered_scaled <- sweep(X_centered, 2, scale, "/")
+    
     
     # Extra axes
     
@@ -99,6 +123,10 @@ langevitour <- function(
     
     if (!is.null(extraAxes)) {
         extraAxes <- as.matrix(extraAxes)
+
+        assertthat::assert_that( assertthat::noNA(extraAxes) )
+        assertthat::assert_that( nrow(extraAxes) == ncol(X) )
+        
         extraAxesCenter <- as.vector(rbind(center) %*% extraAxes)
         extraAxes <- sweep(extraAxes, 1, scale, "*")
         
@@ -111,6 +139,7 @@ langevitour <- function(
     names(center) <- NULL
     names(scale) <- NULL
     names(group) <- NULL
+    
     
     # Subsampling
     
@@ -129,6 +158,7 @@ langevitour <- function(
             lineTo <- lineTo[keep]
         }
     }
+    
     
     # Convert to form that will JSON-ify correctly
     
@@ -155,6 +185,7 @@ langevitour <- function(
         pointSize=as.numeric(pointSize),
         
         state=state)
+    
     
     htmlwidgets::createWidget(
         name = 'langevitour',

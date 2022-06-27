@@ -10,7 +10,8 @@ URL: https://logarithmic.net/langevitour/
 BugReports: https://github.com/pfh/langevitour/issues/
 Imports:
     htmlwidgets,
-    RANN
+    RANN,
+    assertthat
 Suggests:
     shiny,
     palmerpenguins,
