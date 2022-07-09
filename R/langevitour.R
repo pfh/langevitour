@@ -63,7 +63,7 @@ langevitour <- function(
         extraAxes=NULL, lineFrom=NULL, lineTo=NULL,
         axisColors=NULL, levelColors=NULL, colorVariation=0.3, pointSize=1, subsample=NULL, 
         state=NULL, width=NULL, height=NULL, elementId=NULL) {
-
+    
     X <- as.matrix(X)
     
     if (is.null(colnames(X)))
@@ -92,16 +92,16 @@ langevitour <- function(
         assertthat::noNA(lineFrom),
         assertthat::noNA(lineTo))
     
-        
+    
     # Centering
     
     if (is.null(center))
         center <- colMeans(X, na.rm=TRUE)
     if (length(center) == 1)
         center <- rep(ncol(X), center)
-        
+    
     assertthat::assert_that( length(center) == ncol(X) )
-        
+    
     X_centered <- sweep(X, 2, center, "-")
     
     # Scaling
@@ -113,7 +113,7 @@ langevitour <- function(
         scale <- rep(scale, ncol(X))
         
     assertthat::assert_that( length(scale) == ncol(X) )
-
+    
     X_centered_scaled <- sweep(X_centered, 2, scale, "/")
     
     
@@ -123,7 +123,7 @@ langevitour <- function(
     
     if (!is.null(extraAxes)) {
         extraAxes <- as.matrix(extraAxes)
-
+    
         assertthat::assert_that( assertthat::noNA(extraAxes) )
         assertthat::assert_that( nrow(extraAxes) == ncol(X) )
         
@@ -248,12 +248,12 @@ langevitour <- function(
 #'
 #' @export
 langevitourOutput <- function(outputId, width = '100%', height = '600px'){
-  htmlwidgets::shinyWidgetOutput(outputId, 'langevitour', width, height, package = 'langevitour')
+    htmlwidgets::shinyWidgetOutput(outputId, 'langevitour', width, height, package = 'langevitour')
 }
 
 #' @rdname langevitour-shiny
 #' @export
 renderLangevitour <- function(expr, env = parent.frame(), quoted = FALSE) {
-  if (!quoted) { expr <- substitute(expr) } # force quoted
-  htmlwidgets::shinyRenderWidget(expr, langevitourOutput, env, quoted = TRUE)
+    if (!quoted) { expr <- substitute(expr) } # force quoted
+    htmlwidgets::shinyRenderWidget(expr, langevitourOutput, env, quoted = TRUE)
 }

@@ -276,9 +276,9 @@ function gradSparseRank(proj, strength) {
     order.sort((i,j) => mag2[j]-mag2[i]);
     
     let grad = zeroMat(m,n);
-    for(let j=3;j<n;j++)
+    for(let j=0;j<3;j++)
         for(let i=0;i<m;i++)
-            grad[i][order[j]] = strength*proj[i][order[j]];
+            grad[i][order[j]] = -strength*proj[i][order[j]];
     
     return grad;
 }
