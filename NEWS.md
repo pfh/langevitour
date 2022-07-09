@@ -6,6 +6,8 @@
 * Now call point repulsions guide, new guides added.
 * Reduce default damping.
 * Add input checking.
+* Hidden groups now completely hidden.
+* Crisp HiDPI and zoomed drawing.
 
 # langevitour 0.4
 

@@ -638,7 +638,7 @@ class Langevitour {
             let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
             this.levelColors[i] = d3.rgb(r,g,b).formatHex();
         }
-
+        
         // Point colors are given a small back-to-front brightness gradient,
         // to add some variation and give a pseudo-3D effect.
         let colorVariation = data.colorVariation == null ? 0.3 : data.colorVariation;
@@ -654,7 +654,6 @@ class Langevitour {
             this.fillsFaded[i] = this.fills[i] + '1f';
         }
         
-
         
         this.labelData = [ ];
         
@@ -676,7 +675,7 @@ class Langevitour {
                 x:2, y:0, //Outside plot area will be repositioned in configure()
             });
         }
-
+        
         for(let i=0;i<this.axes.length;i++) {
             this.labelData.push({ 
                 type: 'axis',
@@ -731,14 +730,14 @@ class Langevitour {
     configure() {
         if (!this.running) return;
         
-        this.canvas.width = this.width;
+        this.canvas.style.width = this.width+'px';
         this.overlay.style.width = this.width+'px';
-
+        
         // Scrollbars will appear if very small
         let controlHeight = this.get('controlDiv').offsetHeight + 5;
         this.size = Math.max(100, Math.min(this.width-100, this.height-controlHeight));
-
-        this.canvas.height = this.size;
+        
+        this.canvas.style.height = this.size+'px';
         this.overlay.style.height = this.size+'px';
         
         this.xScale = d3.scaleLinear()
@@ -983,9 +982,16 @@ class Langevitour {
             levelActive[item.level] = item.active;
                 
         this.overlay.style.opacity = this.mousing?1:0;
-
+        
+        // Setup canvas and get context
+        // Adjust for HiDPI screens and zoom level
+        // see https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
+        let ratio = window.devicePixelRatio;
+        this.canvas.width = Math.floor(this.width * ratio);
+        this.canvas.height = Math.floor(this.size * ratio);
         let ctx = this.canvas.getContext("2d");
-        ctx.clearRect(0,0,this.width,this.height);
+        ctx.scale(ratio, ratio);
+        ctx.clearRect(0,0,this.width,this.size);
         
         let rx = this.xScale.range(), ry = this.yScale.range();
         ctx.strokeStyle = '#000';
@@ -1033,37 +1039,37 @@ class Langevitour {
 
         // Points
         
+        // Default to group colors
         for(let i=0;i<this.n;i++)
-        if (levelActive[this.group[i]])
             this.fillsFrame[i] = this.fills[i];
-        else
-            this.fillsFrame[i] = this.fillsFaded[i];
         
+        // If we're mousing over a group, gray the other levels
         if (selected && selected.type == 'level' && levelActive[selected.level]) {
             for(let i=0;i<this.n;i++) {
                 if (this.group[i] != selected.level)
-                if (levelActive[this.group[i]])
-                    this.fillsFrame[i] = '#bbbbbbff';
-                else
-                    this.fillsFrame[i] = '#bbbbbb1f';
+                    this.fillsFrame[i] = '#bbbbbb';
             }
         }
         
-        if (selected && selected.type == 'axis') {
+        // If we're mousing over an axis, color by position on axis
+        if (selectedAxis != null) {
             for(let i=0;i<this.n;i++) {
                 let c = this.axes[selectedAxis].proj[i];
-                c = Math.tanh(c * 2);                                                                    // Hmm
-                this.fillsFrame[i] = d3.interpolateViridis(c*0.5+0.5) + (levelActive[this.group[i]]?"":"1f");
+                c = Math.tanh(c * 2);   // Extreme values compressed so -1<c<1
+                this.fillsFrame[i] = d3.interpolateViridis(c*0.5+0.5);
             }
         }
         
+        // Draw points that aren't hidden
         let size = this.pointSize;
         for(let i=0;i<this.n;i++) {
-            ctx.fillStyle = this.fillsFrame[i];
-            ctx.fillRect(this.xScaleClamped(this.xy[0][i])-size, this.yScaleClamped(this.xy[1][i])-size, size*2, size*2);
+            if (levelActive[this.group[i]]) {
+                ctx.fillStyle = this.fillsFrame[i];
+                ctx.fillRect(this.xScaleClamped(this.xy[0][i])-size, this.yScaleClamped(this.xy[1][i])-size, size*2, size*2);
+            }
         }
         
-        // Rug
+        // If we're mousing over an axis, draw a rug for the axis
         if (showAxes && selectedAxis != null) {
             //ctx.strokeStyle = '#00000022';
             let xProj = vecDot(this.proj[0], this.axes[selectedAxis].unit);
@@ -1163,7 +1169,7 @@ class Langevitour {
         }
         
         ctx.restore();
-
+        
         //Legend
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
