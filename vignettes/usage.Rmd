@@ -58,8 +58,11 @@ langevitour(
   <button onclick="setState({damping:0,heat:0})">Default</button>
   </div>
   
-  <div>Hide measurements by unchecking the checkbox on their label.</div>
-  <div><button onclick="setState({labelInactive:['bill_length_mm']})">Hide bill length</button> <button onclick="setState({labelInactive:[]})">Show all</button></div>
+  <div>When only three measurements are shown, your eyes will interpret the display as 3D. Hide measurements by unchecking the checkbox on their label.</div>
+  <div>
+  <button onclick="setState({labelInactive:['bill_length_mm']})">Hide bill length</button>
+  <button onclick="setState({labelInactive:[]})">Show all</button>
+  </div>
 </div>
 
 # Further examples

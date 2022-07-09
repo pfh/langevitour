@@ -287,7 +287,9 @@ function gradSparseRank(proj, strength) {
 
 
 let gradTable = {
-    "sparse": (proj,X) => gradSparseRank(proj, 0.1),
+    //Not quite working well.
+    //Better to manually hide all but 3 axes.
+    //"sparse": (proj,X) => gradSparseRank(proj, 0.1),
 
     "ultralocal": (proj,X) => gradRepulsion(proj,X,-1,0.05,0.01),
     "local": (proj,X) => gradRepulsion(proj,X,0,0.01,0.5),
@@ -407,7 +409,6 @@ let template = `<div>
         <select class=guideSelect value=none>
             <optgroup label="Explore">
                 <option value=none title="Look at completely random projections.">free</option>
-                <option value=sparse title="Look at projections mostly in only three variables.">sparse</option>
             </optgroup>
             <optgroup label="Layout">
                 <option value=ultralocal title="Try to ensure small things don't overlap. May be unstable.">ultralocal</option>

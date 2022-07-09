@@ -51,7 +51,11 @@ langevitour(
 
 * Try setting the guide to <button id=brain1Local>local</button>.
 
-* Examine particular cell types in detail by <button id=brain1Examine>turning off</button> the other cell types. (<button id=brain1Reset>show all</button>)
+* Examine particular cell types in detail by <button id=brain1Examine>turning off</button> the other cell types.
+
+* Get a 3D effect by <button id=brain1ThreeAxes>showing only three axes</button>.
+
+<button id=brain1Reset>Reset</button>
 
 <script>
 bindButton('brain1','brain1Local', {"guideType": "local"});
@@ -66,7 +70,13 @@ bindButton('brain1','brain1Examine', {
     ],
 });
 
+bindButton('brain1','brain1ThreeAxes', {
+    "guideType": "none",
+    "labelInactive": ["PC4","PC5","PC6","PC7","PC8","PC9","PC10"],
+});
+
 bindButton('brain1','brain1Reset', {
+    "guideType": "none",
     "labelInactive": [ ],
 });
 </script>
