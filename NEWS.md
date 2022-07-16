@@ -3,11 +3,12 @@
 
 * Improved widget visibilty detection, should work in slideshows.
 * Hopefully fix weird shrinkage on resizing.
-* Now call point repulsions guide, new guides added.
+* Crisp HiDPI and zoomed drawing.
+* Now call point repulsions "guide", new guides added.
 * Reduce default damping.
 * Add input checking.
 * Hidden groups now completely hidden.
-* Crisp HiDPI and zoomed drawing.
+* Hidden levels hidden from legend.
 
 # langevitour 0.4
 

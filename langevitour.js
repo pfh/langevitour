@@ -1176,9 +1176,11 @@ class Langevitour {
         ctx.textBaseline = 'middle';
         ctx.font = '15px sans-serif';
         if (!this.mousing)
-        for(let i=0;i<this.levels.length;i++) {
+        for(let i=0,j=0;i<this.levels.length;i++)
+        if (levelActive[i]) {
             ctx.fillStyle = this.levelColors[i];
-            ctx.fillText(this.levels[i], this.size+10, 10+i*20);
+            ctx.fillText(this.levels[i], this.size+10, 11+j*20);
+            j++;
         }
         
         window.setTimeout(this.scheduleFrame.bind(this), 5);
