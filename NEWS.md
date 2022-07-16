@@ -8,7 +8,7 @@
 * Reduce default damping.
 * Add input checking.
 * Hidden groups now completely hidden.
-* Hidden levels hidden from legend.
+* Hidden groups hidden from legend.
 
 # langevitour 0.4
 
