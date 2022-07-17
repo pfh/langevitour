@@ -9,6 +9,7 @@
 * Add input checking.
 * Hidden groups now completely hidden.
 * Hidden groups hidden from legend.
+* Faster rug drawing.
 
 # langevitour 0.4
 

@@ -1081,18 +1081,23 @@ class Langevitour {
                 -vecDot(this.proj[0], this.axes[selectedAxis].unit) 
             ];
             ox = vecScale(ox, 0.05/Math.sqrt(vecDot(ox,ox)));
+                        
+            // Hack to speed up rug drawing by rounding positions, 
+            // then only drawing each position once.
+            let rug = {};
+            let rounding = this.size;
             for(let i=0;i<this.n;i++) {
                 if (!levelActive[this.group[i]]) continue;
-                
-                let valueProj = this.axes[selectedAxis].proj[i];
-                let p = [ 
-                    xProj * valueProj, 
-                    yProj * valueProj 
-                ];                
+                let proj = this.axes[selectedAxis].proj[i];
+                rug[ Math.round(proj*rounding)/rounding ] = this.fillsFrame[i];
+            }
+            
+            for(let [proj, fill] of Object.entries(rug)) {
+                let p = [ xProj*proj, yProj*proj ];                
                 let pA = vecAdd(p, ox);
                 let pB = vecAdd(p, vecScale(ox,-1));
                 
-                ctx.strokeStyle = this.fillsFrame[i];
+                ctx.strokeStyle = fill;//this.fillsFrame[i];
                 ctx.beginPath();
                 ctx.moveTo(this.xScaleClamped(pA[0]),this.yScaleClamped(pA[1]));
                 ctx.lineTo(this.xScaleClamped(pB[0]),this.yScaleClamped(pB[1]));
