@@ -296,8 +296,8 @@ let gradTable = {
     "pca": (proj,X) => gradRepulsion(proj,X,1,0,0.5),
     "outlier": (proj,X) => gradRepulsion(proj,X,2,0,5),
     
-    "push": (proj,X) => gradCentralRepulsion(proj,X, 0.0, 0.15,  0.5),
-    "pull": (proj,X) => gradCentralRepulsion(proj,X, 0.0, 0.15, -0.2),    
+    "push": (proj,X) => gradCentralRepulsion(proj,X, 0.5, 0.01,  0.5),
+    "pull": (proj,X) => gradCentralRepulsion(proj,X, 0.5, 0.01, -0.2),    
 };
 
 
