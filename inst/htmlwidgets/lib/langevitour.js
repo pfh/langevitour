@@ -152,6 +152,19 @@ function matTranspose(A) {
     return result;
 }
 
+function removeSpin(motion, proj) {
+    /* Ensure each row of motion is in the null space of the rows of proj.
+       proj rows are assumed to be orthonormal. 
+       
+       This is used to avoid adding random spin to the projection. */
+    let result = [...motion];
+    for(let i=0;i<result.length;i++)
+    for(let j=0;j<proj.length;j++)
+        result[i] = vecSub(result[i],vecScale(proj[j],vecDot(motion[i],proj[j])));
+    
+    return result;
+}
+
 
 /**** Projection pursuit gradients ****/
 
@@ -196,24 +209,6 @@ function gradRepulsion(proj, X, power, fineScale) {
 }
 */
 
-function removeSpin(motion, proj) {
-    /*
-    let rotProj = matMul([[0,-1/Math.sqrt(2)],[1/Math.sqrt(2),0]], proj);
-    let dot = 0;
-    for(let i=0;i<proj.length;i++)
-    for(let j=0;j<proj[0].length;j++)
-        dot += motion[i][j]*rotProj[i][j];
-    
-    return matAdd(motion, matScale(rotProj, -dot));
-    */
-    let result = [...motion];
-    for(let i=0;i<result.length;i++)
-    for(let j=0;j<proj.length;j++)
-        result[i] = vecSub(result[i],vecScale(proj[j],vecDot(motion[i],proj[j])));
-    
-    return result;
-}
-
 function gradRepulsion(proj, X, power, fineScale, strength) {
     /* 
     Ideally we would perform repulsion between all pairs of points. However this would be O(n^2). Instead we only do a fraction of this -- it's a stochastic gradient.
@@ -230,7 +225,6 @@ function gradRepulsion(proj, X, power, fineScale, strength) {
     let off1 = randInt(X.length);
     let off2 = randInt(X.length);
     for(let i=0;i<iters;i++) {
-        //let a = vecSub(X[randInt(X.length)],X[randInt(X.length)]);
         let a = vecSub(X[(i+off1)%X.length],X[(i+off2)%X.length]);
         
         for(let j=0;j<m;j++)
@@ -243,9 +237,7 @@ function gradRepulsion(proj, X, power, fineScale, strength) {
             grad[j][k] += a[k] * p[j] * scale;
     }
     
-    matScaleInto(grad, -2/iters * strength);
-    
-    //return removeSpin( grad, proj );
+    matScaleInto(grad, -2/iters * strength);    
     return grad;
 }
 
