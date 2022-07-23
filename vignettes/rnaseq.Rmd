@@ -32,7 +32,6 @@ library(airway)               # airway dataset
 library(edgeR)                # RPM calculation
 library(limma)                # makeContrasts
 library(MASS)                 # ginv generalized matrix inverse
-library(GPArotation)          # Bentler rotation
 library(EnsDb.Hsapiens.v86)   # Gene names
 library(ggplot2)
 library(dplyr)
@@ -105,17 +104,14 @@ contrastAxes
 
 # Principal Components
 
-I will also supply Principal Components as extra axes in the plot. When doing the PCA, I don't use scaling because the data is already all in comparable units of measurement (log2 RPM). From the scree plot, four components seems reasonable. I then apply Bentler rotation of these axes to make them more easily interpretable.
+I will also supply Principal Components as extra axes in the plot. When doing the PCA, I don't use scaling because the data is already all in comparable units of measurement (log2 RPM). From the scree plot, four components seems reasonable. I then apply varimax rotation of these axes to make them more easily interpretable.
 
 ```{r components}
-y_centered <- sweep(y, 1, rowMeans(y), "-")
+pca <- prcomp(t(y), center=TRUE, scale=FALSE, rank=4)
+vmAxes <- pca$x %*% varimax(pca$rotation, normalize=FALSE)$rotmat
+colnames(vmAxes) <- paste0("VM",seq_len(ncol(vmAxes)))
 
-pca <- prcomp(y_centered, scale=FALSE, rank=4)
 plot(pca)
-pcaAxes <- pca$rotation
-
-bentlerAxes <- pca$rotation %*% bentlerT(pca$x)$Th
-colnames(bentlerAxes) <- paste0("Bentler",seq_len(ncol(bentlerAxes)))
 ```
 
 # Plot the data with langevitour
@@ -137,7 +133,7 @@ Things to try:
 ```{r plot}
 langevitour(
     y, name=name, scale=15, center=rep(3,8), 
-    extraAxes=cbind(contrastAxes, bentlerAxes), 
+    extraAxes=cbind(contrastAxes, vmAxes), 
     axisColors=colors, elementId="myWidget")
 ```
 
