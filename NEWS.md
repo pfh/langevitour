@@ -1,5 +1,5 @@
 
-# langevitour 0.4.1
+# langevitour 0.5
 
 * Improved widget visibilty detection, should work in slideshows.
 * Hopefully fix weird shrinkage on resizing.
