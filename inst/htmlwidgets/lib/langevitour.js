@@ -304,70 +304,70 @@ let gradTable = {
 
 /**** Main class ****/
 
-let template = `<div>
+let template = `~
+<div>~
     <style>
-    /* Reset all host styling. */
-    :host {
-        all: initial;
-    }
-    
-    * { font-family: sans-serif; }
-    input { vertical-align: middle; }
-    input[type=checkbox] { vertical-align: baseline; }
-    
-    .box { 
-        background: #eee;
-        display: inline-block; 
-        padding: 0.25em 0.5em 0.25em 0.5em; 
-        margin: 0.25em; 
-        border-radius: 0.25em;
-        vertical-align: middle;
-    }
-    
-    button {
-        margin: 0.25em 0.25em 0.25em 0.25em;
-        padding: 0px;
-        vertical-align: middle;
-        height: 24px;
-        width: 24px;
-    }
-    
-    .infoBox {
-        visibility: hidden;
-        position: absolute;
-        left: 10px;
-        bottom: 0px;
-        padding: 1em;
-        background: #fff;
-        border: 1px solid black;
-        border-radius: 0.25em;
-    }
-    
-    .messageArea {
-        position: absolute;
-        white-space: pre;
-        text-align: right;
-        right: 3px;
-        bottom: 3px;
-        color: #888;
-    }
-    
-    .labelDiv {
-        white-space: nowrap;
-        position: absolute;
-        border-radius: 3px;
-        padding: 2px 5px 1px 0px;
-        cursor: grab;  
-        user-select: none;
-        font-size: 15px;
-    }
-    
-    .labelDiv input {
-        padding: 0px;
-        margin: 0px 5px 0px 0px;
-    }
-    
-    </style>
+        /* Reset all host styling. */
+        :host {
+            all: initial;
+        }
+        
+        * { font-family: sans-serif; }
+        input { vertical-align: middle; }
+        input[type=checkbox] { vertical-align: baseline; }
+        
+        .box { 
+            background: #eee;
+            display: inline-block; 
+            padding: 0.25em 0.5em 0.25em 0.5em; 
+            margin: 0.25em; 
+            border-radius: 0.25em;
+            vertical-align: middle;
+        }
+        
+        button {
+            margin: 0.25em 0.25em 0.25em 0.25em;
+            padding: 0px;
+            vertical-align: middle;
+            height: 24px;
+            width: 24px;
+        }
+        
+        .infoBox {
+            visibility: hidden;
+            position: absolute;
+            left: 10px;
+            bottom: 0px;
+            padding: 1em;
+            background: #fff;
+            border: 1px solid black;
+            border-radius: 0.25em;
+        }
+        
+        .messageArea {
+            position: absolute;
+            white-space: pre;
+            text-align: right;
+            right: 3px;
+            bottom: 3px;
+            color: #888;
+        }
+        
+        .labelDiv {
+            white-space: nowrap;
+            position: absolute;
+            border-radius: 3px;
+            padding: 2px 5px 1px 0px;
+            cursor: grab;  
+            user-select: none;
+            font-size: 15px;
+        }
+        
+        .labelDiv input {
+            padding: 0px;
+            margin: 0px 5px 0px 0px;
+        }    
+    </style>~
 
     <div style="position: relative" class=plotDiv>
         <canvas class=canvas></canvas>
@@ -381,7 +381,7 @@ let template = `<div>
             <div><br>State:</div>
             <textarea class=infoBoxState rows=5 cols=30 wrap=on onfocus="this.setSelectionRange(0,this.value.length,'backward');" spellcheck=false></textarea>
         </div>
-    </div>
+    </div>~
 
     <div class=controlDiv>
         <button class=fullscreenButton title="Full screen"
@@ -390,43 +390,59 @@ let template = `<div>
             <path d="M 20,10 l 0,2 l 4,0 l 0,4 l 2,0 L 26,10 l -6,0 l 0,0 z"></path>
             <path d="M 24,24 l -4,0 l 0,2 L 26,26 l 0,-6 l -2,0 l 0,4 l 0,0 z"></path>
             <path d="M 12,20 L 10,20 L 10,26 l 6,0 l 0,-2 l -4,0 l 0,-4 l 0,0 z"></path>
-            </svg
-        ></button
+            </svg>~
+        </button>~
         
-        ><button class=infoButton>
+        <button class=infoButton>
             ?
-        </button
+        </button>~
         
-        ><div class=box>Axes<input class=axesCheckbox type=checkbox checked></div
+        <div class=box>~
+            Axes~
+            <input class=axesCheckbox type=checkbox checked>~
+        </div>~
         
-        ><div class=box>Damping<input type=range min=-3 max=3 step=0.01 value=0 class=dampInput></div
+        <div class=box>~
+            Damping
+            <input type=range min=-3 max=3 step=0.01 value=0 class=dampInput>~
+        </div>~
         
-        ><div class=box>Heat<input class=heatCheckbox type=checkbox checked><input type=range min=-2 max=4 step=0.01 value=0 class=heatInput></div
+        <div class=box>~
+            Heat~
+            <input class=heatCheckbox type=checkbox checked>~
+            <input type=range min=-2 max=4 step=0.01 value=0 class=heatInput>~
+        </div>~
         
-        ><br/
+        <br/>~
         
-        ><div class=box>
-        Guide
-        <select class=guideSelect value=none>
-            <optgroup label="Explore">
-                <option value=none title="Look at completely random projections.">free</option>
-            </optgroup>
-            <optgroup label="Layout">
-                <option value=ultralocal title="Try to ensure small things don't overlap. May be unstable.">ultralocal</option>
-                <option value=local title="Try to ensure things don't overlap. A good default.">local</option>
-                <option value=pca title="Equivalent to Principal Components Analysis.">PCA</option>
-                <option value=outlier title="Find projections with some points very far from other points.">outlier</option>
-            </optgroup>
-            <optgroup label="Central force">
-                <option value=push title="Push points away from the center.">push</option>
-                <option value=pull title="Pull points towards the center.">pull</option>
-            </optgroup>
-        </select> 
-        <input type=range min=-2 max=2 step=0.01 value=0 class=guideInput></div
+        <div class=box>~
+            Guide
+            <select class=guideSelect value=none>
+                <optgroup label="Explore">
+                    <option value=none title="Look at completely random projections.">free</option>
+                </optgroup>
+                <optgroup label="Layout">
+                    <option value=ultralocal title="Try to ensure small things don't overlap. May be unstable.">ultralocal</option>
+                    <option value=local title="Try to ensure things don't overlap. A good default.">local</option>
+                    <option value=pca title="Equivalent to Principal Components Analysis.">PCA</option>
+                    <option value=outlier title="Find projections with some points very far from other points.">outlier</option>
+                </optgroup>
+                <optgroup label="Central force">
+                    <option value=push title="Push points away from the center.">push</option>
+                    <option value=pull title="Pull points towards the center.">pull</option>
+                </optgroup>
+            </select> 
+            <input type=range min=-2 max=2 step=0.01 value=0 class=guideInput>~
+        </div>~
         
-        ><div class=box>Label attraction<input class=labelCheckbox type=checkbox checked><input type=range min=-3 max=1 step=0.01 value=0 class=labelInput></div
-    ></div>
-</div>`;
+        <div class=box>~
+            Label attraction~
+            <input class=labelCheckbox type=checkbox checked>~
+            <input type=range min=-3 max=1 step=0.01 value=0 class=labelInput>~
+        </div>~
+    </div>~
+</div>~
+`.replace(/~\s*/g,''); // Strip whitespace marked with initial '~'.
 
 
 /** Class to create and animate a Langevin Tour widget */

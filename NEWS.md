@@ -1,4 +1,8 @@
 
+# langevitour 0.5.1
+
+* Neater template HTML.
+
 # langevitour 0.5
 
 * Improved widget visibilty detection, should work in slideshows.
