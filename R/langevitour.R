@@ -34,7 +34,7 @@
 #'
 #' @param subsample For speed, randomly subsample down to this many rows.
 #'
-#' @param state A JSON string, or an object that htmlwidgets will convert to the correct JSON. Initial widget state settings. The state of a widget can be obtained by pressing the "?" button. I am not going to guarantee that states will be compatible between versions of langevitour.
+#' @param state A JSON string, or an object that htmlwidgets will convert to the correct JSON. Initial widget state settings. The state of a widget can be obtained by pressing the "?" button. I am not going to guarantee that states will be compatible between versions of langevitour. Hint: Since JSON uses double quotes, surround the string in single quotes.
 #'
 #' @param width Width of widget.
 #'
@@ -54,6 +54,15 @@
 #'     completePenguins[,-1], 
 #'     completePenguins$species, 
 #'     scale=scale, pointSize=2)
+#'
+#'
+#' # An example setting the widget's initial state
+#'  
+#' langevitour(
+#'     completePenguins[,-1], 
+#'     completePenguins$species, 
+#'     scale=scale, pointSize=2,
+#'     state='{"guideType":"pca","labelInactive":["bill_length_mm"]}')
 #'
 #' @import htmlwidgets
 #'
