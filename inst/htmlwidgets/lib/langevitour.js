@@ -1,9 +1,12 @@
 "use strict";
 
 /*
+Required if using this script directly from HTML:
 <script src="https://unpkg.com/jstat@1.9.5/dist/jstat.js"></script>
 <script src="https://unpkg.com/svd-js@1.1.1/build-umd/svd-js.min.js"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
+
+I tried TensorFlow for gradients, but in the end did them by hand.
 <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.13.0/dist/tf.min.js"></script> -->
 */
 
@@ -21,7 +24,7 @@ function elementVisible(el) {
     let parent = el;
     while(parent != null) {
         let style = window.getComputedStyle(parent);
-        if (style.opacity <= 0 || style.display == "none" || style.visibility != "visible")
+        if (style.opacity == "0" || style.display == "none" || style.visibility != "visible")
             return false;
         parent = parent.parentElement;
     }
@@ -37,7 +40,7 @@ function randInt(n) {
 }
 
 function permutation(n) {
-    let array = Array(n).fill().map((x,i)=>i);
+    let array = Array(n).fill(0).map((x,i)=>i);
     for (let i = array.length-1; i>0; i--) {
         const j = randInt(i+1);
         [array[i], array[j]] = [array[j], array[i]];
@@ -559,7 +562,7 @@ class Langevitour {
      * Show data in the widget.
      * @param {object} data The data to show.
      * @param {Array.<Array.<number>>} data.X A row-major matrix, where each row represents a point and each column represents a variable. The data should be centered and scaled.
-     * @param {Array.<scale>} data.scale Scaling to restore original units of X.
+     * @param {Array.<number>} data.scale Scaling to restore original units of X.
      * @param {Array.<number>} data.center Center to restore original units of X.
      * @param {Array.<string>} data.colnames A name for each column in X.
      * @param {Array.<string>} [data.rownames] A name for each point.
