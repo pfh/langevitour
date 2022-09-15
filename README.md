@@ -4,10 +4,15 @@ langevitour is an HTML widget that randomly tours projections of a high-dimensio
 
 langevitour is a twist on the "tour" concept from software such as [XGobi](http://lib.stat.cmu.edu/general/XGobi/), [GGobi](http://ggobi.org/), [tourr](http://ggobi.github.io/tourr/), [ferrn](https://huizezhang-sherry.github.io/ferrn/), [liminal](https://sa-lee.github.io/liminal/), [detourr](https://casperhart.github.io/detourr/index.html), [spinifex](https://nspyrison.github.io/spinifex/), and [loon.tour](https://great-northern-diver.github.io/loon.tourr/). The new element in langevitour is the use of [Langevin Dynamics](https://en.wikipedia.org/wiki/Langevin_dynamics) to generate the sequence of projections.
 
+* [Method description (bioRxiv pre-print)](https://www.biorxiv.org/content/10.1101/2022.08.24.505207v1)
+
+* ABACBS Seminar 2022 [slides](https://logarithmic.net/langevitour/2022-09-abacbs/)
+
 * useR! 2022 conference [slides](https://logarithmic.net/langevitour/2022-useR/) and [video (extended edition)](https://www.youtube.com/watch?v=vKv9P13UACw)
 
-* [Javascript example](https://pfh.github.io/langevitour/example.html)
 * [R examples](https://logarithmic.net/langevitour/articles/examples.html)
+
+* [Javascript example](https://pfh.github.io/langevitour/example.html)
 
 <br>
 
