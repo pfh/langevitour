@@ -1100,7 +1100,7 @@ class Langevitour {
                  vecDot(this.proj[1], this.axes[selectedAxis].unit), 
                 -vecDot(this.proj[0], this.axes[selectedAxis].unit) 
             ];
-            ox = vecScale(ox, 0.05/Math.sqrt(vecDot(ox,ox)));
+            ox = vecScale(ox, 0.05/Math.max(1e-30,Math.sqrt(vecDot(ox,ox)))); //Avoid very occasional divide by zero
                         
             // Hack to speed up rug drawing by rounding positions, 
             // then only drawing each position once.

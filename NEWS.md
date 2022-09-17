@@ -2,6 +2,7 @@
 # langevitour 0.5.1
 
 * Neater template HTML.
+* Avoid rare divide by zero.
 
 # langevitour 0.5
 
