@@ -1,0 +1,41 @@
+{
+  "name": "langevitour",
+  "version": "1.0.0",
+  "description": "",
+  "main": "inst/htmlwidgets/langevitour.js",
+  "scripts": {
+    "test":       "echo \"Error: no test specified\" && exit 1",
+    "start":      "npx webpack watch",
+    
+    "js-build":   "npx webpack",
+    "js-docs":    "jsdoc src/langevitour.js -d docs/jsdoc",
+    "r-document": "R -e 'devtools::document()'",
+    "r-docs":     "npm run r-document && R -e 'pkgdown::build_site()'",
+    "build":      "npm run js-build && npm run js-docs && npm run r-docs",
+    
+    "r-install":  "R -e 'devtools::install()'",
+    "r-install-quick":  "R -e 'devtools::install(quick=T)'"
+  },
+  
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pfh/langevitour.git"
+  },
+  
+  "author": "Paul Harrison",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pfh/langevitour/issues"
+  },
+  "homepage": "https://logarithmic.net/langevitour",
+  
+  "devDependencies": {
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "dependencies": {
+    "d3": "^7.6.1",
+    "jstat": "^1.9.5",
+    "svd-js": "^1.1.1"
+  }
+}

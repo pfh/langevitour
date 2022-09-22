@@ -3,7 +3,4 @@ dependencies:
    version: 1
    src: htmlwidgets/lib/
    script:
-   - jstat.js
-   - svd-js.min.js
-   - d3.v7.min.js
-   - langevitour.js
+   - langevitour-pack.js

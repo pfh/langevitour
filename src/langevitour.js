@@ -1,16 +1,8 @@
-"use strict";
 
-/*
-Required if using this script directly from HTML:
-<script src="https://unpkg.com/jstat@1.9.5/dist/jstat.js"></script>
-<script src="https://unpkg.com/svd-js@1.1.1/build-umd/svd-js.min.js"></script>
-<script src="https://d3js.org/d3.v7.min.js"></script>
+import { SVD } from 'svd-js';
+import { normal } from 'jstat';
+import { rgb, color, scaleLinear, select, drag, interpolateViridis } from 'd3';
 
-I tried TensorFlow for gradients, but in the end did them by hand.
-<!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.13.0/dist/tf.min.js"></script> -->
-*/
-
-let langevitour = (function(){
 
 /**** Utility functions ****/
 
@@ -172,6 +164,9 @@ function removeSpin(motion, proj) {
 /**** Projection pursuit gradients ****/
 
 /*
+I tried TensorFlow (tfjs) for gradients, but in the end did them by hand.
+
+
 function gradRepulsion(proj, X, power, fineScale) {
     let k = 1000;
     let A = Array(k);
@@ -449,7 +444,7 @@ let template = `~
 
 
 /** Class to create and animate a Langevin Tour widget */
-class Langevitour {
+export class Langevitour {
     /** 
      * Create a Langevin Tour widget.
      * @param {HTMLElement} container Element to insert widget into.
@@ -657,22 +652,20 @@ class Langevitour {
             let r = value*(1+Math.cos(angle*Math.PI*2));
             let g = value*(1+Math.cos((angle+1/3)*Math.PI*2));
             let b = value*(1+Math.cos((angle+2/3)*Math.PI*2));
-            this.levelColors[i] = d3.rgb(r,g,b).formatHex();
+            this.levelColors[i] = rgb(r,g,b).formatHex();
         }
         
         // Point colors are given a small back-to-front brightness gradient,
         // to add some variation and give a pseudo-3D effect.
         let colorVariation = data.colorVariation == null ? 0.3 : data.colorVariation;
         this.fills = [ ];
-        this.fillsFaded = [ ];
         for(let i=0;i<this.n;i++) {
-            let color = d3.color(this.levelColors[this.group[i]]);
+            let pointColor = color(this.levelColors[this.group[i]]);
             let value = 1+colorVariation*(i/this.n*2-1);
-            color.r *= value;
-            color.g *= value;
-            color.b *= value;
-            this.fills[i] = color.formatHex();
-            this.fillsFaded[i] = this.fills[i] + '1f';
+            pointColor.r *= value;
+            pointColor.g *= value;
+            pointColor.b *= value;
+            this.fills[i] = pointColor.formatHex();
         }
         
         
@@ -761,9 +754,9 @@ class Langevitour {
         this.canvas.style.height = this.size+'px';
         this.overlay.style.height = this.size+'px';
         
-        this.xScale = d3.scaleLinear()
+        this.xScale = scaleLinear()
             .domain([-1,1]).range([2.5,this.size-2.5]);
-        this.yScale = d3.scaleLinear()
+        this.yScale = scaleLinear()
             .domain([-1,1]).range([this.size-2.5,2.5]);
 
         this.xScaleClamped = this.xScale.copy().clamp(true);
@@ -771,7 +764,7 @@ class Langevitour {
 
         /* Draggable labels */
         
-        let overlay = d3.select(this.overlay);
+        let overlay = select(this.overlay);
         
         overlay.selectAll('*').remove();
         
@@ -825,7 +818,7 @@ class Langevitour {
                 .style('background',d=>d.selected?'#aaa':'#ddd');
         }
 
-        let drag = d3.drag()
+        let makeDraggable = drag()
             .subject(function (e,d) {
                 return { x:e.x, y:e.y };
             })
@@ -855,7 +848,7 @@ class Langevitour {
                 this.style.cursor = 'grab';
                 d.selected -= 1;
             });
-        drag(divs);
+        makeDraggable(divs);
 
         
         /* Reposition labels that are not currently in use. */
@@ -1077,7 +1070,7 @@ class Langevitour {
             for(let i=0;i<this.n;i++) {
                 let c = this.axes[selectedAxis].proj[i];
                 c = Math.tanh(c * 2);   // Extreme values compressed so -1<c<1
-                this.fillsFrame[i] = d3.interpolateViridis(c*0.5+0.5);
+                this.fillsFrame[i] = interpolateViridis(c*0.5+0.5);
             }
         }
         
@@ -1171,7 +1164,7 @@ class Langevitour {
             }
             
             if (i==selectedAxis) {
-                let ticks = d3.scaleLinear()
+                let ticks = scaleLinear()
                     .domain([this.axes[i].center-this.axes[i].scale*axisScale, this.axes[i].center+this.axes[i].scale*axisScale])
                     .range([-axisScale,axisScale])
                     .ticks(5);
@@ -1185,7 +1178,7 @@ class Langevitour {
             
             /*if (selectedAxis != null) {
                 let similarity = vecDot(this.axes[i].unit, this.axes[selectedAxis].unit)*0.5+0.5;
-                ctx.fillStyle = d3.interpolateViridis(similarity);
+                ctx.fillStyle = interpolateViridis(similarity);
                 ctx.strokeStyle = '#fff';
             }*/
             
@@ -1251,7 +1244,7 @@ class Langevitour {
             
             let velReplaceVar = 1 - velKeep*velKeep;        
             let noise = times(proj.length, times, this.m,
-                jStat.normal.sample, 0, Math.sqrt(heat*velReplaceVar));
+                normal.sample, 0, Math.sqrt(heat*velReplaceVar));
             
             noise = removeSpin(noise, proj);
             
@@ -1295,7 +1288,7 @@ class Langevitour {
             // How fast inactive axes are removed
             let nuke_amount = Math.min(2, 1/elapsed);
         
-            let { u, v, q } = SVDJS.SVD(matTranspose(inactive));
+            let { u, v, q } = SVD(matTranspose(inactive));
             let maxQ = Math.max(...q);
             u = matTranspose(u);
             for(let i=0;i<u.length;i++) {
@@ -1320,7 +1313,7 @@ class Langevitour {
         let newProj = matAdd(proj, matScale(vel, elapsed));
 
         // Project onto Stiefel manifold                
-        let { u, v, q } = SVDJS.SVD(matTranspose(newProj));
+        let { u, v, q } = SVD(matTranspose(newProj));
         matTcrossprodInto(newProj, v, u);
         
         // "Position based dynamics"
@@ -1328,7 +1321,4 @@ class Langevitour {
         this.proj = newProj;
     }
 }
-
-return { Langevitour };
-})();
 

@@ -1,6 +1,7 @@
 
 # langevitour 0.5.1
 
+* Use webpack.
 * Neater template HTML.
 * Avoid rare divide by zero.
 

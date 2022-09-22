@@ -1,6 +1,9 @@
 notes*
 *.Rproj
 
+# Node
+node_modules/
+
 # History files
 .Rhistory
 .Rapp.history
