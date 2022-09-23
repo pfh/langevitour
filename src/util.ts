@@ -9,10 +9,12 @@ export function elementVisible(el: HTMLElement) {
     // Check several ways of hiding an element or its parents.
     // Hopefully this will work for slideshows.
     let parent = el;
-    while(parent != null) {
+    while(true) {
         let style = window.getComputedStyle(parent);
-        if (style.opacity == "0" || style.display == "none" || style.visibility != "visible")
+        if (style.opacity === "0" || style.display === "none" || style.visibility !== "visible")
             return false;
+        if (!parent.parentElement) 
+            break;
         parent = parent.parentElement;
     }
 

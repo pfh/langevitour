@@ -282,7 +282,7 @@ export class Langevitour {
             }
         });
         
-        this.shadow.firstChild.addEventListener('fullscreenchange', () => { 
+        this.shadow.firstChild!.addEventListener('fullscreenchange', () => { 
             let el = this.shadow.firstChild as HTMLElement;
             if (document.fullscreenElement) {
                 this.originalWidth = this.width;
@@ -798,10 +798,15 @@ export class Langevitour {
         
         this.get('messageArea').innerText = `${this.computeMessage}\n${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
 
-        let selected = this.labelData.filter(d=>d.selected)[0];
-        let selectedAxis = null;
-        if (selected != null && selected.type == 'axis')
-            selectedAxis = selected.index;
+        let selectedAxis: number|null = null;
+        let selectedLevel: number|null = null;
+        let selected = this.labelData.filter(d=>d.selected);
+        if (selected.length) {
+            if (selected[0].type == 'axis')
+                selectedAxis = selected[0].index;
+            else
+                selectedLevel = selected[0].index;
+        }
         
         let showAxes = this.getChecked('axesCheckbox');
         
@@ -818,7 +823,7 @@ export class Langevitour {
         let ratio = window.devicePixelRatio;
         this.canvas.width = Math.floor(this.width * ratio);
         this.canvas.height = Math.floor(this.size * ratio);
-        let ctx = this.canvas.getContext("2d");
+        let ctx = this.canvas.getContext("2d")!;
         ctx.scale(ratio, ratio);
         ctx.clearRect(0,0,this.width,this.size);
         
@@ -872,16 +877,16 @@ export class Langevitour {
         for(let i=0;i<this.n;i++)
             this.fillsFrame[i] = this.fills[i];
         
-        // If we're mousing over a group, gray the other levels
-        if (selected && selected.type == 'level' && levelActive[selected.index]) {
+        // If we're mousing over a level, gray the other levels
+        if (selectedLevel !== null && levelActive[selectedLevel]) {
             for(let i=0;i<this.n;i++) {
-                if (this.group[i] != selected.index)
+                if (this.group[i] != selected[0].index)
                     this.fillsFrame[i] = '#bbbbbb';
             }
         }
         
         // If we're mousing over an axis, color by position on axis
-        if (selectedAxis != null) {
+        if (selectedAxis !== null) {
             for(let i=0;i<this.n;i++) {
                 let c = this.axes[selectedAxis].proj[i];
                 c = Math.tanh(c * 2);   // Extreme values compressed so -1<c<1
@@ -899,7 +904,7 @@ export class Langevitour {
         }
         
         // If we're mousing over an axis, draw a rug for the axis
-        if (showAxes && selectedAxis != null) {
+        if (showAxes && selectedAxis !== null) {
             //ctx.strokeStyle = '#00000022';
             let xProj = vecDot(this.proj[0], this.axes[selectedAxis].unit);
             let yProj = vecDot(this.proj[1], this.axes[selectedAxis].unit);
@@ -944,7 +949,7 @@ export class Langevitour {
         
         // Row label
         if (this.mousing && this.mouseX < this.size && this.rownames.length) {
-            let dists = [ ];
+            let dists: {i:number,d2:number}[] = [ ];
             for(let i=0;i<this.n;i++)
                 dists[i] = { 
                     i:i, 
@@ -979,7 +984,7 @@ export class Langevitour {
                 ctx.fillStyle = '#000000'+alpha;
             }
             
-            if (i==selectedAxis) {
+            if (i === selectedAxis) {
                 let ticks = scaleLinear()
                     .domain([this.axes[i].center-this.axes[i].scale*axisScale, this.axes[i].center+this.axes[i].scale*axisScale])
                     .range([-axisScale,axisScale])
@@ -1092,7 +1097,7 @@ export class Langevitour {
         // - remove from velocity
         // - gradually remove from position
         
-        let inactive = [ ];
+        let inactive: number[][] = [ ];
         for(let item of this.labelData)
         if (item.type == 'axis' && !item.active)
             inactive.push(this.axes[item.index].unit);
