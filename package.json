@@ -3,33 +3,32 @@
   "version": "1.0.0",
   "description": "",
   "main": "inst/htmlwidgets/langevitour.js",
+  "sideEffects": false,
   "scripts": {
-    "test":       "echo \"Error: no test specified\" && exit 1",
-    "start":      "npx webpack watch",
-    
-    "js-build":   "npx webpack",
-    "js-docs":    "jsdoc src/langevitour.js -d docs/jsdoc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx webpack watch",
+    "js-build": "npx webpack",
+    "js-docs": "npx typedoc src/langevitour.ts --out docs/jsdoc/ --excludeNotDocumented --readme none",
     "r-document": "R -e 'devtools::document()'",
-    "r-docs":     "npm run r-document && R -e 'pkgdown::build_site()'",
-    "build":      "npm run js-build && npm run js-docs && npm run r-docs",
-    
-    "r-install":  "R -e 'devtools::install()'",
-    "r-install-quick":  "R -e 'devtools::install(quick=T)'"
+    "r-docs": "npm run r-document && R -e 'pkgdown::build_site()'",
+    "build": "npm run js-build && npm run js-docs && npm run r-docs",
+    "r-install": "R -e 'devtools::install()'",
+    "r-install-quick": "R -e 'devtools::install(quick=T)'"
   },
-  
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pfh/langevitour.git"
   },
-  
   "author": "Paul Harrison",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/pfh/langevitour/issues"
   },
   "homepage": "https://logarithmic.net/langevitour",
-  
   "devDependencies": {
+    "ts-loader": "^9.4.1",
+    "typedoc": "^0.23.15",
+    "typescript": "^4.8.3",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0"
   },

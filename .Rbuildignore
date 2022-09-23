@@ -4,6 +4,7 @@
 ^package\.json$
 ^package-lock\.json$
 ^webpack\.config\.js$
+^tsconfig\.json$
 ^node_modules$
 ^src$
 ^example\.html$

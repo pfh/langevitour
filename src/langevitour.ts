@@ -1,16 +1,20 @@
+// @ts-check
 
 import { SVD } from 'svd-js';
+
+// @ts-ignore
 import { normal } from 'jstat';
-import { rgb, color, scaleLinear, select, drag, interpolateViridis } from 'd3';
+
+import { rgb, scaleLinear, ScaleLinear, select, drag, interpolateViridis } from 'd3';
 
 
 /**** Utility functions ****/
 
-function has(object, name) {
+function has(object: any, name: string) {
     return object.hasOwnProperty(name);
 }
 
-function elementVisible(el) {
+function elementVisible(el: HTMLElement) {
     // Check several ways of hiding an element or its parents.
     // Hopefully this will work for slideshows.
     let parent = el;
@@ -27,11 +31,11 @@ function elementVisible(el) {
            rect.left < window.innerWidth && rect.right >= 0;
 }
 
-function randInt(n) { 
+function randInt(n: number) { 
     return Math.floor(Math.random()*n); 
 }
 
-function permutation(n) {
+function permutation(n: number) {
     let array = Array(n).fill(0).map((x,i)=>i);
     for (let i = array.length-1; i>0; i--) {
         const j = randInt(i+1);
@@ -40,44 +44,48 @@ function permutation(n) {
     return array;
 }
 
-function hexByte(value) {
+function hexByte(value: number) {
     value = Math.max(0,Math.min(255,Math.round(value)));
     return (value<16?'0':'')+value.toString(16);
 }
 
-function times(n, func, ...args) {
+function times(n: number, func: Function, ...args: any[]) {
     let result = Array(n);
     for(let i=0;i<n;i++) result[i] = func(...args);
     return result;
 }
 
-function zeros(n) { return Array(n).fill(0); }
+function zeros(n: number) { 
+    return Array(n).fill(0); 
+}
 
-function vecSub(a,b) {
+function vecSub(a: number[], b: number[]) {
     let result = Array(a.length);
     for(let i=0;i<result.length;i++) result[i] = a[i]-b[i];
     return result;
 }
 
-function vecAdd(a,b) {
+function vecAdd(a: number[], b: number[]) {
     let result = Array(a.length);
     for(let i=0;i<result.length;i++) result[i] = a[i]+b[i];
     return result;
 }
 
-function vecDot(a,b) {
+function vecDot(a: number[], b: number[]) {
     let result = 0;
     for(let i=0;i<a.length;i++) result += a[i]*b[i];
     return result;
 }
 
-function vecScale(a,b) {
+function vecScale(a: number[], b: number) {
     let result = Array(a.length);
     for(let i=0;i<result.length;i++) result[i] = a[i]*b;
     return result;
 }
 
-function zeroMat(n,m) { return times(n,zeros,m); }
+function zeroMat(n: number, m: number) { 
+    return times(n,zeros,m); 
+}
 
 function matMulInto(result, A, B) {
     let a = A.length, b = A[0].length, c = B[0].length;
@@ -147,7 +155,7 @@ function matTranspose(A) {
     return result;
 }
 
-function removeSpin(motion, proj) {
+function removeSpin(motion: number[][], proj: number[][]) {
     /* Ensure each row of motion is in the null space of the rows of proj.
        proj rows are assumed to be orthonormal. 
        
@@ -445,43 +453,100 @@ let template = `~
 
 /** Class to create and animate a Langevin Tour widget */
 export class Langevitour {
+    container: HTMLElement;
+    shadow: ShadowRoot;
+    canvas: HTMLCanvasElement;
+    overlay: HTMLElement;
+    
+    width = 1;
+    height = 1;
+    originalWidth = 1;
+    originalHeight = 1;
+    size = 1;
+    
+    pointSize = 1;
+    
+    center: number[] = [];
+    scale: number[] = [];
+    X: number[][] = [[],[]];
+    n = 0;
+    m = 0;
+    colnames: string[] = [];
+    permutor: number[] = [];
+    unpermutor: number[] = [];
+    rownames: string[] = [];
+    group: number[] = [];
+    levels: string[] = [];
+    levelColors: string[] = [];
+    lineFrom: number[] = [];
+    lineTo: number[] = [];
+    
+    fills: string[] = [];
+    axes: { name: string, unit: number[], scale: number, center: number, color: string, proj: number[] }[] = [];
+    proj: number[][] = [[],[]];
+    vel: number[][] = [[],[]];
+    
+    labelData: { 
+        type: 'level'|'axis', 
+        index: number, 
+        label: string, 
+        vec: number[], 
+        color: string, 
+        active: boolean, 
+        x: number, 
+        y: number,
+        halfWidth: number,
+        halfHeight: number,
+        selected: boolean 
+    }[] = [];
+    
+    xy: number[][] = [[],[]];
+    fillsFrame: string[] = [];
+    xScale = scaleLinear();
+    yScale = scaleLinear();
+    xScaleClamped = scaleLinear();
+    yScaleClamped = scaleLinear();
+    
+    running = false;
+    lastTime = 0;
+    dragging = false;
+    fps: number[] = [];
+    
+    computeMessage = "";
+    
+    mousing = false;
+    mouseX = 0;
+    mouseY = 0;
+    
+    mouseInCheckbox = false;
+    
+    
     /** 
      * Create a Langevin Tour widget.
      * @param {HTMLElement} container Element to insert widget into.
      * @param {number} width Desired initial width of widget.
      * @param {number} height Desired initial height of widget.
      */
-    constructor(container, width, height) {
+    constructor(container: HTMLElement, width: number, height: number) {
         // Set up elements in a shadow DOM to isolate from document style.
         // The extra div seems necessary to avoid weird shrinkage with resizing.
         this.container = container;
-        this.container.innerHTML = "<div></div>";
-        this.shadow = this.container.firstChild.attachShadow({mode: 'open'});
+        
+        let div = document.createElement("div");
+        this.container.appendChild(div);
+        this.shadow = div.attachShadow({mode: 'open'});
         this.shadow.innerHTML = template;
-        this.canvas = this.get('canvas');
+        
+        this.canvas = this.get('canvas') as HTMLCanvasElement;
         this.overlay = this.get('overlay');
         
         // Allow this to be found using document.getElementById(name).langevitour
+        // @ts-ignore
         this.container.langevitour = this;
         
-        this.X = null;
-        this.n = 0;
-        this.m = 0;
-        this.levels = [ ];
-
-        this.running = false;
-        this.lastTime = 0;
-        this.dragging = false;
-        this.fps = [ ];
-        
-        this.computeMessage = '';
-
         this.resize(width, height);
         
         /* svg overlay only appears when mouse in plot area */
-        this.mousing = false;
-        this.mouseX = 0;
-        this.mouseY = 0;
         let plotDiv = this.get('plotDiv');
         plotDiv.addEventListener('mouseover', (e) => { 
             this.mousing = true; 
@@ -502,14 +567,14 @@ export class Langevitour {
         /* Handle fullscreen */
         this.get('fullscreenButton').addEventListener('click', () => {
             if (!document.fullscreenElement) {
-                this.shadow.firstChild.requestFullscreen();
+                (this.shadow.firstChild as HTMLElement).requestFullscreen();
             } else if (document.exitFullscreen) {
                 document.exitFullscreen();
             }
         });
         
         this.shadow.firstChild.addEventListener('fullscreenchange', () => { 
-            let el = this.shadow.firstChild;
+            let el = this.shadow.firstChild as HTMLElement;
             if (document.fullscreenElement) {
                 this.originalWidth = this.width;
                 this.originalHeight = this.height;
@@ -540,18 +605,35 @@ export class Langevitour {
                     ).join(',')).join('),\n    c(');
                 matStr += '))\nprojected <- as.matrix(X) %*% projection';
                 
-                this.get('infoBoxProj').value = matStr;
+                (this.get('infoBoxProj') as HTMLInputElement).value = matStr;
                 
-                this.get('infoBoxState').value = JSON.stringify(this.getState(), null, 4);
+                (this.get('infoBoxState') as HTMLInputElement).value = JSON.stringify(this.getState(), null, 4);
             
                 this.get('infoBoxInfo').innerHTML = `<p>${this.X.length.toLocaleString("en-US")} points.</p>`;
             }        
         });
     }
     
-    get(className) {
-        return this.shadow.firstChild.getElementsByClassName(className)[0];
+    get(className: string) {
+        return (this.shadow.firstChild as HTMLElement).getElementsByClassName(className)[0] as HTMLElement;
     }
+
+    getInput(className: string) {
+        return this.get(className) as HTMLInputElement;
+    }
+    
+    getString(className: string) {
+        return this.getInput(className).value;
+    }
+
+    getNumber(className: string) {
+        return Number( this.getInput(className).value );
+    }
+    
+    getChecked(className: string) {
+        return this.getInput(className).checked;
+    }
+    
     
     /**
      * Show data in the widget.
@@ -561,8 +643,8 @@ export class Langevitour {
      * @param {Array.<number>} data.center Center to restore original units of X.
      * @param {Array.<string>} data.colnames A name for each column in X.
      * @param {Array.<string>} [data.rownames] A name for each point.
-     * @param {Array.<number>} [data.group] Group number for each point. Integer values starting from 0.
-     * @param {Array.<string>} [data.levels] Group names for each group in data.group.
+     * @param {Array.<number>} data.group Group number for each point. Integer values starting from 0.
+     * @param {Array.<string>} data.levels Group names for each group in data.group.
      * @param {Array.<Array.<number>>} [data.extraAxes] A matrix with each column defining a projection of interest.
      * @param {Array.<number>} [data.extraAxesCenter] Center to restore original units of extra axes. Scaling is assumed already included in data.extraAxes.
      * @param {Array.<string>} [data.extraAxesNames] A name for each extra axis.
@@ -572,8 +654,27 @@ export class Langevitour {
      * @param {Array.<string>} [data.levelColors] CSS colors for each level.
      * @param {number} [data.colorVariation] Amount of brightness variation of points, between 0 and 1.
      * @param {number} [data.pointSize] Radius of points in pixels.
+     * @param {object} [data.state] State to be passed on to setState().
      */
-    renderValue(data) {
+    renderValue(data: {
+            X: number[][],
+            scale: number[],
+            center: number[],
+            colnames: string[],
+            rownames?: string[],
+            group: number[],
+            levels: string[],
+            extraAxes?: number[][],
+            extraAxesCenter?: number[],
+            extraAxesNames?: string[],
+            lineFrom?: number[],
+            lineTo?: number[],
+            axisColors?: string[],
+            levelColors?: string[],
+            colorVariation?: number,
+            pointSize?: number,
+            state?: any
+        }) {
         //TODO: checking
         this.n = data.X.length;
         this.m = data.X[0].length;
@@ -594,11 +695,13 @@ export class Langevitour {
             this.unpermutor[this.permutor[i]] = i;
         
         this.X = this.permutor.map(i => data.X[i]);
-                
+        
         if (!data.rownames || data.rownames.length == 0) 
-            this.rownames = null;
-        else
-            this.rownames = this.permutor.map(i => data.rownames[i]);
+            this.rownames = [ ];
+        else {
+            let rownames = data.rownames;
+            this.rownames = this.permutor.map(i => rownames[i]);
+        }
         
         this.colnames = data.colnames;
         
@@ -607,7 +710,7 @@ export class Langevitour {
         
         this.axes = [ ];
         
-        if (data.extraAxes)
+        if (data.extraAxes && data.extraAxesNames && data.extraAxesCenter)
         for(let i=0;i<data.extraAxes[0].length;i++) {
             let vec = data.extraAxes.map(row => row[i]);
             let scale = Math.sqrt(vecDot(vec,vec));
@@ -618,9 +721,10 @@ export class Langevitour {
                 scale: scale,
                 center: data.extraAxesCenter[i],
                 color: axisColors[i+this.m],
+                proj: [] //Filled in below.
             });
         }
-
+        
         for(let i=0;i<this.m;i++) {
             let unit = zeros(this.m);
             unit[i] = 1;
@@ -630,6 +734,7 @@ export class Langevitour {
                 scale: this.scale[i],
                 unit: unit,
                 color: axisColors[i],
+                proj: [] //Filled in below.
             });
         }
         
@@ -660,7 +765,7 @@ export class Langevitour {
         let colorVariation = data.colorVariation == null ? 0.3 : data.colorVariation;
         this.fills = [ ];
         for(let i=0;i<this.n;i++) {
-            let pointColor = color(this.levelColors[this.group[i]]);
+            let pointColor = rgb(this.levelColors[this.group[i]]);
             let value = 1+colorVariation*(i/this.n*2-1);
             pointColor.r *= value;
             pointColor.g *= value;
@@ -681,24 +786,26 @@ export class Langevitour {
             
             this.labelData.push({
                 type: 'level',
-                level: i,
+                index: i,
                 label: this.levels[i], 
                 vec: vec,
                 color: this.levelColors[i],
                 active: true,
                 x:2, y:0, //Outside plot area will be repositioned in configure()
+                halfWidth:0, halfHeight:0, selected:false,
             });
         }
         
         for(let i=0;i<this.axes.length;i++) {
             this.labelData.push({ 
                 type: 'axis',
-                axis: i,
+                index: i,
                 label: this.axes[i].name, 
                 vec: this.axes[i].unit,
                 color: this.axes[i].color || '#000000',
                 active: true,
                 x:2, y:0, //Outside plot area will be repositioned in configure()
+                halfWidth:0, halfHeight:0, selected:false,
             });
         }
         
@@ -719,7 +826,7 @@ export class Langevitour {
         
         this.configure();
         
-        if (has(data,"state"))
+        if (data.state)
             this.setState(data.state);    
     }
     
@@ -871,17 +978,17 @@ export class Langevitour {
      * Get the current widget state.
      */
     getState() {
-        let result = { };
+        let result = { } as any;
         
-        result.axesOn = this.get('axesCheckbox').checked;
-        result.heatOn = this.get('heatCheckbox').checked;
-        result.guideType = this.get('guideSelect').value;
-        result.labelAttractionOn = this.get('labelCheckbox').checked;
+        result.axesOn = this.getChecked('axesCheckbox');
+        result.heatOn = this.getChecked('heatCheckbox');
+        result.guideType = this.getString('guideSelect');
+        result.labelAttractionOn = this.getChecked('labelCheckbox');
         
-        result.damping = Number(this.get('dampInput').value);
-        result.heat = Number(this.get('heatInput').value);
-        result.guide = Number(this.get('guideInput').value);
-        result.labelAttraction = Number(this.get('labelInput').value);
+        result.damping = this.getNumber('dampInput');
+        result.heat = this.getNumber('heatInput');
+        result.guide = this.getNumber('guideInput');
+        result.labelAttraction = this.getNumber('labelInput');
         
         result.labelInactive = [ ];
         result.labelPos = { };
@@ -912,34 +1019,34 @@ export class Langevitour {
             return;
     
         if (has(state,'axesOn'))
-            this.get('axesCheckbox').checked = state.axesOn;
+            this.getInput('axesCheckbox').checked = state.axesOn;
         if (has(state,'heatOn'))
-            this.get('heatCheckbox').checked = state.heatOn;
+            this.getInput('heatCheckbox').checked = state.heatOn;
         
         // Old    
         if (has(state,'pointRepulsionType'))
-            this.get('guideSelect').value = state.pointRepulsionType;
+            this.getInput('guideSelect').value = state.pointRepulsionType;
         // New
         if (has(state,'guideType'))
-            this.get('guideSelect').value = state.guideType;
+            this.getInput('guideSelect').value = state.guideType;
         
         if (has(state,'labelAttractionOn'))
-            this.get('labelCheckbox').checked = state.labelAttractionOn;
+            this.getInput('labelCheckbox').checked = state.labelAttractionOn;
         
         if (has(state,'damping'))
-            this.get('dampInput').value = state.damping;
+            this.getInput('dampInput').value = state.damping;
         if (has(state,'heat'))
-            this.get('heatInput').value = state.heat;
+            this.getInput('heatInput').value = state.heat;
         
         // Old
         if (has(state,'pointRepulsion'))
-            this.get('guideInput').value = state.pointRepulsion;
+            this.getInput('guideInput').value = state.pointRepulsion;
         // New
         if (has(state,'guide'))
-            this.get('guideInput').value = state.guide;
+            this.getInput('guideInput').value = state.guide;
         
         if (has(state,'labelAttraction'))
-            this.get('labelInput').value = state.labelAttraction;
+            this.getInput('labelInput').value = state.labelAttraction;
 
         if (has(state,'labelInactive'))
         for(let item of this.labelData)
@@ -986,16 +1093,16 @@ export class Langevitour {
         let selected = this.labelData.filter(d=>d.selected)[0];
         let selectedAxis = null;
         if (selected != null && selected.type == 'axis')
-            selectedAxis = selected.axis;
+            selectedAxis = selected.index;
         
-        let showAxes = this.get('axesCheckbox').checked;        
+        let showAxes = this.getChecked('axesCheckbox');
         
         let levelActive = Array(this.levels.length).fill(true);
         for(let item of this.labelData)
         if (item.type == 'level')
-            levelActive[item.level] = item.active;
+            levelActive[item.index] = item.active;
                 
-        this.overlay.style.opacity = this.mousing?1:0;
+        this.overlay.style.opacity = this.mousing?"1":"0";
         
         // Setup canvas and get context
         // Adjust for HiDPI screens and zoom level
@@ -1058,9 +1165,9 @@ export class Langevitour {
             this.fillsFrame[i] = this.fills[i];
         
         // If we're mousing over a group, gray the other levels
-        if (selected && selected.type == 'level' && levelActive[selected.level]) {
+        if (selected && selected.type == 'level' && levelActive[selected.index]) {
             for(let i=0;i<this.n;i++) {
-                if (this.group[i] != selected.level)
+                if (this.group[i] != selected.index)
                     this.fillsFrame[i] = '#bbbbbb';
             }
         }
@@ -1097,20 +1204,21 @@ export class Langevitour {
                         
             // Hack to speed up rug drawing by rounding positions, 
             // then only drawing each position once.
-            let rug = {};
+            /** @type {Map<number,string>} */
+            let rug = new Map();
             let rounding = this.size;
             for(let i=0;i<this.n;i++) {
                 if (!levelActive[this.group[i]]) continue;
                 let proj = this.axes[selectedAxis].proj[i];
-                rug[ Math.round(proj*rounding)/rounding ] = this.fillsFrame[i];
+                rug.set(Math.round(proj*rounding)/rounding, this.fillsFrame[i]);
             }
             
-            for(let [proj, fill] of Object.entries(rug)) {
+            for(let [proj, fill] of rug) {
                 let p = [ xProj*proj, yProj*proj ];                
                 let pA = vecAdd(p, ox);
                 let pB = vecAdd(p, vecScale(ox,-1));
                 
-                ctx.strokeStyle = fill;//this.fillsFrame[i];
+                ctx.strokeStyle = fill;
                 ctx.beginPath();
                 ctx.moveTo(this.xScaleClamped(pA[0]),this.yScaleClamped(pA[1]));
                 ctx.lineTo(this.xScaleClamped(pB[0]),this.yScaleClamped(pB[1]));
@@ -1127,7 +1235,7 @@ export class Langevitour {
         ctx.lineWidth = 5;
         
         // Row label
-        if (this.mousing && this.mouseX < this.size && this.rownames) {
+        if (this.mousing && this.mouseX < this.size && this.rownames.length) {
             let dists = [ ];
             for(let i=0;i<this.n;i++)
                 dists[i] = { 
@@ -1206,18 +1314,18 @@ export class Langevitour {
     }
     
     compute(realElapsed) {
-        let damping =     0.1  *Math.pow(10, this.get('dampInput').value);
-        let heat =        0.1  *Math.pow(10, this.get('heatInput').value);
-        let guide     =   1.0  *Math.pow(10, this.get('guideInput').value);
-        let attraction =  1.0  *Math.pow(10, this.get('labelInput').value);
-        let doHeat = this.get('heatCheckbox').checked;
-        let whatGuide = this.get('guideSelect').value;
-        let doAttraction = this.get('labelCheckbox').checked;
+        let damping =     0.1  *Math.pow(10, this.getNumber('dampInput'));
+        let heat =        0.1  *Math.pow(10, this.getNumber('heatInput'));
+        let guide =       1.0  *Math.pow(10, this.getNumber('guideInput'));
+        let attraction =  1.0  *Math.pow(10, this.getNumber('labelInput'));
+        let doHeat = this.getChecked('heatCheckbox');
+        let whatGuide = this.getString('guideSelect');
+        let doAttraction = this.getChecked('labelCheckbox');
 
         let levelActive = Array(this.levels.length).fill(true);
         for(let item of this.labelData)
         if (item.type == 'level')
-            levelActive[item.level] = item.active;
+            levelActive[item.index] = item.active;
 
         // Cut down oscillation during dragging
         if (this.dragging && doAttraction) {
@@ -1265,7 +1373,7 @@ export class Langevitour {
             let x = label.x;
             let y = label.y;
             if (x <= -1 || y <= -1 || x >= 1 || y >= 1) continue;
-            if (label.type == 'level' && !levelActive[label.level]) continue;
+            if (label.type == 'level' && !levelActive[label.index]) continue;
             let adjustment = 4*(x*x+y*y);
             vel[0] = vecAdd(vel[0], vecScale(label.vec, x*adjustment*attraction));
             vel[1] = vecAdd(vel[1], vecScale(label.vec, y*adjustment*attraction));
@@ -1279,7 +1387,7 @@ export class Langevitour {
         let inactive = [ ];
         for(let item of this.labelData)
         if (item.type == 'axis' && !item.active)
-            inactive.push(this.axes[item.axis].unit);
+            inactive.push(this.axes[item.index].unit);
         
         let tooMany = inactive.length >= this.m-1;
         let anyDropped = false;
