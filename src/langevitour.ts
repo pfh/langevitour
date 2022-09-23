@@ -1,314 +1,23 @@
-// @ts-check
-
-import { SVD } from 'svd-js';
 
 // @ts-ignore
 import { normal } from 'jstat';
 
+import { SVD } from 'svd-js';
+
+// @ts-ignore
 import { rgb, scaleLinear, ScaleLinear, select, drag, interpolateViridis } from 'd3';
 
+import { 
+    vecAdd, vecSub, vecScale, vecDot, times, zeros, zeroMat, randInt, 
+    matAddInto, matScaleInto, matTcrossprodInto, matTranspose, matAdd, 
+    matScale, removeSpin, permutation 
+} from './math';
 
-/**** Utility functions ****/
+import { has, elementVisible, hexByte } from './util';
 
-function has(object: any, name: string) {
-    return object.hasOwnProperty(name);
-}
-
-function elementVisible(el: HTMLElement) {
-    // Check several ways of hiding an element or its parents.
-    // Hopefully this will work for slideshows.
-    let parent = el;
-    while(parent != null) {
-        let style = window.getComputedStyle(parent);
-        if (style.opacity == "0" || style.display == "none" || style.visibility != "visible")
-            return false;
-        parent = parent.parentElement;
-    }
-
-    //https://stackoverflow.com/a/22480938    
-    let rect = el.getBoundingClientRect();
-    return rect.top < window.innerHeight && rect.bottom >= 0 &&
-           rect.left < window.innerWidth && rect.right >= 0;
-}
-
-function randInt(n: number) { 
-    return Math.floor(Math.random()*n); 
-}
-
-function permutation(n: number) {
-    let array = Array(n).fill(0).map((x,i)=>i);
-    for (let i = array.length-1; i>0; i--) {
-        const j = randInt(i+1);
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
-function hexByte(value: number) {
-    value = Math.max(0,Math.min(255,Math.round(value)));
-    return (value<16?'0':'')+value.toString(16);
-}
-
-function times(n: number, func: Function, ...args: any[]) {
-    let result = Array(n);
-    for(let i=0;i<n;i++) result[i] = func(...args);
-    return result;
-}
-
-function zeros(n: number) { 
-    return Array(n).fill(0); 
-}
-
-function vecSub(a: number[], b: number[]) {
-    let result = Array(a.length);
-    for(let i=0;i<result.length;i++) result[i] = a[i]-b[i];
-    return result;
-}
-
-function vecAdd(a: number[], b: number[]) {
-    let result = Array(a.length);
-    for(let i=0;i<result.length;i++) result[i] = a[i]+b[i];
-    return result;
-}
-
-function vecDot(a: number[], b: number[]) {
-    let result = 0;
-    for(let i=0;i<a.length;i++) result += a[i]*b[i];
-    return result;
-}
-
-function vecScale(a: number[], b: number) {
-    let result = Array(a.length);
-    for(let i=0;i<result.length;i++) result[i] = a[i]*b;
-    return result;
-}
-
-function zeroMat(n: number, m: number) { 
-    return times(n,zeros,m); 
-}
-
-function matMulInto(result, A, B) {
-    let a = A.length, b = A[0].length, c = B[0].length;
-
-    for(let i=0;i<a;i++)
-    for(let k=0;k<c;k++) {
-        let s = 0;
-        for(let j=0;j<b;j++)
-            s += A[i][j] * B[j][k];
-        result[i][k] = s;
-    }
-}
-
-function matMul(A,B) {
-    let result = times(A.length, ()=>Array(B[0].length));
-    matMulInto(result, A, B);
-    return result
-}
-
-function matTcrossprodInto(result, A, B) {
-    let a = A.length, b = A[0].length, c = B.length;
-
-    for(let i=0;i<a;i++)
-    for(let k=0;k<c;k++) {
-        let s = 0;
-        for(let j=0;j<b;j++) 
-             s += A[i][j] * B[k][j];
-        result[i][k] = s;
-    }
-}
-
-function matTcrossprod(A,B) {
-    let result = times(A.length, Array, B.length);
-    matTcrossprodInto(result, A, B);
-    return result
-}
-
-function matAdd(A,B) {
-    let result = times(A.length, ()=>Array(A[0].length));
-    for(let i=0;i<A.length;i++)
-    for(let j=0;j<A[0].length;j++)
-        result[i][j] = A[i][j]+B[i][j];
-    return result;
-}
-
-function matScale(A,b) {
-    return A.map(row => row.map(value => value*b));
-}
-
-function matScaleInto(A,b) {
-    for(let i=0;i<A.length;i++)
-    for(let j=0;j<A[0].length;j++)
-        A[i][j] *= b;
-}
-
-function matAddInto(A,B) {
-    for(let i=0;i<A.length;i++)
-    for(let j=0;j<A[0].length;j++)
-        A[i][j] += B[i][j];
-}
-
-function matTranspose(A) {
-    let result = times(A[0].length, Array, A.length);
-    for(let i=0;i<A.length;i++)
-    for(let j=0;j<A[0].length;j++)
-        result[j][i] = A[i][j];
-    return result;
-}
-
-function removeSpin(motion: number[][], proj: number[][]) {
-    /* Ensure each row of motion is in the null space of the rows of proj.
-       proj rows are assumed to be orthonormal. 
-       
-       This is used to avoid adding random spin to the projection. */
-    let result = [...motion];
-    for(let i=0;i<result.length;i++)
-    for(let j=0;j<proj.length;j++)
-        result[i] = vecSub(result[i],vecScale(proj[j],vecDot(motion[i],proj[j])));
-    
-    return result;
-}
+import { gradTable } from './guides';
 
 
-/**** Projection pursuit gradients ****/
-
-/*
-I tried TensorFlow (tfjs) for gradients, but in the end did them by hand.
-
-
-function gradRepulsion(proj, X, power, fineScale) {
-    let k = 1000;
-    let A = Array(k);
-    
-    for(let i=0;i<k;i++) {
-        A[i] = vecSub(X[randInt(X.length)],X[randInt(X.length)]);
-    }
-
-    function objective(proj) {
-        let projA = tf.matMul(proj, tf.transpose(A));
-        
-        let l = tf.sum(tf.mul(projA,projA),0)
-        
-        l = tf.add(l, fineScale**2);
-        
-        if (power == 0)
-            l = tf.log(l)
-        else
-            l = tf.div(tf.pow(l,power),power);
-        
-        return tf.mul(tf.sum(l), -1/k);
-    }
-
-    let gradFunc = tf.grad(objective);
-    
-    function inner() {
-        let grad = gradFunc(tf.tensor(proj));
-        
-        // Don't spin.
-        let rotProj = tf.matMul([[0,-1/Math.sqrt(2)],[1/Math.sqrt(2),0]], proj);
-        let dot = tf.sum(tf.mul(grad,rotProj));
-        grad = tf.sub(grad, tf.mul(rotProj, dot));
-        
-        return grad.arraySync();
-    }
-    
-    return tf.tidy(inner);
-}
-*/
-
-function gradRepulsion(proj, X, power, fineScale, strength) {
-    /* 
-    Ideally we would perform repulsion between all pairs of points. However this would be O(n^2). Instead we only do a fraction of this -- it's a stochastic gradient.
-    
-    Unfortunately this means there is a little jitter even if heat is completely turned off. 
-    */
-    
-    let iters = 5000;
-    
-    let m = proj.length, n = proj[0].length;
-    let p = Array(m);
-    let grad = zeroMat(m,n);
-    
-    let off1 = randInt(X.length);
-    let off2 = randInt(X.length);
-    for(let i=0;i<iters;i++) {
-        let a = vecSub(X[(i+off1)%X.length],X[(i+off2)%X.length]);
-        
-        for(let j=0;j<m;j++)
-            p[j] = vecDot(a, proj[j]);
-        
-        let scale = (vecDot(p,p)+fineScale*fineScale)**(power-1);
-        
-        for(let j=0;j<m;j++)
-        for(let k=0;k<n;k++)
-            grad[j][k] += a[k] * p[j] * scale;
-    }
-    
-    matScaleInto(grad, -2/iters * strength);    
-    return grad;
-}
-
-
-function gradCentralRepulsion(proj, X, power, fineScale, strength) {
-    let m = proj.length, n = proj[0].length;
-    let p = Array(m);
-    let grad = zeroMat(m,n);
-    
-    for(let i=0;i<X.length;i++) {
-        let a = X[i];
-        
-        for(let j=0;j<m;j++)
-            p[j] = vecDot(a, proj[j]);
-        
-        let scale = (vecDot(p,p)+fineScale*fineScale)**(power-1);
-        
-        for(let j=0;j<m;j++)
-        for(let k=0;k<n;k++)
-            grad[j][k] += a[k] * p[j] * scale;
-    }
-    
-    matScaleInto(grad, -2/X.length * strength);
-    
-    return grad;
-}
-
-
-function gradSparseRank(proj, strength) {
-    let m = proj.length, n = proj[0].length;
-    let mag2 = zeros(n);
-    for(let i=0;i<m;i++)
-        for(let j=0;j<n;j++)
-            mag2[j] += proj[i][j]**2;
-            
-    let order = [...Array(n).keys()];
-    order.sort((i,j) => mag2[j]-mag2[i]);
-    
-    let grad = zeroMat(m,n);
-    for(let j=0;j<3;j++)
-        for(let i=0;i<m;i++)
-            grad[i][order[j]] = -strength*proj[i][order[j]];
-    
-    return grad;
-}
-
-
-
-
-let gradTable = {
-    //Not quite working well.
-    //Better to manually hide all but 3 axes.
-    //"sparse": (proj,X) => gradSparseRank(proj, 0.1),
-
-    "ultralocal": (proj,X) => gradRepulsion(proj,X,-1,0.05,0.01),
-    "local": (proj,X) => gradRepulsion(proj,X,0,0.01,0.5),
-    "pca": (proj,X) => gradRepulsion(proj,X,1,0,0.5),
-    "outlier": (proj,X) => gradRepulsion(proj,X,2,0,5),
-    
-    "push": (proj,X) => gradCentralRepulsion(proj,X, 0.5, 0.01,  0.5),
-    "pull": (proj,X) => gradCentralRepulsion(proj,X, 0.5, 0.01, -0.2),    
-};
-
-
-/**** Main class ****/
 
 let template = `~
 <div>~
@@ -838,7 +547,7 @@ export class Langevitour {
      * @param {number} width New width.
      * @param {number} height New height.
      */
-    resize(width, height) {
+    resize(width: number, height: number) {
         // At least in pkgdown vignettes, we get weird resize requests while fullscreen.
         if (document.fullscreenElement) return;
         
@@ -965,7 +674,6 @@ export class Langevitour {
             if (d.x < 1) continue;
             
             let col = i % cols, row = (i-col)/cols;
-            d.index = i;
             d.selected = false;
             d.x = this.xScale.invert( this.size+10+d.halfWidth+(i%cols)*(this.width-this.size-10)/cols );
             d.y = this.yScale.invert( 20+row*25 );
@@ -1071,7 +779,7 @@ export class Langevitour {
         window.requestAnimationFrame(this.doFrame.bind(this))
     }
     
-    doFrame(time) {
+    doFrame(time: number) {
         time /= 1000.0; //Convert to seconds
 
         let elapsed = time - this.lastTime;
@@ -1313,7 +1021,7 @@ export class Langevitour {
         //this.scheduleFrame();
     }
     
-    compute(realElapsed) {
+    compute(realElapsed: number) {
         let damping =     0.1  *Math.pow(10, this.getNumber('dampInput'));
         let heat =        0.1  *Math.pow(10, this.getNumber('heatInput'));
         let guide =       1.0  *Math.pow(10, this.getNumber('guideInput'));
