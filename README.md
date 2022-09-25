@@ -46,7 +46,7 @@ langevitour(zeiselPC[,-1], zeiselPC$type)
 ## Javascript usage
 
 * Get started by viewing source on [this example](https://pfh.github.io/langevitour/example.html).
-* [Javascript documentation.](https://logarithmic.net/langevitour/jsdoc/Langevitour.html)
+* [Javascript documentation.](https://logarithmic.net/langevitour/jsdoc/)
 
 <br>
 
