@@ -1,0 +1,69 @@
+---
+title: "Linked selection using crosstalk"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Linked selection using crosstalk}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+The `langevitour` development version now supports receiving selections from other htmlwidgets that support the [crosstalk](https://rstudio.github.io/crosstalk/) package.
+
+Use the `link=` argument to `langevitour` to specify a `SharedData` object to watch for selections.
+
+**Note:** As at 2022-09-25 you must install the development version of `plotly` for this to work.
+
+```{r eval=FALSE}
+remotes::install_github("plotly/plotly")
+```
+
+```{r message=FALSE,warning=FALSE}
+library(langevitour)
+library(crosstalk)
+library(ggplot2)
+library(GGally)
+library(plotly)
+library(DT)
+library(palmerpenguins)
+
+completePenguins <- na.omit(penguins[,c(1,3,4,5,6)])
+scale <- apply(completePenguins[,-1], 2, sd)*4
+colors <- scales::hue_pal()(3)
+
+shared <- SharedData$new(completePenguins, group="mygroup")
+
+# Create a plotly widget showing all pairs of variables
+ggpairsWidget <- ggpairs(shared, aes(color=species, text=""), columns=2:5) |>
+    ggplotly(tooltip="text", width=700, height=700) |> 
+    highlight(on="plotly_selected", off="plotly_deselect")
+
+# Create a langevitour widgets that listens for selections
+langevitourWidget <- langevitour(
+    completePenguins[,2:5], 
+    completePenguins$species, 
+    link=shared,                   #<--- the important bit
+    levelColors=colors, 
+    scale=scale, 
+    pointSize=2,
+    width=700, height=700)
+
+# Create a table widget
+datatableWidget <- datatable(shared)
+```
+
+```{r eval=FALSE}
+bscols(ggpairsWidget, langevitourWidget)
+datatableWidget
+```
+
+::: {style="width: 1400px"}
+:::: {style="font-size: 200%"}
+Drag on the pairs plot or click rows in the table to select points.
+::::
+```{r echo=FALSE}
+bscols(ggpairsWidget, langevitourWidget)
+datatableWidget
+```
+:::

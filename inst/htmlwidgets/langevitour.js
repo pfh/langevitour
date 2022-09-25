@@ -13,7 +13,6 @@ HTMLWidgets.widget({
             }
             
             let selSet = new Set(ctSel.value);
-            console.log(selSet);
             tour.setState({selection: ctKey.map(item => selSet.has(item))});
         }
         
