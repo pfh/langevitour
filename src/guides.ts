@@ -136,16 +136,16 @@ export function gradSparseRank(proj, strength) {
 
 
 
-export let gradTable = {
+export let gradTable: {[index:string]:(proj:number[][],X:number[][])=>number[][]} = {
     //Not quite working well.
     //Better to manually hide all but 3 axes.
     //"sparse": (proj,X) => gradSparseRank(proj, 0.1),
 
-    "ultralocal": (proj:number[][],X:number[][]):number[] => gradRepulsion(proj,X,-1,0.05,0.01),
-    "local": (proj:number[][],X:number[][]):number[] => gradRepulsion(proj,X,0,0.01,0.5),
-    "pca": (proj:number[][],X:number[][]):number[] => gradRepulsion(proj,X,1,0,0.5),
-    "outlier": (proj:number[][],X:number[][]):number[] => gradRepulsion(proj,X,2,0,5),
+    "ultralocal": (proj:number[][],X:number[][]) => gradRepulsion(proj,X,-1,0.05,0.01),
+    "local": (proj:number[][],X:number[][]) => gradRepulsion(proj,X,0,0.01,0.5),
+    "pca": (proj:number[][],X:number[][]) => gradRepulsion(proj,X,1,0,0.5),
+    "outlier": (proj:number[][],X:number[][]) => gradRepulsion(proj,X,2,0,5),
     
-    "push": (proj:number[][],X:number[][]):number[] => gradCentralRepulsion(proj,X, 0.5, 0.01,  0.5),
-    "pull": (proj:number[][],X:number[][]):number[] => gradCentralRepulsion(proj,X, 0.5, 0.01, -0.2),    
+    "push": (proj:number[][],X:number[][]) => gradCentralRepulsion(proj,X, 0.5, 0.01,  0.5),
+    "pull": (proj:number[][],X:number[][]) => gradCentralRepulsion(proj,X, 0.5, 0.01, -0.2),    
 };

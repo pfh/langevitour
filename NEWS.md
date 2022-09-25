@@ -2,6 +2,7 @@
 # langevitour 0.5.1
 
 * Use TypeScript and webpack.
+* Support crosstalk selections.
 * Neater template HTML.
 * Avoid rare divide by zero.
 

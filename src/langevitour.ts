@@ -164,6 +164,7 @@ let template = `~
 export class Langevitour {
     container: HTMLElement;
     shadow: ShadowRoot;
+    shadowChild: HTMLElement;
     canvas: HTMLCanvasElement;
     overlay: HTMLElement;
     
@@ -191,10 +192,19 @@ export class Langevitour {
     lineTo: number[] = [];
     
     fills: string[] = [];
-    axes: { name: string, unit: number[], scale: number, center: number, color: string, proj: number[] }[] = [];
-    proj: number[][] = [[],[]];
-    vel: number[][] = [[],[]];
     
+    //Crosstalk selection suppert
+    selection: boolean[] | null = null; 
+    
+    axes: { 
+        name: string, 
+        unit: number[], 
+        scale: number, 
+        center: number, 
+        color: string, 
+        proj: number[] 
+    }[] = [];
+
     labelData: { 
         type: 'level'|'axis', 
         index: number, 
@@ -209,42 +219,48 @@ export class Langevitour {
         selected: boolean 
     }[] = [];
     
-    xy: number[][] = [[],[]];
-    fillsFrame: string[] = [];
+    // State of the system!
+    proj: number[][] = [[],[]];
+    vel: number[][] = [[],[]];
+    
     xScale = scaleLinear();
     yScale = scaleLinear();
     xScaleClamped = scaleLinear();
     yScaleClamped = scaleLinear();
     
-    running = false;
-    lastTime = 0;
-    dragging = false;
-    fps: number[] = [];
+    haveData = false;
+    frameScheduled = false;
+    lastTime = 0; // Last frame time, in seconds.
+    mouseInCheckbox = false; // Track is mouse in checkbox. Do not drag if in checkbox.
+    dragging = false; // Used to avoid dragging from checkbox. Also adjusts physics during drag.
+    fps: number[] = []; // FPS for up to the last 100 frames
     
-    computeMessage = "";
+    computeMessage = ""; // Warnings such as hiding too many variables.
     
-    mousing = false;
-    mouseX = 0;
-    mouseY = 0;
+    mousing = false; // Should overlay be visible?
+    mouseX = 0; // Used to display row names
+    mouseY = 0; // Used to display row names
     
-    mouseInCheckbox = false;
-    
-    
+    // Only used during doFrame. 
+    // Properties only to avoid re-allocation.
+    xy: number[][] = [[],[]];
+    fillsFrame: string[] = [];
+        
     /** 
      * Create a Langevin Tour widget.
-     * @param {HTMLElement} container Element to insert widget into.
-     * @param {number} width Desired initial width of widget.
-     * @param {number} height Desired initial height of widget.
+     * @param container Element to insert widget into.
+     * @param width Desired initial width of widget.
+     * @param height Desired initial height of widget.
      */
     constructor(container: HTMLElement, width: number, height: number) {
         // Set up elements in a shadow DOM to isolate from document style.
         // The extra div seems necessary to avoid weird shrinkage with resizing.
         this.container = container;
-        
         let div = document.createElement("div");
         this.container.appendChild(div);
         this.shadow = div.attachShadow({mode: 'open'});
         this.shadow.innerHTML = template;
+        this.shadowChild = this.shadow.firstChild as HTMLElement;
         
         this.canvas = this.get('canvas') as HTMLCanvasElement;
         this.overlay = this.get('overlay');
@@ -255,7 +271,9 @@ export class Langevitour {
         
         this.resize(width, height);
         
-        /* svg overlay only appears when mouse in plot area */
+        // Track mouse:
+        // svg overlay only appears when mouse in plot area
+        // row name labels use mouse position
         let plotDiv = this.get('plotDiv');
         plotDiv.addEventListener('mouseover', (e) => { 
             this.mousing = true; 
@@ -269,21 +287,21 @@ export class Langevitour {
             this.mouseY = e.y - rect.top;
         });
         
-        /* Hide fullscreen button if not available */
+        // Hide fullscreen button if not available
         if (this.container.requestFullscreen == null)
             this.get('fullscreenButton').style.display = 'none';
         
-        /* Handle fullscreen */
+        // Handle fullscreen
         this.get('fullscreenButton').addEventListener('click', () => {
             if (!document.fullscreenElement) {
-                (this.shadow.firstChild as HTMLElement).requestFullscreen();
+                this.shadowChild.requestFullscreen();
             } else if (document.exitFullscreen) {
                 document.exitFullscreen();
             }
         });
         
-        this.shadow.firstChild!.addEventListener('fullscreenchange', () => { 
-            let el = this.shadow.firstChild as HTMLElement;
+        this.shadowChild.addEventListener('fullscreenchange', () => { 
+            let el = this.shadowChild;
             if (document.fullscreenElement) {
                 this.originalWidth = this.width;
                 this.originalHeight = this.height;
@@ -300,10 +318,10 @@ export class Langevitour {
             }
         });
         
-        /* Info box */
+        // Info box
         this.get('infoButton').addEventListener('click', () => {
             let el = this.get('infoBox');
-            if (el.style.visibility == 'visible') {
+            if (el.style.visibility == 'visible' || !this.haveData) {
                 el.style.visibility = 'hidden';
             } else {
                 el.style.visibility = 'visible';
@@ -314,17 +332,15 @@ export class Langevitour {
                     ).join(',')).join('),\n    c(');
                 matStr += '))\nprojected <- as.matrix(X) %*% projection';
                 
-                (this.get('infoBoxProj') as HTMLInputElement).value = matStr;
-                
-                (this.get('infoBoxState') as HTMLInputElement).value = JSON.stringify(this.getState(), null, 4);
-            
+                this.getInput('infoBoxProj').value = matStr;
+                this.getInput('infoBoxState').value = JSON.stringify(this.getState(), null, 4);
                 this.get('infoBoxInfo').innerHTML = `<p>${this.X.length.toLocaleString("en-US")} points.</p>`;
             }        
         });
     }
     
     get(className: string) {
-        return (this.shadow.firstChild as HTMLElement).getElementsByClassName(className)[0] as HTMLElement;
+        return this.shadowChild.getElementsByClassName(className)[0] as HTMLElement;
     }
 
     getInput(className: string) {
@@ -345,30 +361,46 @@ export class Langevitour {
     
     
     /**
-     * Show data in the widget.
-     * @param {object} data The data to show.
-     * @param {Array.<Array.<number>>} data.X A row-major matrix, where each row represents a point and each column represents a variable. The data should be centered and scaled.
-     * @param {Array.<number>} data.scale Scaling to restore original units of X.
-     * @param {Array.<number>} data.center Center to restore original units of X.
-     * @param {Array.<string>} data.colnames A name for each column in X.
-     * @param {Array.<string>} [data.rownames] A name for each point.
-     * @param {Array.<number>} data.group Group number for each point. Integer values starting from 0.
-     * @param {Array.<string>} data.levels Group names for each group in data.group.
-     * @param {Array.<Array.<number>>} [data.extraAxes] A matrix with each column defining a projection of interest.
-     * @param {Array.<number>} [data.extraAxesCenter] Center to restore original units of extra axes. Scaling is assumed already included in data.extraAxes.
-     * @param {Array.<string>} [data.extraAxesNames] A name for each extra axis.
-     * @param {Array.<number>} [data.lineFrom] Rows of X to draw lines from.
-     * @param {Array.<number>} [data.lineTo] Rows of X to draw lines to.
-     * @param {Array.<string>} [data.axisColors] CSS colors for each variable and then optionally for each extra axis.
-     * @param {Array.<string>} [data.levelColors] CSS colors for each level.
-     * @param {number} [data.colorVariation] Amount of brightness variation of points, between 0 and 1.
-     * @param {number} [data.pointSize] Radius of points in pixels.
-     * @param {object} [data.state] State to be passed on to setState().
+     * Show data in the widget. Use "null" to clear the widget.
+     *
+     * data.X A row-major matrix, where each row represents a point and each column represents a variable. The data should be centered and scaled.
+     *
+     * data.colnames A name for each column in X.
+     *
+     * data.group Group number for each point. Integer values starting from 0.
+     *
+     * data.levels Group names for each group in data.group.
+     *
+     * [data.scale] Scaling to restore original units of X.
+     *
+     * [data.center] Center to restore original units of X.
+     *
+     * [data.rownames] A name for each point.
+     *
+     * [data.extraAxes] A matrix with each column defining a projection of interest.
+     *
+     * [data.extraAxesCenter] Center to restore original units of extra axes. Scaling is assumed already included in data.extraAxes.
+     *
+     * [data.extraAxesNames] A name for each extra axis.
+     *
+     * [data.lineFrom] Rows of X to draw lines from.
+     *
+     * [data.lineTo] Rows of X to draw lines to.
+     *
+     * [data.axisColors] CSS colors for each variable and then optionally for each extra axis.
+     *
+     * [data.levelColors] CSS colors for each level.
+     *
+     * [data.colorVariation] Amount of brightness variation of points, between 0 and 1.
+     *
+     * [data.pointSize] Radius of points in pixels.
+     *
+     * [data.state] State to be passed on to setState().
      */
-    renderValue(data: {
+    renderValue(data: null | {
             X: number[][],
-            scale: number[],
-            center: number[],
+            scale?: number[],
+            center?: number[],
             colnames: string[],
             rownames?: string[],
             group: number[],
@@ -384,6 +416,15 @@ export class Langevitour {
             pointSize?: number,
             state?: any
         }) {
+        
+        if (!data) {
+            this.haveData = false;
+            this.configure();
+            return;
+        }
+        
+        this.haveData = true;
+        
         //TODO: checking
         this.n = data.X.length;
         this.m = data.X[0].length;
@@ -528,15 +569,15 @@ export class Langevitour {
         this.xy = zeroMat(2, this.n);
         this.fillsFrame = Array(this.n).fill("");
         
-        if (!this.running) {
+        if (!this.frameScheduled) {
             this.scheduleFrame();
-            this.running = true;
+            this.frameScheduled = true;
         }
         
         this.configure();
         
         if (data.state)
-            this.setState(data.state);    
+            this.setState(data.state);
     }
     
     /** 
@@ -558,8 +599,6 @@ export class Langevitour {
     }
     
     configure() {
-        if (!this.running) return;
-        
         this.canvas.style.width = this.width+'px';
         this.overlay.style.width = this.width+'px';
         
@@ -569,6 +608,16 @@ export class Langevitour {
         
         this.canvas.style.height = this.size+'px';
         this.overlay.style.height = this.size+'px';
+        
+        // Clean up and return if no data.
+        if (!this.haveData) {
+            // Clear any old display
+            this.overlay.style.opacity = "0";
+            let ctx = this.canvas.getContext("2d")!;
+            ctx.scale(1,1);
+            ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+            return;
+        }
         
         this.xScale = scaleLinear()
             .domain([-1,1]).range([2.5,this.size-2.5]);
@@ -709,6 +758,12 @@ export class Langevitour {
         
         result.projection = this.proj;
         
+        // Potentially large.
+        if (this.selection)
+            result.selection = this.unpermutor.map(i => this.selection![i]);
+        else
+            result.selection = null;
+        
         return result;
     }
     
@@ -771,8 +826,15 @@ export class Langevitour {
         
         if (has(state,'projection'))
             this.proj = Array.from(state.projection.map(item => Array.from(item)));
-
-        this.configure();        
+        
+        if (has(state,'selection')) {
+            if (state.selection === null)
+                this.selection = null;
+            else
+                this.selection = this.permutor.map(i => state.selection[i]);
+        }
+        
+        this.configure();
     }
     
     scheduleFrame() {
@@ -780,8 +842,13 @@ export class Langevitour {
     }
     
     doFrame(time: number) {
+        if (!this.haveData) {
+            this.frameScheduled = false;
+            return;
+        }
+        
         time /= 1000.0; //Convert to seconds
-
+        
         let elapsed = time - this.lastTime;
         this.lastTime = time;
         
@@ -876,6 +943,14 @@ export class Langevitour {
         // Default to group colors
         for(let i=0;i<this.n;i++)
             this.fillsFrame[i] = this.fills[i];
+        
+        // If a crosstalk selection is active, gray the inactive points
+        if (this.selection) {
+            for(let i=0;i<this.n;i++) {
+                if (!this.selection[i])
+                    this.fillsFrame[i] = '#bbbbbb';
+            }
+        }
         
         // If we're mousing over a level, gray the other levels
         if (selectedLevel !== null && levelActive[selectedLevel]) {
@@ -1023,7 +1098,6 @@ export class Langevitour {
         }
         
         window.setTimeout(this.scheduleFrame.bind(this), 5);
-        //this.scheduleFrame();
     }
     
     compute(realElapsed: number) {

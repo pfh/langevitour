@@ -29,7 +29,7 @@ export function vecSub(a: number[], b: number[]) {
 }
 
 export function vecAdd(a: number[], b: number[]) {
-    let result = Array(a.length);
+    let result: number[] = Array(a.length);
     for(let i=0;i<result.length;i++) result[i] = a[i]+b[i];
     return result;
 }
@@ -41,13 +41,13 @@ export function vecDot(a: number[], b: number[]) {
 }
 
 export function vecScale(a: number[], b: number) {
-    let result = Array(a.length);
+    let result: number[] = Array(a.length);
     for(let i=0;i<result.length;i++) result[i] = a[i]*b;
     return result;
 }
 
 export function zeroMat(n: number, m: number) { 
-    return times(n,zeros,m); 
+    return times(n,zeros,m) as number[][]; 
 }
 
 export function matMulInto(result: number[][], A: number[][], B: number[][]) {
@@ -115,7 +115,7 @@ export function matTranspose(A: number[][]) {
     for(let i=0;i<A.length;i++)
     for(let j=0;j<A[0].length;j++)
         result[j][i] = A[i][j];
-    return result;
+    return result as number[][];
 }
 
 export function removeSpin(motion: number[][], proj: number[][]) {

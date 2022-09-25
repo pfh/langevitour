@@ -21,7 +21,8 @@ langevitour(
   state = NULL,
   width = NULL,
   height = NULL,
-  elementId = NULL
+  elementId = NULL,
+  link = NULL
 )
 }
 \arguments{
@@ -58,6 +59,8 @@ langevitour(
 \item{height}{Height of widget.}
 
 \item{elementId}{An element ID for the widget, see htmlwidgets::createWidget.}
+
+\item{link}{A SharedData object from the crosstalk package to allow display of selections from other htmlwidgets. The data in this object is not used, just the keys and group name. Filtering is not supported. (The way linked plots work may change in future.)}
 }
 \value{
 An htmlwidget object.

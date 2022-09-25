@@ -42,6 +42,8 @@
 #'
 #' @param elementId An element ID for the widget, see htmlwidgets::createWidget.
 #'
+#' @param link A SharedData object from the crosstalk package to allow display of selections from other htmlwidgets. The data in this object is not used, just the keys and group name. Filtering is not supported. (The way linked plots work may change in future.)
+#'
 #' @return An htmlwidget object.
 #'
 #' @examples
@@ -64,15 +66,32 @@
 #'     scale=scale, pointSize=2,
 #'     state='{"guideType":"pca","labelInactive":["bill_length_mm"]}')
 #'
-#' @import htmlwidgets
-#'
 #' @export
 langevitour <- function(
         X, group=NULL, name=NULL, center=NULL, scale=NULL, 
         extraAxes=NULL, lineFrom=NULL, lineTo=NULL,
         axisColors=NULL, levelColors=NULL, colorVariation=0.3, pointSize=1, subsample=NULL, 
-        state=NULL, width=NULL, height=NULL, elementId=NULL) {
+        state=NULL, width=NULL, height=NULL, elementId=NULL,
+        link=NULL) {
     
+    # Check for crosstalk to allow linked selections
+    crosstalkGroup <- NULL
+    crosstalkKey <- NULL
+    dependencies <- NULL
+    
+    if (is.null(link) && crosstalk::is.SharedData(X)) {
+        link <- X
+        X <- X$origData()
+    }
+    
+    if (!is.null(link)) {
+        assertthat::assert_that(crosstalk::is.SharedData(link))
+        dependencies <- crosstalk::crosstalkLibs()
+        crosstalkGroup <- link$groupName()
+        crosstalkKey <- link$key()
+    }
+    
+    # Ensure data is matrix
     X <- as.matrix(X)
     
     if (is.null(colnames(X)))
@@ -193,6 +212,9 @@ langevitour <- function(
         colorVariation=as.numeric(colorVariation),
         pointSize=as.numeric(pointSize),
         
+        crosstalkGroup=crosstalkGroup,
+        crosstalkKey=crosstalkKey,
+        
         state=state)
     
     
@@ -209,7 +231,8 @@ langevitour <- function(
             viewer.padding = 5,
             browser.fill = TRUE,
             knitr.figure = FALSE
-        )
+        ),
+        dependencies = dependencies
     )
 }
 

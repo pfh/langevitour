@@ -13,6 +13,12 @@ body { margin: 0; }
 
 <div id="container"></div>
 
+<!-- Check we can set and clear value. -->
+<div style="margin: 20px;">
+    <p><button onclick="tour.renderValue(val)">tour.renderValue(val)</button></p>
+    <p><button onclick="tour.renderValue(null)">tour.renderValue(null)</button></p>
+</div>
+
 <script>
 "use strict";
 
@@ -37,12 +43,7 @@ let extraAxes = [
 let extraAxesNames = [ 'V1+V2' ];
 let extraAxesCenter = [ 0 ];
 
-
-let container = document.getElementById("container");
-
-let tour = new langevitour.Langevitour(container, window.innerWidth, window.innerHeight);
-
-tour.renderValue({
+let val = {
     X:X, 
     group:group, 
     levels:['a','b','c','d'],
@@ -53,8 +54,13 @@ tour.renderValue({
     extraAxesCenter:extraAxesCenter,
     
     pointSize:1,
-});
+};
 
+let container = document.getElementById("container");
+
+let tour = new langevitour.Langevitour(container, window.innerWidth, window.innerHeight);
+
+tour.renderValue(val);
 
 window.addEventListener('resize', ()=>tour.resize(window.innerWidth, window.innerHeight));
 
