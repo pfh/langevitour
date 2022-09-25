@@ -32,14 +32,15 @@ completePenguins <- na.omit(penguins[,c(1,3,4,5,6)])
 scale <- apply(completePenguins[,-1], 2, sd)*4
 colors <- scales::hue_pal()(3)
 
-shared <- SharedData$new(completePenguins, group="mygroup")
+# crosstalk object that allows widgets to be linked
+shared <- SharedData$new(completePenguins)
 
 # Create a plotly widget showing all pairs of variables
 ggpairsWidget <- ggpairs(shared, aes(color=species, text=""), columns=2:5) |>
     ggplotly(tooltip="text", width=700, height=700) |> 
     highlight(on="plotly_selected", off="plotly_deselect")
 
-# Create a langevitour widgets that listens for selections
+# Create a langevitour widget that listens for selections
 langevitourWidget <- langevitour(
     completePenguins[,2:5], 
     completePenguins$species, 
@@ -50,7 +51,10 @@ langevitourWidget <- langevitour(
     width=700, height=700)
 
 # Create a table widget
-datatableWidget <- datatable(shared)
+datatableWidget <- datatable(
+    shared,
+    extensions='Buttons', 
+    options=list(dom='Bfrtip',buttons=c('copy','csv','excel')))
 ```
 
 ```{r eval=FALSE}
