@@ -42,7 +42,7 @@
 #'
 #' @param elementId An element ID for the widget, see htmlwidgets::createWidget.
 #'
-#' @param link A SharedData object from the crosstalk package to allow display of selections from other htmlwidgets. The data in this object is not used, just the keys and group name. Filtering is not supported. (The way linked plots work may change in future.)
+#' @param link A SharedData object from the crosstalk package to use selections and filters from other htmlwidgets. The data in this object is not used, just the keys and group name. (The way linked plots work may change in future.)
 #'
 #' @return An htmlwidget object.
 #'

@@ -1,23 +1,28 @@
 ---
-title: "Linked selection using crosstalk"
+title: "Linked selection and filtering using crosstalk"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Linked selection using crosstalk}
+  %\VignetteIndexEntry{Linked selection and filtering using crosstalk}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---
 
-The `langevitour` development version now supports receiving selections from other htmlwidgets that support the [crosstalk](https://rstudio.github.io/crosstalk/) package.
+The `langevitour` development version now supports receiving selections and filters from other htmlwidgets that support the [crosstalk](https://rstudio.github.io/crosstalk/) package. It does not currently itself produce selections and filters.
 
-Use the `link=` argument to `langevitour` to specify a `SharedData` object to watch for selections.
+Use the `link=` argument to `langevitour` to specify a `SharedData` object to watch for selections and filters.
 
 **Note:** As at 2022-09-25 you must install the development version of `plotly` for this to work.
 
 ```{r eval=FALSE}
+remotes::install_github("pfh/langevitour")
 remotes::install_github("plotly/plotly")
 ```
+
+<br><br><br>
+
+# Linked selections
 
 ```{r message=FALSE,warning=FALSE}
 library(langevitour)
@@ -28,21 +33,21 @@ library(plotly)
 library(DT)
 library(palmerpenguins)
 
-completePenguins <- na.omit(penguins[,c(1,3,4,5,6)])
-scale <- apply(completePenguins[,-1], 2, sd)*4
+completePenguins <- na.omit(penguins)
+scale <- apply(completePenguins[,3:6], 2, sd)*4
 colors <- scales::hue_pal()(3)
 
 # crosstalk object that allows widgets to be linked
 shared <- SharedData$new(completePenguins)
 
 # Create a plotly widget showing all pairs of variables
-ggpairsWidget <- ggpairs(shared, aes(color=species, text=""), columns=2:5) |>
+ggpairsWidget <- ggpairs(shared, aes(color=species, text=""), columns=3:6) |>
     ggplotly(tooltip="text", width=700, height=700) |> 
     highlight(on="plotly_selected", off="plotly_deselect")
 
-# Create a langevitour widget that listens for selections
+# Create a langevitour widget that listens for selections and filters
 langevitourWidget <- langevitour(
-    completePenguins[,2:5], 
+    completePenguins[,3:6], 
     completePenguins$species, 
     link=shared,                   #<--- the important bit
     levelColors=colors, 
@@ -71,3 +76,40 @@ bscols(ggpairsWidget, langevitourWidget)
 datatableWidget
 ```
 :::
+
+<br><br><br>
+
+# Linked filters
+
+Filters hide points completely. The view of the data chosen by a `langevitour` guide will adapt to this.
+
+I want to demonstrate this with an independent set of widgets, so I make a new SharedData object.
+
+```{r}
+shared2 <- SharedData$new(completePenguins)
+
+filter2.1 <- filter_checkbox("filter2.1", "Filter species", shared2, ~species)
+filter2.2 <- filter_checkbox("filter2.2", "Filter sex", shared2, ~sex)
+filter2.3 <- filter_slider(
+    "filter2.3", "Filter body mass (g)", shared2, ~body_mass_g)
+
+# Create a langevitour widget that listens for selections and filters
+langevitourWidget2 <- langevitour(
+    completePenguins[,3:6], 
+    completePenguins$species, 
+    link=shared2,
+    levelColors=colors, 
+    scale=scale, 
+    pointSize=2,
+    state='{"guideType":"local"}')
+```
+
+```{r eval=FALSE}
+bscols(filter2.1, filter2.2, filter2.3)
+langevitourWidget2
+```
+
+```{r echo=FALSE}
+bscols(filter2.1, filter2.2, filter2.3)
+langevitourWidget2
+```

@@ -193,8 +193,9 @@ export class Langevitour {
     
     fills: string[] = [];
     
-    //Crosstalk selection suppert
+    //Selections and filters from outside, primarily to support "crosstalk"
     selection: boolean[] | null = null; 
+    filter: boolean[] | null = null;
     
     axes: { 
         name: string, 
@@ -245,6 +246,7 @@ export class Langevitour {
     // Properties only to avoid re-allocation.
     xy: number[][] = [[],[]];
     fillsFrame: string[] = [];
+    pointActive: boolean[] = [];
         
     /** 
      * Create a Langevin Tour widget.
@@ -568,6 +570,7 @@ export class Langevitour {
         // Only used in doFrame. However this is a fairly large amount of memory that needs to be used each time.
         this.xy = zeroMat(2, this.n);
         this.fillsFrame = Array(this.n).fill("");
+        this.pointActive = Array(this.n).fill(true);
         
         if (!this.frameScheduled) {
             this.scheduleFrame();
@@ -763,6 +766,12 @@ export class Langevitour {
             result.selection = this.unpermutor.map(i => this.selection![i]);
         else
             result.selection = null;
+
+        // Potentially large.
+        if (this.filter)
+            result.filter = this.unpermutor.map(i => this.filter![i]);
+        else
+            result.filter = null;
         
         return result;
     }
@@ -834,6 +843,13 @@ export class Langevitour {
                 this.selection = this.permutor.map(i => state.selection[i]);
         }
         
+        if (has(state,'filter')) {
+            if (state.filter === null)
+                this.filter = null;
+            else
+                this.filter = this.permutor.map(i => state.filter[i]);
+        }
+        
         this.configure();
     }
     
@@ -881,6 +897,9 @@ export class Langevitour {
         for(let item of this.labelData)
         if (item.type == 'level')
             levelActive[item.index] = item.active;
+        
+        // Note: pointActive is updated in compute.    
+        
                 
         this.overlay.style.opacity = this.mousing?"1":"0";
         
@@ -923,7 +942,7 @@ export class Langevitour {
             let a = this.lineFrom[i],
                 b = this.lineTo[i];
             
-            if (!levelActive[this.group[a]] || !levelActive[this.group[b]])
+            if (!this.pointActive[a] || !this.pointActive[b])
                 continue;
             
             // Make short lines darker so they have equal visual weight to longer lines
@@ -972,7 +991,7 @@ export class Langevitour {
         // Draw points that aren't hidden
         let size = this.pointSize;
         for(let i=0;i<this.n;i++) {
-            if (levelActive[this.group[i]]) {
+            if (this.pointActive[i]) {
                 ctx.fillStyle = this.fillsFrame[i];
                 ctx.fillRect(this.xScaleClamped(this.xy[0][i])-size, this.yScaleClamped(this.xy[1][i])-size, size*2, size*2);
             }
@@ -996,7 +1015,7 @@ export class Langevitour {
             let rug = new Map();
             let rounding = this.size;
             for(let i=0;i<this.n;i++) {
-                if (!levelActive[this.group[i]]) continue;
+                if (!this.pointActive[i]) continue;
                 let proj = this.axes[selectedAxis].proj[i];
                 rug.set(Math.round(proj*rounding)/rounding, this.fillsFrame[i]);
             }
@@ -1113,7 +1132,16 @@ export class Langevitour {
         for(let item of this.labelData)
         if (item.type == 'level')
             levelActive[item.index] = item.active;
-
+        
+        for(let i=0;i<this.n;i++)
+            this.pointActive[i] = levelActive[this.group[i]];
+        
+        if (this.filter !== null) {
+            for(let i=0;i<this.n;i++)
+                this.pointActive[i] = this.pointActive[i] && this.filter[i];
+        }
+        
+        
         // Cut down oscillation during dragging
         if (this.dragging && doAttraction) {
             damping = Math.max(damping, attraction*5.0);
@@ -1147,7 +1175,7 @@ export class Langevitour {
         }
 
         if (whatGuide != 'none') {
-            let activeX = this.X.filter((item,i) => levelActive[this.group[i]]);
+            let activeX = this.X.filter((item,i) => this.pointActive[i]);
             if (activeX.length) {
                 let grad = gradTable[whatGuide](proj, activeX);
                 matScaleInto(grad, -guide);
