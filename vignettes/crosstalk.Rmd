@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-The `langevitour` development version now supports receiving selections and filters from other htmlwidgets that support the [crosstalk](https://rstudio.github.io/crosstalk/) package. It does not currently itself produce selections and filters.
+The `langevitour` development version now supports receiving selections and filters from other htmlwidgets that support the [crosstalk](https://rstudio.github.io/crosstalk/) package. It will also contribute to filtering based on which groups are checked.
 
 Use the `link=` argument to `langevitour` to specify a `SharedData` object to watch for selections and filters.
 
@@ -88,10 +88,11 @@ I want to demonstrate this with an independent set of widgets, so I make a new S
 ```{r}
 shared2 <- SharedData$new(completePenguins)
 
-filter2.1 <- filter_checkbox("filter2.1", "Filter species", shared2, ~species)
-filter2.2 <- filter_checkbox("filter2.2", "Filter sex", shared2, ~sex)
-filter2.3 <- filter_slider(
-    "filter2.3", "Filter body mass (g)", shared2, ~body_mass_g)
+# Create some filters
+filter2a <- filter_slider(
+    "filter2a", "Filter body mass (g)", shared2, ~body_mass_g)
+filter2b <- filter_checkbox(
+    "filter2b", "Filter sex", shared2, ~sex)
 
 # Create a langevitour widget that listens for selections and filters
 langevitourWidget2 <- langevitour(
@@ -101,15 +102,22 @@ langevitourWidget2 <- langevitour(
     levelColors=colors, 
     scale=scale, 
     pointSize=2,
-    state='{"guideType":"local"}')
+    state='{"guideType":"pca"}')
+
+# Create a plotly widget
+plot2 <- ggplot(shared2, aes(x=sex, y=body_mass_g, color=species)) + 
+    geom_jitter(height=0) + 
+    guides(color="none")
+plotWidget2 <- ggplotly(plot2, height=600) |> 
+    highlight(on="plotly_selected", off="plotly_deselect")
 ```
 
 ```{r eval=FALSE}
-bscols(filter2.1, filter2.2, filter2.3)
-langevitourWidget2
+bscols(filter2a, filter2b)
+bscols(plotWidget2, langevitourWidget2)
 ```
 
 ```{r echo=FALSE}
-bscols(filter2.1, filter2.2, filter2.3)
-langevitourWidget2
+bscols(filter2a, filter2b)
+bscols(plotWidget2, langevitourWidget2)
 ```

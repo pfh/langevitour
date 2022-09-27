@@ -60,7 +60,7 @@ langevitour(
 
 \item{elementId}{An element ID for the widget, see htmlwidgets::createWidget.}
 
-\item{link}{A SharedData object from the crosstalk package to use selections and filters from other htmlwidgets. The data in this object is not used, just the keys and group name. (The way linked plots work may change in future.)}
+\item{link}{A SharedData object from the crosstalk package to use selections and filters from other htmlwidgets. The data in this object is not used, just the keys and group name.}
 }
 \value{
 An htmlwidget object.

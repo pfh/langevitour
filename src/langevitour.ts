@@ -160,8 +160,11 @@ let template = `~
 `.replace(/~\s*/g,''); // Strip whitespace marked with initial '~'.
 
 
-/** Class to create and animate a Langevin Tour widget */
-export class Langevitour {
+/** Class to create and animate a Langevin Tour widget 
+  *
+  * Emits a "change" event when a label checkbox is checked/unchecked.
+  */
+export class Langevitour extends EventTarget {
     container: HTMLElement;
     shadow: ShadowRoot;
     shadowChild: HTMLElement;
@@ -255,6 +258,8 @@ export class Langevitour {
      * @param height Desired initial height of widget.
      */
     constructor(container: HTMLElement, width: number, height: number) {
+        super();
+        
         // Set up elements in a shadow DOM to isolate from document style.
         // The extra div seems necessary to avoid weird shrinkage with resizing.
         this.container = container;
@@ -637,6 +642,8 @@ export class Langevitour {
         overlay.selectAll('*').remove();
         
         this.mouseInCheckbox = false;
+
+        let thys = this; //sigh
         
         let divs = overlay
             .selectAll('div')
@@ -648,7 +655,10 @@ export class Langevitour {
                     div.append('input')
                         .attr('type','checkbox')
                         .property('checked',d => d.active)
-                        .on('change',function(e,d) { d.active = this.checked; })
+                        .on('change',function(e,d) { 
+                            d.active = this.checked; 
+                            thys.dispatchEvent(new Event("change"));
+                        })
                         .on('mouseover',() => { this.mouseInCheckbox = true; })
                         .on('mouseout',() => { this.mouseInCheckbox = false; });
                     div.append('span');
@@ -670,8 +680,6 @@ export class Langevitour {
             d.halfWidth = this.offsetWidth/2;
             d.halfHeight = this.offsetHeight/2;
         });
-
-        let thys = this; //sigh
 
         function refreshLabels() {
             let maxX = thys.xScale.invert(thys.width);

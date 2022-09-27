@@ -64,4 +64,8 @@ tour.renderValue(val);
 
 window.addEventListener('resize', ()=>tour.resize(window.innerWidth, window.innerHeight));
 
+tour.addEventListener("change", (e)=>{
+    console.log(e);
+});
+
 </script>

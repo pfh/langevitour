@@ -8,7 +8,9 @@ HTMLWidgets.widget({
         let ctSel = null;
         let ctFilter = null;
         let ctKey = [ ];
-        function update() {
+        let lastLevelActive = null;
+        
+        function updateIn() {
             let state = { };
             if (!ctSel || !ctSel.value || ctSel.value.length==0) {
                 state.selection = null;
@@ -17,7 +19,7 @@ HTMLWidgets.widget({
                 state.selection = ctKey.map(item => selSet.has(item));
             }
 
-            if (!ctFilter || !ctFilter.filteredKeys || ctFilter.filteredKeys.length==0) {
+            if (!ctFilter || !ctFilter.filteredKeys) {
                 state.filter = null;
             } else {
                 let filterSet = new Set(ctFilter.filteredKeys);
@@ -25,6 +27,37 @@ HTMLWidgets.widget({
             }
             
             tour.setState(state);
+        }
+        
+        function updateOut() {
+            if (!ctFilter) 
+                return;
+            
+            let levelActive = Array(tour.levels.length).fill(true);
+            for(let item of tour.labelData)
+                if (item.type == 'level')
+                    levelActive[item.index] = item.active;
+            
+            // Check for change
+            if (lastLevelActive && levelActive.every((item,i) => item == lastLevelActive[i])) {
+                //console.log("unchanged");
+                return;
+            }
+            
+            lastLevelActive = levelActive;
+            
+            // No filter if all active.
+            if (levelActive.every(Boolean)) {
+                ctFilter.clear();
+                return;
+            }
+            
+            let myFilter = [ ];
+            for(let i=0;i<ctKey.length;i++)
+                if (levelActive[tour.group[tour.unpermutor[i]]]) // Yikes.
+                    myFilter.push(ctKey[i]);
+            
+            ctFilter.set(myFilter);
         }
         
         return {
@@ -41,17 +74,21 @@ HTMLWidgets.widget({
                     ctFilter = null;
                 }
                 
+                lastLevelActive = null;
+                
                 if (data.crosstalkGroup) {
                     ctKey = data.crosstalkKey;
                     ctSel = new crosstalk.SelectionHandle();
                     ctSel.setGroup(data.crosstalkGroup);
-                    ctSel.on("change", update);
+                    ctSel.on("change", updateIn);
                     
                     ctFilter = new crosstalk.FilterHandle();
                     ctFilter.setGroup(data.crosstalkGroup);
-                    ctFilter.on("change", update);
+                    ctFilter.on("change", updateIn);
+                    tour.addEventListener("change", updateOut);
                     
-                    update();
+                    updateOut();
+                    updateIn();
                 }
             },
             resize: function(width, height) {
