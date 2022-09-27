@@ -366,6 +366,11 @@ export class Langevitour extends EventTarget {
         return this.getInput(className).checked;
     }
     
+    /* Notify listeners of label checkbox change. */
+    emitChange() {
+        this.dispatchEvent(new Event("change"));
+    }
+    
     
     /**
      * Show data in the widget. Use "null" to clear the widget.
@@ -657,7 +662,7 @@ export class Langevitour extends EventTarget {
                         .property('checked',d => d.active)
                         .on('change',function(e,d) { 
                             d.active = this.checked; 
-                            thys.dispatchEvent(new Event("change"));
+                            thys.emitChange();
                         })
                         .on('mouseover',() => { this.mouseInCheckbox = true; })
                         .on('mouseout',() => { this.mouseInCheckbox = false; });
@@ -792,6 +797,8 @@ export class Langevitour extends EventTarget {
      * @param state A JSON string or an Object containing the desired state.
      */
     setState(state) {
+        let needChange = false;
+    
         if (typeof state == "string")
             state = JSON.parse(state);
             
@@ -828,17 +835,21 @@ export class Langevitour extends EventTarget {
         if (has(state,'labelAttraction'))
             this.getInput('labelInput').value = state.labelAttraction;
 
-        if (has(state,'labelInactive'))
-        for(let item of this.labelData)
-            item.active = !state.labelInactive.includes(item.label);
+        if (has(state,'labelInactive')) {
+            for(let item of this.labelData)
+                item.active = !state.labelInactive.includes(item.label);
+            needChange = true;
+        }
         
-        if (has(state,'labelPos'))
-        for(let item of this.labelData)
-        if (has(state.labelPos,item.label)) {
-            item.x = state.labelPos[item.label][0];
-            item.y = state.labelPos[item.label][1];
-        } else {
-            item.x = 1;
+        if (has(state,'labelPos')) {
+            for(let item of this.labelData) {
+                if (has(state.labelPos,item.label)) {
+                    item.x = state.labelPos[item.label][0];
+                    item.y = state.labelPos[item.label][1];
+                } else {
+                    item.x = 1;
+                }
+            }
         }
         
         if (has(state,'projection'))
@@ -858,7 +869,11 @@ export class Langevitour extends EventTarget {
                 this.filter = this.permutor.map(i => state.filter[i]);
         }
         
+        
         this.configure();
+        
+        if (needChange) 
+            this.emitChange();
     }
     
     scheduleFrame() {
