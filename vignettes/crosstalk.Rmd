@@ -13,11 +13,11 @@ The `langevitour` development version now supports receiving selections and filt
 
 Use the `link=` argument to `langevitour` to specify a `SharedData` object to watch for selections and filters.
 
-**Note:** As at 2022-09-25 you must install the development version of `plotly` for this to work.
+**Note:** As at 2022-09-25 you must install the development version of `plotly` for plotly widgets in this page to work.
 
 ```{r eval=FALSE}
 remotes::install_github("pfh/langevitour")
-remotes::install_github("plotly/plotly")
+remotes::install_github("plotly/plotly.R")
 ```
 
 <br><br><br>
@@ -43,6 +43,7 @@ shared <- SharedData$new(completePenguins)
 # Create a plotly widget showing all pairs of variables
 ggpairsWidget <- ggpairs(shared, aes(color=species, text=""), columns=3:6) |>
     ggplotly(tooltip="text", width=700, height=700) |> 
+    style(unselected=list(marker=list(opacity=1))) |> # Don't double-fade unselected points
     highlight(on="plotly_selected", off="plotly_deselect")
 
 # Create a langevitour widget that listens for selections and filters
@@ -109,6 +110,7 @@ plot2 <- ggplot(shared2, aes(x=sex, y=body_mass_g, color=species)) +
     geom_jitter(height=0) + 
     guides(color="none")
 plotWidget2 <- ggplotly(plot2, height=600) |> 
+    style(unselected=list(marker=list(opacity=1))) |>  # Don't double-fade unselected points
     highlight(on="plotly_selected", off="plotly_deselect")
 ```
 
