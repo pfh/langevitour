@@ -53,7 +53,7 @@ HTMLWidgets.widget({
             }
             
             let myFilter = [ ];
-            for(let i=0;i<ctKey.length;i++)
+            for(let i=0;i<tour.n;i++)
                 if (levelActive[tour.group[tour.unpermutor[i]]]) // Yikes.
                     myFilter.push(ctKey[i]);
             
@@ -63,13 +63,11 @@ HTMLWidgets.widget({
         function updateOutSelection() {
             if (!ctSel) return;
             
-            let currentSet = new Set();
-            if (ctSel.value)
-                currentSet = new Set(ctSel.value);
+            let currentSet = new Set(ctSel.value || []);
             
             let wanted = [ ];
             if (tour.selection) {
-                for(let i=0;i<ctKey.length;i++)
+                for(let i=0;i<tour.n;i++)
                     if (tour.selection[tour.unpermutor[i]]) // Yikes.
                         wanted.push(ctKey[i]);
             }

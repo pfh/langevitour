@@ -32,7 +32,9 @@ library(airway)               # airway dataset
 library(edgeR)                # RPM calculation
 library(limma)                # makeContrasts
 library(MASS)                 # ginv generalized matrix inverse
-library(EnsDb.Hsapiens.v86)   # Gene names
+library(org.Hs.eg.db)         # Gene information
+library(crosstalk)            # Communication with other htmlwidgets
+library(DT)                   # Table htmlwidget
 library(ggplot2)
 library(dplyr)
 library(tibble)
@@ -60,12 +62,22 @@ y <- rpms[keep,,drop=F]
 # Use shorter sample names
 colnames(y) <- paste0(ifelse(treatment,"T","U"), cell)
 
-# Get friendly gene names
-symbols <- 
-    AnnotationDbi::select(EnsDb.Hsapiens.v86, keys=rownames(y), keytype="GENEID", columns="SYMBOL") |>
-    deframe()
-name <- symbols[rownames(y)]
-name[is.na(name)] <- rownames(y)[is.na(name)]
+# Get gene symbols and descriptions
+genes <- 
+    left_join(
+        tibble(ENSEMBL=rownames(y)),
+        AnnotationDbi::select(
+            org.Hs.eg.db, 
+            keys=rownames(y), 
+            keytype="ENSEMBL", 
+            columns=c("SYMBOL","GENENAME")),
+        by="ENSEMBL") |>
+    mutate(SYMBOL=ifelse(is.na(SYMBOL),ENSEMBL,SYMBOL)) |>
+    group_by(ENSEMBL) |>
+    summarize(SYMBOL=paste(SYMBOL,collapse="/"), GENENAME=paste(GENENAME,collapse="/"))
+
+stopifnot(identical(genes$ENSEMBL, rownames(y)))
+genes$AveExpr <- rowMeans(y) |> round(1)
 
 # Colors for the samples
 colors <- ifelse(treatment,"#f00","#080")
@@ -131,10 +143,16 @@ Things to try:
 * Drag treatment onto the plot, and deactivate the "average" axis and each of the "cell vs others" axes. Also ensure point repulsion is "none". The remaining variation orthogonal to the treatment axis should be purely random variation. You can compare this to the variation along the treatment axis. This is a visual version of a statistical test called a ["rotation test"](https://link.springer.com/article/10.1007/s11222-005-4789-5). For each gene, we can compare its projection along the treatment axis to the random projections being shown orthogonal to the treatment axis. If it is extreme compared to these random projections we reject that treatment had no effect on the gene. ((There is a bit more that needs to be said here, about multiple testing.)) <button id=rotationTest>That sounds complicated, do it for me.</button> (<button id=reset>reset</button>)
 
 ```{r plot}
+shared <- SharedData$new(genes)
+
 langevitour(
-    y, name=name, scale=15, center=rep(3,8), 
+    y, name=genes$SYMBOL, scale=15, center=rep(3,8), 
     extraAxes=cbind(contrastAxes, vmAxes), 
-    axisColors=colors, elementId="myWidget")
+    axisColors=colors, link=shared, elementId="myWidget")
+```
+
+```{r table,warning=FALSE}
+datatable(shared, rownames=FALSE)  # Linked table widget
 ```
 
 Notes:

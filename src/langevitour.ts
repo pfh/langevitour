@@ -296,7 +296,6 @@ export class Langevitour extends EventTarget {
         plotDiv.addEventListener('mouseout', (e) => { 
             this.mousing = false;
             this.mouseDown = false;
-            this.emitChangeSelectionIfNeeded();
         });
         plotDiv.addEventListener('mousemove', (e) => { 
             let rect = plotDiv.getBoundingClientRect();
@@ -310,7 +309,6 @@ export class Langevitour extends EventTarget {
         });
         plotDiv.addEventListener('mouseup', (e) => {
             this.mouseDown = false;
-            this.emitChangeSelectionIfNeeded();
         });
         
         // Hide fullscreen button if not available
@@ -824,7 +822,7 @@ export class Langevitour extends EventTarget {
     setState(state) {
         let needChangeFilter = false;
         let needChangeSelection = false;
-    
+        
         if (typeof state == "string")
             state = JSON.parse(state);
             
@@ -956,10 +954,7 @@ export class Langevitour extends EventTarget {
         
         // Points within brush distance, for brushing and row label
         let brushRadius = this.size*0.05; //TODO: make configurable?
-        let wantRowLabel = this.mousing && this.rownames.length;
-        let wantSelect = this.mouseDown || this.mouseWentDown;
         let brushPoints: {index:number,d2:number}[] = [ ];
-        //if ((wantRowLabel || wantSelect) && this.mouseX < this.size) {
         if (this.mouseX < this.size) {
             for(let i=0;i<this.n;i++) {
                 if (!this.pointActive[i])
@@ -977,7 +972,7 @@ export class Langevitour extends EventTarget {
         
         // Update selection.
         // This is kind of an odd place to do this.
-        if (wantSelect) {
+        if (this.mouseDown || this.mouseWentDown) {
             // Clear selection on mouse down unless shift was pressed.
             if (this.mouseWentDown && !this.mouseShiftKey) {
                 this.selection = null;
@@ -998,7 +993,8 @@ export class Langevitour extends EventTarget {
                 }
             }
             
-            this.mouseWentDown = false;            
+            this.mouseWentDown = false;
+            //Note: at end of this function, we decide if it's time to emit a changeSelection event
         }
         
         this.overlay.style.opacity = this.mousing?"1":"0";
@@ -1188,7 +1184,7 @@ export class Langevitour extends EventTarget {
         }
         
         // Row label
-        if (wantRowLabel) {            
+        if (this.mousing && this.rownames.length) {
             ctx.font = `15px sans-serif`;
             ctx.strokeStyle = `#fff`;
             ctx.fillStyle = `#000`;
@@ -1215,6 +1211,10 @@ export class Langevitour extends EventTarget {
         }
         
         window.setTimeout(this.scheduleFrame.bind(this), 5);
+
+        // This is kind of an odd place to do this.
+        if (this.selectionChanged && !this.mouseDown)
+            this.emitChangeSelectionIfNeeded();
     }
     
     compute(realElapsed: number) {
