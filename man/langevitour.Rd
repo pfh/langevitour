@@ -60,7 +60,7 @@ langevitour(
 
 \item{elementId}{An element ID for the widget, see htmlwidgets::createWidget.}
 
-\item{link}{A SharedData object from the crosstalk package to use selections and filters from other htmlwidgets. The data in this object is not used, just the keys and group name.}
+\item{link}{A SharedData object from the crosstalk package to share selections and filters with other htmlwidgets. The data in this object is not used, just the keys and group name. The rows of \code{link$origData()} should correspond to the rows of X.}
 }
 \value{
 An htmlwidget object.

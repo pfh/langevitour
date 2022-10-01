@@ -42,7 +42,7 @@
 #'
 #' @param elementId An element ID for the widget, see htmlwidgets::createWidget.
 #'
-#' @param link A SharedData object from the crosstalk package to use selections and filters from other htmlwidgets. The data in this object is not used, just the keys and group name.
+#' @param link A SharedData object from the crosstalk package to share selections and filters with other htmlwidgets. The data in this object is not used, just the keys and group name. The rows of \code{link$origData()} should correspond to the rows of X.
 #'
 #' @return An htmlwidget object.
 #'
@@ -74,23 +74,6 @@ langevitour <- function(
         state=NULL, width=NULL, height=NULL, elementId=NULL,
         link=NULL) {
     
-    # Check for crosstalk to allow linked selections
-    crosstalkGroup <- NULL
-    crosstalkKey <- NULL
-    dependencies <- NULL
-    
-    if (is.null(link) && crosstalk::is.SharedData(X)) {
-        link <- X
-        X <- X$origData()
-    }
-    
-    if (!is.null(link)) {
-        assertthat::assert_that(crosstalk::is.SharedData(link))
-        dependencies <- crosstalk::crosstalkLibs()
-        crosstalkGroup <- link$groupName()
-        crosstalkKey <- link$key()
-    }
-    
     # Ensure data is matrix
     X <- as.matrix(X)
     
@@ -101,6 +84,19 @@ langevitour <- function(
         group <- rep("", nrow(X))
     
     group <- as.factor(group)
+    
+    
+    # Check for crosstalk to allow linked selections
+    crosstalkGroup <- NULL
+    crosstalkKey <- NULL
+    dependencies <- NULL
+    
+    if (!is.null(link)) {
+        assertthat::assert_that(crosstalk::is.SharedData(link))
+        dependencies <- crosstalk::crosstalkLibs()
+        crosstalkGroup <- link$groupName()
+        crosstalkKey <- link$key()
+    }
     
     
     # Check for problems (not exhaustive!)
@@ -175,9 +171,15 @@ langevitour <- function(
         ind <- sample.int(nrow(X), subsample)
         
         X_centered_scaled <- X_centered_scaled[ind,,drop=FALSE]
+        
         group <- group[ind]
+        
         if (!is.null(name))
             name <- name[ind]
+        
+        if (!is.null(crosstalkKey))
+            crosstalkKey <- crosstalkKey[ind]
+        
         if (!is.null(lineFrom)) {
             lineFrom <- match(lineFrom, ind)
             lineTo <- match(lineTo, ind)
