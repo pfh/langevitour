@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-The `langevitour` development version now supports receiving selections and filters from other htmlwidgets that support the [crosstalk](https://rstudio.github.io/crosstalk/) package. It will also contribute to filtering based on which groups are checked.
+The `langevitour` development version now supports sharing selections and filters with other htmlwidgets that support the [crosstalk](https://rstudio.github.io/crosstalk/) package.
 
 Use the `link=` argument to `langevitour` to specify a `SharedData` object to watch for selections and filters.
 
@@ -69,8 +69,9 @@ datatableWidget
 ```
 
 ::: {style="width: 1400px"}
-:::: {style="font-size: 200%"}
-Drag on the pairs plot or click rows in the table to select points.
+:::: {style="font-size: 150%"}
+To select points, drag on the langevitour widget, or drag on the pairs plot, or click rows in the table.
+<br>Hold shift to extend the selection.
 ::::
 ```{r echo=FALSE}
 bscols(ggpairsWidget, langevitourWidget)

@@ -18,7 +18,7 @@ HTMLWidgets.widget({
                 let selSet = new Set(ctSel.value);
                 state.selection = ctKey.map(item => selSet.has(item));
             }
-
+            
             if (!ctFilter || !ctFilter.filteredKeys) {
                 state.filter = null;
             } else {
@@ -29,7 +29,7 @@ HTMLWidgets.widget({
             tour.setState(state);
         }
         
-        function updateOut() {
+        function updateOutFilter() {
             if (!ctFilter) 
                 return;
             
@@ -60,6 +60,30 @@ HTMLWidgets.widget({
             ctFilter.set(myFilter);
         }
         
+        function updateOutSelection() {
+            if (!ctSel) return;
+            
+            let currentSet = new Set();
+            if (ctSel.value)
+                currentSet = new Set(ctSel.value);
+            
+            let wanted = [ ];
+            if (tour.selection) {
+                for(let i=0;i<ctKey.length;i++)
+                    if (tour.selection[tour.unpermutor[i]]) // Yikes.
+                        wanted.push(ctKey[i]);
+            }
+            
+            // Abort if equivalent.
+            if (wanted.length == currentSet.size && wanted.every(item => currentSet.has(item)))
+                return;
+            
+            if (wanted.length == 0)
+                ctSel.set(null);
+            else
+                ctSel.set(wanted);
+        }
+        
         return {
             renderValue: function(data) {
                 tour.renderValue(data);
@@ -81,14 +105,16 @@ HTMLWidgets.widget({
                     ctSel = new crosstalk.SelectionHandle();
                     ctSel.setGroup(data.crosstalkGroup);
                     ctSel.on("change", updateIn);
+                    tour.addEventListener("changeSelection", updateOutSelection);
                     
                     ctFilter = new crosstalk.FilterHandle();
                     ctFilter.setGroup(data.crosstalkGroup);
                     ctFilter.on("change", updateIn);
-                    tour.addEventListener("change", updateOut);
+                    tour.addEventListener("changeFilter", updateOutFilter);
                     
-                    updateOut();
+                    updateOutFilter();
                     updateIn();
+                    updateOutSelection();
                 }
             },
             resize: function(width, height) {

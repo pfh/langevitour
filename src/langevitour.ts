@@ -162,7 +162,9 @@ let template = `~
 
 /** Class to create and animate a Langevin Tour widget 
   *
-  * Emits a "change" event when a label checkbox is checked/unchecked.
+  * Emits a "changeFilter" event when a label checkbox is checked/unchecked.
+  *
+  * Emits a "changeSelection" event when brushing occurs.
   */
 export class Langevitour extends EventTarget {
     container: HTMLElement;
@@ -196,9 +198,12 @@ export class Langevitour extends EventTarget {
     
     fills: string[] = [];
     
-    //Selections and filters from outside, primarily to support "crosstalk"
-    selection: boolean[] | null = null; 
+    //Filters from outside, primarily to support "crosstalk"
     filter: boolean[] | null = null;
+    
+    //Selection both from crosstalk and internal
+    selection: boolean[] | null = null;
+    selectionChanged = false; // Do we need to emit a changeSelection event -- delayed to mouse up
     
     axes: { 
         name: string, 
@@ -242,6 +247,9 @@ export class Langevitour extends EventTarget {
     computeMessage = ""; // Warnings such as hiding too many variables.
     
     mousing = false; // Should overlay be visible?
+    mouseDown = false; // While this mouse is down, the selection continues to be updated.
+    mouseWentDown = false; // Set when mouse button goes down. Unset once selection updated.
+    mouseShiftKey = false; // Shift was pressed at mouse down, we want to extend the current selection.
     mouseX = 0; // Used to display row names
     mouseY = 0; // Used to display row names
     
@@ -286,12 +294,23 @@ export class Langevitour extends EventTarget {
             this.mousing = true; 
         });
         plotDiv.addEventListener('mouseout', (e) => { 
-            this.mousing = false; 
+            this.mousing = false;
+            this.mouseDown = false;
+            this.emitChangeSelectionIfNeeded();
         });
         plotDiv.addEventListener('mousemove', (e) => { 
             let rect = plotDiv.getBoundingClientRect();
             this.mouseX = e.x - rect.left;
             this.mouseY = e.y - rect.top;
+        });
+        plotDiv.addEventListener('mousedown', (e) => {
+            this.mouseDown = true;
+            this.mouseWentDown = true;
+            this.mouseShiftKey = e.shiftKey;
+        });
+        plotDiv.addEventListener('mouseup', (e) => {
+            this.mouseDown = false;
+            this.emitChangeSelectionIfNeeded();
         });
         
         // Hide fullscreen button if not available
@@ -367,8 +386,14 @@ export class Langevitour extends EventTarget {
     }
     
     /* Notify listeners of label checkbox change. */
-    emitChange() {
-        this.dispatchEvent(new Event("change"));
+    emitChangeFilter() {
+        this.dispatchEvent(new Event("changeFilter"));
+    }
+    
+    emitChangeSelectionIfNeeded() {
+        if (!this.selectionChanged) return;
+        this.selectionChanged = false;
+        this.dispatchEvent(new Event("changeSelection"));
     }
     
     
@@ -662,7 +687,7 @@ export class Langevitour extends EventTarget {
                         .property('checked',d => d.active)
                         .on('change',function(e,d) { 
                             d.active = this.checked; 
-                            thys.emitChange();
+                            thys.emitChangeFilter();
                         })
                         .on('mouseover',() => { this.mouseInCheckbox = true; })
                         .on('mouseout',() => { this.mouseInCheckbox = false; });
@@ -797,7 +822,8 @@ export class Langevitour extends EventTarget {
      * @param state A JSON string or an Object containing the desired state.
      */
     setState(state) {
-        let needChange = false;
+        let needChangeFilter = false;
+        let needChangeSelection = false;
     
         if (typeof state == "string")
             state = JSON.parse(state);
@@ -838,7 +864,7 @@ export class Langevitour extends EventTarget {
         if (has(state,'labelInactive')) {
             for(let item of this.labelData)
                 item.active = !state.labelInactive.includes(item.label);
-            needChange = true;
+            needChangeFilter = true;
         }
         
         if (has(state,'labelPos')) {
@@ -860,6 +886,8 @@ export class Langevitour extends EventTarget {
                 this.selection = null;
             else
                 this.selection = this.permutor.map(i => state.selection[i]);
+            this.selectionChanged = true;
+            needChangeSelection = true;
         }
         
         if (has(state,'filter')) {
@@ -872,8 +900,10 @@ export class Langevitour extends EventTarget {
         
         this.configure();
         
-        if (needChange) 
-            this.emitChange();
+        if (needChangeFilter) 
+            this.emitChangeFilter();
+        if (needChangeSelection)
+            this.emitChangeSelectionIfNeeded();
     }
     
     scheduleFrame() {
@@ -921,9 +951,56 @@ export class Langevitour extends EventTarget {
         if (item.type == 'level')
             levelActive[item.index] = item.active;
         
-        // Note: pointActive is updated in compute.    
+        // Note: pointActive is updated in compute.
         
+        
+        // Points within brush distance, for brushing and row label
+        let brushRadius = this.size*0.05; //TODO: make configurable?
+        let wantRowLabel = this.mousing && this.rownames.length;
+        let wantSelect = this.mouseDown || this.mouseWentDown;
+        let brushPoints: {index:number,d2:number}[] = [ ];
+        //if ((wantRowLabel || wantSelect) && this.mouseX < this.size) {
+        if (this.mouseX < this.size) {
+            for(let i=0;i<this.n;i++) {
+                if (!this.pointActive[i])
+                    continue;
+
+                let d2 = (this.xScaleClamped(this.xy[0][i])-this.mouseX)**2+
+                            (this.yScaleClamped(this.xy[1][i])-this.mouseY)**2;
+                if (d2 > brushRadius**2) 
+                    continue;
+
+                brushPoints.push({ index:i, d2: d2 });
+            }
+            brushPoints.sort((a,b) => a.d2-b.d2);
+        }
+        
+        // Update selection.
+        // This is kind of an odd place to do this.
+        if (wantSelect) {
+            // Clear selection on mouse down unless shift was pressed.
+            if (this.mouseWentDown && !this.mouseShiftKey) {
+                this.selection = null;
+                this.selectionChanged = true;
+            }
+            
+            if (brushPoints.length) {    
+                if (!this.selection) {
+                    this.selection = Array(this.n).fill(false);
+                    this.selectionChanged = true;
+                }
                 
+                for(let i=0;i<brushPoints.length;i++) {
+                    if (!this.selection[brushPoints[i].index]) {
+                        this.selection[brushPoints[i].index] = true;
+                        this.selectionChanged = true;
+                    }
+                }
+            }
+            
+            this.mouseWentDown = false;            
+        }
+        
         this.overlay.style.opacity = this.mousing?"1":"0";
         
         // Setup canvas and get context
@@ -941,7 +1018,7 @@ export class Langevitour extends EventTarget {
         ctx.fillStyle = '#fff';
         ctx.fillRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
         ctx.strokeRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
-
+       
         // Axes
         let axisScale = 0.75;
         ctx.strokeStyle = '#ccc';
@@ -1034,8 +1111,7 @@ export class Langevitour extends EventTarget {
                         
             // Hack to speed up rug drawing by rounding positions, 
             // then only drawing each position once.
-            /** @type {Map<number,string>} */
-            let rug = new Map();
+            let rug:Map<number,string> = new Map();
             let rounding = this.size;
             for(let i=0;i<this.n;i++) {
                 if (!this.pointActive[i]) continue;
@@ -1055,35 +1131,21 @@ export class Langevitour extends EventTarget {
                 ctx.stroke();
             }
         }
+        
+        // Brushing indicator
+        if (this.mousing && brushPoints.length) {
+            ctx.fillStyle = '#0000ff11';
+            ctx.beginPath();
+            ctx.arc(this.mouseX, this.mouseY, brushRadius, 0, 2 * Math.PI, false);
+            ctx.fill();
+        }
                 
         //Text section
+        ctx.save()
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-
-        ctx.save()
         ctx.lineJoin = 'round';
         ctx.lineWidth = 5;
-        
-        // Row label
-        if (this.mousing && this.mouseX < this.size && this.rownames.length) {
-            let dists: {i:number,d2:number}[] = [ ];
-            for(let i=0;i<this.n;i++)
-                dists[i] = { 
-                    i:i, 
-                    d2:(this.xScaleClamped(this.xy[0][i])-this.mouseX)**2+
-                       (this.yScaleClamped(this.xy[1][i])-this.mouseY)**2 };
-            dists.sort((a,b) => a.d2-b.d2);
-            
-            ctx.font = `15px sans-serif`;
-            ctx.strokeStyle = `#fff`;
-            ctx.fillStyle = `#000`;
-            for(let i=Math.min(this.n,1)-1;i>=0;i--) {
-                let j=dists[i].i;
-                let x = this.xScaleClamped(this.xy[0][j]), y = this.yScaleClamped(this.xy[1][j]);
-                ctx.strokeText(this.rownames[j], x, y);                
-                ctx.fillText(this.rownames[j], x, y);                
-            }
-        }
                 
         // Axis labels
         if (showAxes)
@@ -1123,6 +1185,19 @@ export class Langevitour extends EventTarget {
             ctx.font = `15px sans-serif`;
             ctx.strokeText(this.axes[i].name, this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
             ctx.fillText(this.axes[i].name, this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
+        }
+        
+        // Row label
+        if (wantRowLabel) {            
+            ctx.font = `15px sans-serif`;
+            ctx.strokeStyle = `#fff`;
+            ctx.fillStyle = `#000`;
+            for(let i=Math.min(brushPoints.length,1)-1;i>=0;i--) {
+                let j=brushPoints[i].index;
+                let x = this.xScaleClamped(this.xy[0][j]), y = this.yScaleClamped(this.xy[1][j]);
+                ctx.strokeText(this.rownames[j], x, y);
+                ctx.fillText(this.rownames[j], x, y);
+            }
         }
         
         ctx.restore();
