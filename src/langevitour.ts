@@ -930,8 +930,6 @@ export class Langevitour extends EventTarget {
         this.fps.push( Math.round(1/elapsed) );
         if (this.fps.length > 100) this.fps.shift();
         
-        this.get('messageArea').innerText = `${this.computeMessage}\n${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
-
         let selectedAxis: number|null = null;
         let selectedLevel: number|null = null;
         let selected = this.labelData.filter(d=>d.selected);
@@ -1209,6 +1207,27 @@ export class Langevitour extends EventTarget {
             ctx.fillText(this.levels[i], this.size+10, 11+j*20);
             j++;
         }
+        
+        
+        let hint = '';
+        
+        if (this.mouseInCheckbox && selected.length) {
+            if (selected[0].active)
+                hint = "click to hide";
+            else
+                hint = "click to show";
+        } else if (selectedAxis !== null || selectedLevel !== null) {
+            hint = "drag to position";
+        } else if (brushPoints.length && !this.mouseDown) {
+            if (this.selection)
+                hint = "shift+click to enlarge";
+            else
+                hint = "click to select";
+        } else if (this.selection && !brushPoints.length && !this.mouseDown) {
+            hint = "click to clear";
+        }
+        
+        this.get('messageArea').innerText = `${this.computeMessage}\n${hint}\n${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
         
         window.setTimeout(this.scheduleFrame.bind(this), 5);
 
