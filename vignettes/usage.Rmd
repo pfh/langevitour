@@ -49,7 +49,7 @@ langevitour(
   <div>Turn on a guide.</div>
   <div><button onclick="setState({pointRepulsionType:'pca'})">PCA</button> <button onclick="setState({guideType:'none'})">None</button></div>
   
-  <div>Experiment with "damping" and "heat".</div>
+  <div>Experiment with "damping" and "heat" in the hamburger menu.</div>
   <div>
   <button onclick="setState({damping:2,heat:1})">Twitchy</button>
   <button onclick="setState({damping:-2,heat:0})">Smooth</button>

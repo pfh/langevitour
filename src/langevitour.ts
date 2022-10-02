@@ -30,10 +30,16 @@ let template = `~
         * { font-family: sans-serif; }
         input { vertical-align: middle; }
         input[type=checkbox] { vertical-align: baseline; }
+        input[type=range] { width: 100px; }
+        
+        .controlDiv {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
         
         .box { 
             background: #eee;
-            display: inline-block; 
             padding: 0.25em 0.5em 0.25em 0.5em; 
             margin: 0.25em; 
             border-radius: 0.25em;
@@ -54,7 +60,7 @@ let template = `~
             left: 10px;
             bottom: 0px;
             padding: 1em;
-            background: #fff;
+            background: #eee;
             border: 1px solid black;
             border-radius: 0.25em;
         }
@@ -63,9 +69,12 @@ let template = `~
             position: absolute;
             white-space: pre;
             text-align: right;
-            right: 3px;
-            bottom: 3px;
+            right: 0px;
+            bottom: 0px;
             color: #888;
+            background: #ffffffff;
+            padding: 3px;
+            border-radius: 0.25em;
         }
         
         .labelDiv {
@@ -81,7 +90,7 @@ let template = `~
         .labelDiv input {
             padding: 0px;
             margin: 0px 5px 0px 0px;
-        }    
+        }
     </style>~
 
     <div style="position: relative" class=plotDiv>
@@ -91,44 +100,43 @@ let template = `~
         <div class=infoBox>
             <div><b><a href="https://logarithmic.net/langevitour/">langevitour</a></b></div>
             <div class=infoBoxInfo></div>
-            <div>Projection:</div>
-            <textarea class=infoBoxProj rows=5 cols=30 wrap=off onclick="this.select()"></textarea>
-            <div><br>State:</div>
-            <textarea class=infoBoxState rows=5 cols=30 wrap=on onfocus="this.setSelectionRange(0,this.value.length,'backward');" spellcheck=false></textarea>
+            Projection<br>
+            <textarea class=infoBoxProj rows=3 cols=20 wrap=off spellcheck=false onclick="this.setSelectionRange(0,this.value.length,'backward');"></textarea>
+            <br><br>State<br>
+            <textarea class=infoBoxState rows=3 cols=20 wrap=off spellcheck=false onfocus="this.setSelectionRange(0,this.value.length,'backward');"></textarea>
+            <br><br>
+            <table>
+              <tr><td>Brush size</td><td><input type=range min=-1 max=1 step=0.01 value=0 class=brushInput></td></tr>
+              <tr><td>Zoom</td><td><input type=range min=-1 max=1 step=0.01 value=0 class=zoomInput></td></tr>
+              <tr><td>Damping</td><td><input type=range min=-3 max=3 step=0.01 value=0 class=dampInput></td></tr>
+              <tr><td>Heat</td><td><input type=range min=-2 max=4 step=0.01 value=0 class=heatInput></td></tr>
+              <tr><td>Label strength</td><td><input type=range min=-3 max=1 step=0.01 value=0 class=labelInput></td></tr>
+              <tr><td>Guide strength</td><td><input type=range min=-2 max=2 step=0.01 value=0 class=guideInput></td></tr>
+            </table>
         </div>
     </div>~
 
-    <div class=controlDiv>
-        <button class=fullscreenButton title="Full screen"
-            ><svg  width=20 height=20 version="1.1" viewBox="7 7 22 22" style="vertical-align: middle;">
-            <path d="M 10,16 l 2,0 l 0,-4 l 4,0 l 0,-2 L 10,10 l 0,6 l 0,0 z"></path>
-            <path d="M 20,10 l 0,2 l 4,0 l 0,4 l 2,0 L 26,10 l -6,0 l 0,0 z"></path>
-            <path d="M 24,24 l -4,0 l 0,2 L 26,26 l 0,-6 l -2,0 l 0,4 l 0,0 z"></path>
-            <path d="M 12,20 L 10,20 L 10,26 l 6,0 l 0,-2 l -4,0 l 0,-4 l 0,0 z"></path>
+    <div class=controlDiv>~
+        <button class=fullscreenButton title="Full screen">~
+            <svg  width=20 height=20 version="1.1" viewBox="0 0 20 20" style="vertical-align: middle;">
+                <rect x=2 y=2 width=6 height=2 />
+                <rect x=2 y=2 width=2 height=6 />
+                <rect x=12 y=2 width=6 height=2 />
+                <rect x=16 y=2 width=2 height=6 />
+                <rect x=2 y=16 width=6 height=2 />
+                <rect x=2 y=12 width=2 height=6 />
+                <rect x=12 y=16 width=6 height=2 />
+                <rect x=16 y=12 width=2 height=6 />
             </svg>~
         </button>~
         
-        <button class=infoButton>
-            ?
+        <button class=infoButton>~
+            <svg viewBox="0 0 20 20" width=20 height=20 style="vertical-align: middle;">
+                <rect x="4" y="5" width="12" height="2"></rect>
+                <rect x="4" y="9" width="12" height="2"></rect>
+                <rect x="4" y="13" width="12" height="2"></rect>
+            </svg>
         </button>~
-        
-        <div class=box>~
-            Axes~
-            <input class=axesCheckbox type=checkbox checked>~
-        </div>~
-        
-        <div class=box>~
-            Damping
-            <input type=range min=-3 max=3 step=0.01 value=0 class=dampInput>~
-        </div>~
-        
-        <div class=box>~
-            Heat~
-            <input class=heatCheckbox type=checkbox checked>~
-            <input type=range min=-2 max=4 step=0.01 value=0 class=heatInput>~
-        </div>~
-        
-        <br/>~
         
         <div class=box>~
             Guide
@@ -146,18 +154,26 @@ let template = `~
                     <option value=push title="Push points away from the center.">push</option>
                     <option value=pull title="Pull points towards the center.">pull</option>
                 </optgroup>
-            </select> 
-            <input type=range min=-2 max=2 step=0.01 value=0 class=guideInput>~
+            </select>~ 
         </div>~
         
-        <div class=box>~
-            Label attraction~
+        <div class=box><label>~
+            <input class=axesCheckbox type=checkbox checked>~
+            axes~
+        </label></div>~
+        
+        <div class=box><label>
+            <input class=heatCheckbox type=checkbox checked>~
+            heat~
+        </label></div>~
+        
+        <div class=box><label>~
             <input class=labelCheckbox type=checkbox checked>~
-            <input type=range min=-3 max=1 step=0.01 value=0 class=labelInput>~
-        </div>~
+            label attract~
+        </label></div>~
     </div>~
 </div>~
-`.replace(/~\s*/g,''); // Strip whitespace marked with initial '~'.
+`.replace(/~\s+/g,''); // Strip whitespace marked with initial '~'.
 
 
 /** Class to create and animate a Langevin Tour widget 
@@ -225,14 +241,17 @@ export class Langevitour extends EventTarget {
         y: number,
         halfWidth: number,
         halfHeight: number,
-        selected: boolean 
+        selected: number //0 for not selected, >0 for selected
     }[] = [];
     
     // State of the system!
     proj: number[][] = [[],[]];
     vel: number[][] = [[],[]];
     
-    xScale = scaleLinear();
+    zoom = 1;
+    xScaleUnit = scaleLinear(); // Used for labels
+    yScaleUnit = scaleLinear();
+    xScale = scaleLinear(); // Used for points
     yScale = scaleLinear();
     xScaleClamped = scaleLinear();
     yScaleClamped = scaleLinear();
@@ -303,6 +322,15 @@ export class Langevitour extends EventTarget {
             this.mouseY = e.y - rect.top;
         });
         plotDiv.addEventListener('mousedown', (e) => {
+            if (!(e.target as HTMLElement).classList.contains("overlay"))
+                return;
+            
+            let el = this.get('infoBox');
+            if (el.style.visibility == 'visible') {
+                el.style.visibility = 'hidden';
+                return;
+            }
+            
             this.mouseDown = true;
             this.mouseWentDown = true;
             this.mouseShiftKey = e.shiftKey;
@@ -385,20 +413,20 @@ export class Langevitour extends EventTarget {
     
     /* Notify listeners of label checkbox change. */
     emitChangeFilter() {
-        this.dispatchEvent(new Event("changeFilter"));
+        setTimeout(() => this.dispatchEvent(new Event("changeFilter")), 0);
     }
     
     emitChangeSelectionIfNeeded() {
         if (!this.selectionChanged) return;
         this.selectionChanged = false;
-        this.dispatchEvent(new Event("changeSelection"));
+        setTimeout(() => this.dispatchEvent(new Event("changeSelection")), 0);
     }
     
     
     /**
      * Show data in the widget. Use "null" to clear the widget.
      *
-     * data.X A row-major matrix, where each row represents a point and each column represents a variable. The data should be centered and scaled.
+     * data.X A row-major matrix, where each row represents a point and each column represents a variable.
      *
      * data.colnames A name for each column in X.
      *
@@ -406,15 +434,13 @@ export class Langevitour extends EventTarget {
      *
      * data.levels Group names for each group in data.group.
      *
-     * [data.scale] Scaling to restore original units of X.
+     * [data.scale] Scale for each column.
      *
-     * [data.center] Center to restore original units of X.
+     * [data.center] Center for each column.
      *
      * [data.rownames] A name for each point.
      *
      * [data.extraAxes] A matrix with each column defining a projection of interest.
-     *
-     * [data.extraAxesCenter] Center to restore original units of extra axes. Scaling is assumed already included in data.extraAxes.
      *
      * [data.extraAxesNames] A name for each extra axis.
      *
@@ -441,7 +467,6 @@ export class Langevitour extends EventTarget {
             group: number[],
             levels: string[],
             extraAxes?: number[][],
-            extraAxesCenter?: number[],
             extraAxesNames?: string[],
             lineFrom?: number[],
             lineTo?: number[],
@@ -468,8 +493,6 @@ export class Langevitour extends EventTarget {
         
         let axisColors = data.axisColors || [];
         
-        // data.X is assumed already centered and scaled. 
-        // These allow us to recover the original values:
         this.center = data.center || Array(this.m).fill(0);
         this.scale = data.scale || Array(this.m).fill(1);
         
@@ -481,9 +504,13 @@ export class Langevitour extends EventTarget {
         
         this.X = this.permutor.map(i => data.X[i]);
         
-        if (!data.rownames || data.rownames.length == 0) 
+        // Store data internally in centered and scaled form.
+        this.X = this.X.map(item => item.map((value, i) => 
+            (value-this.center[i])/this.scale[i] ));
+        
+        if (!data.rownames || data.rownames.length == 0) {
             this.rownames = [ ];
-        else {
+        } else {
             let rownames = data.rownames;
             this.rownames = this.permutor.map(i => rownames[i]);
         }
@@ -495,16 +522,18 @@ export class Langevitour extends EventTarget {
         
         this.axes = [ ];
         
-        if (data.extraAxes && data.extraAxesNames && data.extraAxesCenter)
+        if (data.extraAxes && data.extraAxesNames)
         for(let i=0;i<data.extraAxes[0].length;i++) {
-            let vec = data.extraAxes.map(row => row[i]);
-            let scale = Math.sqrt(vecDot(vec,vec));
-            let unit = vecScale(vec, 1/scale);
+            let proj = data.extraAxes.map(row => row[i]);
+            let center = vecDot(proj, this.center);
+            let projFromScaled = proj.map((value,j) => value*this.scale[j]);
+            let scale = Math.sqrt(vecDot(projFromScaled,projFromScaled));
+            let unit = vecScale(projFromScaled, 1/scale);
             this.axes.push({ 
                 name: data.extraAxesNames[i],
-                unit:unit,
+                unit: unit,
                 scale: scale,
-                center: data.extraAxesCenter[i],
+                center: center,
                 color: axisColors[i+this.m],
                 proj: [] //Filled in below.
             });
@@ -577,7 +606,7 @@ export class Langevitour extends EventTarget {
                 color: this.levelColors[i],
                 active: true,
                 x:2, y:0, //Outside plot area will be repositioned in configure()
-                halfWidth:0, halfHeight:0, selected:false,
+                halfWidth:0, halfHeight:0, selected:0,
             });
         }
         
@@ -590,7 +619,7 @@ export class Langevitour extends EventTarget {
                 color: this.axes[i].color || '#000000',
                 active: true,
                 x:2, y:0, //Outside plot area will be repositioned in configure()
-                halfWidth:0, halfHeight:0, selected:false,
+                halfWidth:0, halfHeight:0, selected:0,
             });
         }
         
@@ -648,6 +677,7 @@ export class Langevitour extends EventTarget {
         // Clean up and return if no data.
         if (!this.haveData) {
             // Clear any old display
+            this.get('messageArea').innerText = '';
             this.overlay.style.opacity = "0";
             let ctx = this.canvas.getContext("2d")!;
             ctx.scale(1,1);
@@ -655,14 +685,8 @@ export class Langevitour extends EventTarget {
             return;
         }
         
-        this.xScale = scaleLinear()
-            .domain([-1,1]).range([2.5,this.size-2.5]);
-        this.yScale = scaleLinear()
-            .domain([-1,1]).range([this.size-2.5,2.5]);
-
-        this.xScaleClamped = this.xScale.copy().clamp(true);
-        this.yScaleClamped = this.yScale.copy().clamp(true);
-
+        this.configureScales();
+        
         /* Draggable labels */
         
         let overlay = select(this.overlay);
@@ -697,7 +721,7 @@ export class Langevitour extends EventTarget {
         divs
             .style('cursor','grab')
             .on('mouseover', (e,d)=>{ d.selected += 1; refreshLabels(); })
-            .on('mouseout', (e,d)=>{ d.selected -= 1; refreshLabels(); });
+            .on('mouseout', (e,d)=>{ d.selected = Math.max(0,d.selected-1); refreshLabels(); });
         
         divs
             .select('span')
@@ -710,15 +734,15 @@ export class Langevitour extends EventTarget {
         });
 
         function refreshLabels() {
-            let maxX = thys.xScale.invert(thys.width);
+            let maxX = thys.xScaleUnit.invert(thys.width);
             for(let item of thys.labelData) {
                 item.x = Math.max(-1,Math.min(maxX, item.x));
                 item.y = Math.max(-1,Math.min(1,    item.y));
             }
             
             divs
-                .style('left',d=>thys.xScale(d.x)-d.halfWidth+'px')
-                .style('top',d=>thys.yScale(d.y)-d.halfHeight+'px')
+                .style('left',d=>thys.xScaleUnit(d.x)-d.halfWidth+'px')
+                .style('top',d=>thys.yScaleUnit(d.y)-d.halfHeight+'px')
                 .style('background',d=>d.selected?'#aaa':'#ddd');
         }
 
@@ -740,8 +764,8 @@ export class Langevitour extends EventTarget {
                 if (!thys.dragging)
                     return;
                     
-                d.x = thys.xScale.invert(e.x);
-                d.y = thys.yScale.invert(e.y);
+                d.x = thys.xScaleUnit.invert(e.x);
+                d.y = thys.yScaleUnit.invert(e.y);
                 refreshLabels();
             })
             .on('end', function(e,d) {
@@ -750,24 +774,43 @@ export class Langevitour extends EventTarget {
                 
                 thys.dragging = false;
                 this.style.cursor = 'grab';
-                d.selected -= 1;
+                d.selected = Math.max(0,d.selected-1);
             });
         makeDraggable(divs);
 
         
-        /* Reposition labels that are not currently in use. */
+        /* Set all as not selected. 
+           Reposition labels that are not currently in use. */
         let cols=Math.ceil((25*this.labelData.length)/(this.size-40));
         for(let i=0;i<this.labelData.length;i++) {
             let d = this.labelData[i];
+            d.selected = 0;
+            
             if (d.x < 1) continue;
             
             let col = i % cols, row = (i-col)/cols;
-            d.selected = false;
-            d.x = this.xScale.invert( this.size+10+d.halfWidth+(i%cols)*(this.width-this.size-10)/cols );
-            d.y = this.yScale.invert( 20+row*25 );
+            d.x = this.xScaleUnit.invert( this.size+10+d.halfWidth+(i%cols)*(this.width-this.size-10)/cols );
+            d.y = this.yScaleUnit.invert( 20+row*25 );
         }
         
         refreshLabels();
+    }
+    
+    configureScales() {
+        this.zoom = Math.pow(10, -this.getNumber('zoomInput'));
+        
+        this.xScaleUnit = scaleLinear()
+            .domain([-1,1]).range([2.5,this.size-2.5]);
+        this.yScaleUnit = scaleLinear()
+            .domain([-1,1]).range([this.size-2.5,2.5]);
+            
+        this.xScale = scaleLinear()
+            .domain([-this.zoom,this.zoom]).range([2.5,this.size-2.5]);
+        this.yScale = scaleLinear()
+            .domain([-this.zoom,this.zoom]).range([this.size-2.5,2.5]);
+        
+        this.xScaleClamped = this.xScale.copy().clamp(true);
+        this.yScaleClamped = this.yScale.copy().clamp(true);
     }
     
     /**
@@ -785,6 +828,8 @@ export class Langevitour extends EventTarget {
         result.heat = this.getNumber('heatInput');
         result.guide = this.getNumber('guideInput');
         result.labelAttraction = this.getNumber('labelInput');
+        result.zoom = this.getNumber('zoomInput');
+        result.brush = this.getNumber('brushInput');
         
         result.labelInactive = [ ];
         result.labelPos = { };
@@ -858,7 +903,13 @@ export class Langevitour extends EventTarget {
         
         if (has(state,'labelAttraction'))
             this.getInput('labelInput').value = state.labelAttraction;
-
+        
+        if (has(state,'zoom'))
+            this.getInput('zoomInput').value = state.zoom;
+        
+        if (has(state,'brush'))
+            this.getInput('brushInput').value = state.brush;
+        
         if (has(state,'labelInactive')) {
             for(let item of this.labelData)
                 item.active = !state.labelInactive.includes(item.label);
@@ -930,6 +981,8 @@ export class Langevitour extends EventTarget {
         this.fps.push( Math.round(1/elapsed) );
         if (this.fps.length > 100) this.fps.shift();
         
+        this.configureScales();
+        
         let selectedAxis: number|null = null;
         let selectedLevel: number|null = null;
         let selected = this.labelData.filter(d=>d.selected);
@@ -951,7 +1004,7 @@ export class Langevitour extends EventTarget {
         
         
         // Points within brush distance, for brushing and row label
-        let brushRadius = this.size*0.05; //TODO: make configurable?
+        let brushRadius = this.size * 0.05 * Math.pow(10, this.getNumber('brushInput'));
         let brushPoints: {index:number,d2:number}[] = [ ];
         if (this.mouseX < this.size) {
             for(let i=0;i<this.n;i++) {
@@ -1014,7 +1067,7 @@ export class Langevitour extends EventTarget {
         ctx.strokeRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
        
         // Axes
-        let axisScale = 0.75;
+        let axisScale = 0.75 * this.zoom;
         ctx.strokeStyle = '#ccc';
         
         if (showAxes)
@@ -1106,7 +1159,7 @@ export class Langevitour extends EventTarget {
             // Hack to speed up rug drawing by rounding positions, 
             // then only drawing each position once.
             let rug:Map<number,string> = new Map();
-            let rounding = this.size;
+            let rounding = this.size / this.zoom;
             for(let i=0;i<this.n;i++) {
                 if (!this.pointActive[i]) continue;
                 let proj = this.axes[selectedAxis].proj[i];
@@ -1213,21 +1266,21 @@ export class Langevitour extends EventTarget {
         
         if (this.mouseInCheckbox && selected.length) {
             if (selected[0].active)
-                hint = "click to hide";
+                hint = "click to hide\n";
             else
-                hint = "click to show";
+                hint = "click to show\n";
         } else if (selectedAxis !== null || selectedLevel !== null) {
-            hint = "drag to position";
+            hint = "drag to position\n";
         } else if (brushPoints.length && !this.mouseDown) {
             if (this.selection)
-                hint = "shift+click to enlarge";
+                hint = "shift+click to enlarge\n";
             else
-                hint = "click to select";
+                hint = "click to select\n";
         } else if (this.selection && !brushPoints.length && !this.mouseDown) {
-            hint = "click to clear";
+            hint = "click to clear\n";
         }
         
-        this.get('messageArea').innerText = `${this.computeMessage}\n${hint}\n${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
+        this.get('messageArea').innerText = `${this.computeMessage || hint}${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
         
         window.setTimeout(this.scheduleFrame.bind(this), 5);
 
@@ -1345,8 +1398,8 @@ export class Langevitour extends EventTarget {
             }
         }
                 
-        if (tooMany) this.computeMessage += 'Error: too many axes removed';
-        if (anyDropped) this.computeMessage += 'Note: reduntant axes removed';
+        if (tooMany) this.computeMessage += 'Error: too many axes removed\n';
+        if (anyDropped) this.computeMessage += 'Note: reduntant axes removed\n';
 
 
         // Velocity step        

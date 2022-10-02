@@ -75,13 +75,23 @@ langevitour <- function(
         link=NULL) {
     
     # Ensure data is matrix
+    
     X <- as.matrix(X)
     
-    if (is.null(colnames(X)))
-        colnames(X) <- paste0("V", seq_len(ncol(X)))
+    columnNames <- colnames(X)
+    colnames(X) <- NULL
+    rownames(X) <- NULL
+    
+    if (is.null(columnNames))
+        columnNames <- paste0("V", seq_len(ncol(X)))
+    
+    
+    # Grouping
     
     if (is.null(group))
         group <- rep("", nrow(X))
+    
+    names(group) <- NULL
     
     group <- as.factor(group)
     
@@ -103,8 +113,9 @@ langevitour <- function(
     
     assertthat::assert_that( 
         ncol(X) >= 2,
+        length(columnNames) == ncol(X),
         length(group) == nrow(X),
-        length(name) == 0 || length(name) == nrow(X),
+        is.null(name) || length(name) == nrow(X),
         length(lineFrom) == length(lineTo),
         all(lineFrom >= 1), 
         all(lineTo >= 1), 
@@ -124,26 +135,28 @@ langevitour <- function(
     if (length(center) == 1)
         center <- rep(ncol(X), center)
     
+    names(center) <- NULL
+    
     assertthat::assert_that( length(center) == ncol(X) )
     
-    X_centered <- sweep(X, 2, center, "-")
     
     # Scaling
     
     # Potentially expensive
-    if (is.null(scale))
+    if (is.null(scale)) {
+        X_centered <- sweep(X,2,center,"-")
         scale <- max(svd(X_centered)$d) / sqrt(nrow(X)) * 2.5
+    }
+    
     if (length(scale) == 1)
         scale <- rep(scale, ncol(X))
-        
-    assertthat::assert_that( length(scale) == ncol(X) )
     
-    X_centered_scaled <- sweep(X_centered, 2, scale, "/")
+    names(scale) <- NULL
+    
+    assertthat::assert_that( length(scale) == ncol(X) )
     
     
     # Extra axes
-    
-    extraAxesCenter <- NULL
     
     if (!is.null(extraAxes)) {
         extraAxes <- as.matrix(extraAxes)
@@ -151,18 +164,9 @@ langevitour <- function(
         assertthat::assert_that( assertthat::noNA(extraAxes) )
         assertthat::assert_that( nrow(extraAxes) == ncol(X) )
         
-        extraAxesCenter <- as.vector(rbind(center) %*% extraAxes)
-        extraAxes <- sweep(extraAxes, 1, scale, "*")
-        
         if (is.null(colnames(extraAxes)))
             colnames(extraAxes) <- paste0("E", seq_len(ncol(extraAxes)))
     }
-    
-    rownames(X_centered_scaled) <- NULL
-    colnames(X_centered_scaled) <- NULL
-    names(center) <- NULL
-    names(scale) <- NULL
-    names(group) <- NULL
     
     
     # Subsampling
@@ -170,7 +174,7 @@ langevitour <- function(
     if (!is.null(subsample) && subsample < nrow(X)) {
         ind <- sample.int(nrow(X), subsample)
         
-        X_centered_scaled <- X_centered_scaled[ind,,drop=FALSE]
+        X <- X[ind,,drop=FALSE]
         
         group <- group[ind]
         
@@ -193,16 +197,15 @@ langevitour <- function(
     # Convert to form that will JSON-ify correctly
     
     data <- list(
-        X = X_centered_scaled,
+        X = X,
         center = as.list(as.numeric(center)),
         scale = as.list(as.numeric(scale)),
-        colnames = as.list(colnames(X)),
+        colnames = as.list(columnNames),
         rownames = as.list(as.character(name)),
         group = as.list(as.integer(group)-1),
         levels = as.list(levels(group)),
         
         extraAxes = extraAxes,
-        extraAxesCenter = as.list(as.numeric(extraAxesCenter)),
         extraAxesNames = as.list(colnames(extraAxes)),
         
         # Convert from 1 based to 0 based indices

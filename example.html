@@ -28,30 +28,30 @@ let r = ()=>jStat.normal.sample(0,0.02);
 let n = 20000;
 for(let i=0;i<n;i++) {
     let a=i/n * Math.PI * 2;
-    X.push([ Math.sin(a)/3+r(), Math.sin(a*2)/3+r(), Math.sin(a*3)/3, Math.sin(a*4)/3, Math.sin(a*5)/3 ]);
+    X.push([ 10+Math.sin(a)/3+r(), 20+Math.sin(a*2)/3+r(), 30+Math.sin(a*3)/3, 40+Math.sin(a*4)/3, 50+Math.sin(a*5)/3 ]);
     group.push( Math.floor(i*4/n) );
 }
 
 // Extra axes (specified as columns of a matrix)
 let extraAxes = [ 
     [1],
-    [1],
+    [2],
     [0],
     [0],
     [0]
 ];
-let extraAxesNames = [ 'V1+V2' ];
-let extraAxesCenter = [ 0 ];
+let extraAxesNames = [ 'V1+2*V2' ];
 
 let val = {
     X:X, 
-    group:group, 
+    group:group,
+    center: [10,20,30,40,50],
+    scale: [2,1,1,1,1],
     levels:['a','b','c','d'],
     colnames:['V1','V2','V3','V4','V5'],
     
     extraAxes:extraAxes,
     extraAxesNames:extraAxesNames,
-    extraAxesCenter:extraAxesCenter,
     
     pointSize:1,
 };

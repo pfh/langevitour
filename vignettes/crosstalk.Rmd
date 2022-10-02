@@ -9,9 +9,18 @@ editor_options:
   chunk_output_type: console
 ---
 
-The `langevitour` development version now supports sharing selections and filters with other htmlwidgets that support the [crosstalk](https://rstudio.github.io/crosstalk/) package.
+<style>
+#main, .container { 
+    width: 1400px;
+    max-width: 1400px; 
+}
+</style>
 
-Use the `link=` argument to `langevitour` to specify a `SharedData` object to watch for selections and filters.
+The langevitour development version now supports sharing selections and filters with other htmlwidgets that support the [crosstalk](https://rstudio.github.io/crosstalk/) package.
+
+The typical way to use crosstalk is to create a special object from a data frame using `crosstalk::SharedData$new()`, and then use this where you would normally use the data frame. For example, this can be done with `DT::datatable()` for tables, or with `ggplot2::ggplot()` for plots which are then converted to an htmlwidget using `plotly::ggplotly()`. The critical part of the `SharedData` object is a key for each row. Keys are used to link the graphical representation of rows in different widgets. By default the keys are the row numbers. In advanced usage, multiple rows can be given the same key so that they are selected and filtered as a group.
+
+To use crosstalk with langevitour, specify a `SharedData` object using the `link=` argument to `langevitour()`. I have not yet worked out a nice syntax for langevitour where the relevant columns can be taken directly from the `SharedData` object, so arguments like `X=` and `group=` still need to be given as conventional R objects.
 
 **Note:** As at 2022-09-25 you must install the development version of `plotly` for plotly widgets in this page to work.
 
@@ -120,7 +129,9 @@ bscols(filter2a, filter2b)
 bscols(plotWidget2, langevitourWidget2)
 ```
 
+::: {style="width: 1000px"}
 ```{r echo=FALSE}
 bscols(filter2a, filter2b)
 bscols(plotWidget2, langevitourWidget2)
 ```
+:::
