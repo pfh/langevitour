@@ -3,7 +3,7 @@
 
 * Use TypeScript and webpack.
 * Support crosstalk.
-* Neater template HTML.
+* Interface revamp.
 * Avoid rare divide by zero.
 
 # langevitour 0.5
