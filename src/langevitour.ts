@@ -40,18 +40,18 @@ let template = `~
         
         .box { 
             background: #eee;
-            padding: 0.25em 0.5em 0.25em 0.5em; 
-            margin: 0.25em; 
-            border-radius: 0.25em;
+            padding: 4px 6px 4px 6px; 
+            margin: 4px 4px 4px 4px; 
+            border-radius: 4px;
             vertical-align: middle;
         }
         
         .controlButton {
-            margin: 0.25em 0.25em 0.25em 0.25em;
+            margin: 4px 4px 4px 4px;
             padding: 0px;
             vertical-align: middle;
-            height: 24px;
-            width: 24px;
+            height: 26px;
+            width: 26px;
         }
         
         .infoBox {
@@ -59,10 +59,10 @@ let template = `~
             position: absolute;
             left: 10px;
             bottom: 0px;
-            padding: 1em;
+            padding: 8px;
             background: #eee;
             border: 1px solid black;
-            border-radius: 0.25em;
+            border-radius: 4px;
         }
         
         .messageArea {
@@ -74,7 +74,7 @@ let template = `~
             color: #888;
             background: #ffffffff;
             padding: 3px;
-            border-radius: 0.25em;
+            border-radius: 4px;
         }
         
         .labelDiv {
@@ -91,6 +91,12 @@ let template = `~
             padding: 0px;
             margin: 0px 5px 0px 0px;
         }
+        
+        table {
+            border-spacing: 0px;
+        }
+        
+        tr:hover td { background: #ddddff; }
     </style>~
 
     <div style="position: relative" class=plotDiv>
