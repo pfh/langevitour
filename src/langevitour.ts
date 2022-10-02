@@ -13,7 +13,7 @@ import {
     matScale, removeSpin, permutation 
 } from './math';
 
-import { has, elementVisible, hexByte } from './util';
+import { has, elementVisible, toggleVisible, hexByte } from './util';
 
 import { gradTable } from './guides';
 
@@ -30,7 +30,7 @@ let template = `~
         * { font-family: sans-serif; }
         input { vertical-align: middle; }
         input[type=checkbox] { vertical-align: baseline; }
-        input[type=range] { width: 100px; }
+        input[type=range] { width: 150px; }
         
         .controlDiv {
             display: flex;
@@ -46,7 +46,7 @@ let template = `~
             vertical-align: middle;
         }
         
-        button {
+        .controlButton {
             margin: 0.25em 0.25em 0.25em 0.25em;
             padding: 0px;
             vertical-align: middle;
@@ -98,13 +98,12 @@ let template = `~
         <div class=messageArea></div>
         <div class=overlay style="position: absolute; left:0; top:0;"></div>
         <div class=infoBox>
-            <div><b><a href="https://logarithmic.net/langevitour/">langevitour</a></b></div>
+            <div><b><a href="https://logarithmic.net/langevitour/" target="_blank">langevitour</a></b></div>
+            <br><div><button class=infoBoxProjButton>Projection &#9662;</button></div>
+            <textarea class=infoBoxProj rows=5 cols=30 wrap=off spellcheck=false onclick="this.setSelectionRange(0,this.value.length,'backward');" style="display: none"></textarea>
+            <br><div><button class=infoBoxStateButton>State &#9662;</button></div>
+            <textarea class=infoBoxState rows=7 cols=30 wrap=off spellcheck=false onfocus="this.setSelectionRange(0,this.value.length,'backward');" style="display: none"></textarea>
             <div class=infoBoxInfo></div>
-            Projection<br>
-            <textarea class=infoBoxProj rows=3 cols=20 wrap=off spellcheck=false onclick="this.setSelectionRange(0,this.value.length,'backward');"></textarea>
-            <br><br>State<br>
-            <textarea class=infoBoxState rows=3 cols=20 wrap=off spellcheck=false onfocus="this.setSelectionRange(0,this.value.length,'backward');"></textarea>
-            <br><br>
             <table>
               <tr><td>Brush size</td><td><input type=range min=-1 max=1 step=0.01 value=0 class=brushInput></td></tr>
               <tr><td>Zoom</td><td><input type=range min=-1 max=1 step=0.01 value=0 class=zoomInput></td></tr>
@@ -117,7 +116,7 @@ let template = `~
     </div>~
 
     <div class=controlDiv>~
-        <button class=fullscreenButton title="Full screen">~
+        <button class="controlButton fullscreenButton" title="Full screen">~
             <svg  width=20 height=20 version="1.1" viewBox="0 0 20 20" style="vertical-align: middle;">
                 <rect x=2 y=2 width=6 height=2 />
                 <rect x=2 y=2 width=2 height=6 />
@@ -130,7 +129,7 @@ let template = `~
             </svg>~
         </button>~
         
-        <button class=infoButton>~
+        <button class="controlButton infoButton">~
             <svg viewBox="0 0 20 20" width=20 height=20 style="vertical-align: middle;">
                 <rect x="4" y="5" width="12" height="2"></rect>
                 <rect x="4" y="9" width="12" height="2"></rect>
@@ -389,6 +388,9 @@ export class Langevitour extends EventTarget {
                 this.get('infoBoxInfo').innerHTML = `<p>${this.X.length.toLocaleString("en-US")} points.</p>`;
             }        
         });
+        
+        this.get('infoBoxProjButton').addEventListener('click', ()=>toggleVisible(this.get('infoBoxProj')));
+        this.get('infoBoxStateButton').addEventListener('click', ()=>toggleVisible(this.get('infoBoxState')));
     }
     
     get(className: string) {

@@ -24,6 +24,14 @@ export function elementVisible(el: HTMLElement) {
            rect.left < window.innerWidth && rect.right >= 0;
 }
 
+
+export function toggleVisible(el :HTMLElement) {
+    if (el.style.display == "none")
+        el.style.display = "block";
+    else
+        el.style.display = "none";
+}
+
 export function hexByte(value: number) {
     value = Math.max(0,Math.min(255,Math.round(value)));
     return (value<16?'0':'')+value.toString(16);
