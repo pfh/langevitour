@@ -41,14 +41,14 @@ let template = `~
         .box { 
             background: #eee;
             padding: 4px 6px 4px 6px; 
-            margin: 4px 4px 4px 4px; 
+            margin: 4px 4px 4px 4px;
             border-radius: 4px;
             vertical-align: middle;
         }
         
         .controlButton {
-            margin: 4px 4px 4px 4px;
             padding: 0px;
+            margin: 4px 4px 4px 4px;
             vertical-align: middle;
             height: 26px;
             width: 26px;
@@ -97,13 +97,17 @@ let template = `~
         }
         
         tr:hover td { background: #ddddff; }
+        
+        .canvas { 
+            display: block; 
+        }
     </style>~
 
-    <div style="position: relative" class=plotDiv>
-        <canvas class=canvas></canvas>
-        <div class=messageArea></div>
-        <div class=overlay style="position: absolute; left:0; top:0;"></div>
-        <div class=infoBox>
+    <div style="position: relative" class=plotDiv>~
+        <canvas class=canvas></canvas>~
+        <div class=messageArea></div>~
+        <div class=overlay style="position: absolute; left:0; top:0;"></div>~
+        <div class=infoBox>~
             <div><b><a href="https://logarithmic.net/langevitour/" target="_blank">langevitour</a></b></div>
             <br><div><button class=infoBoxProjButton>Projection &#9662;</button></div>
             <textarea class=infoBoxProj rows=5 cols=30 wrap=off spellcheck=false onclick="this.setSelectionRange(0,this.value.length,'backward');" style="display: none"></textarea>
@@ -118,7 +122,7 @@ let template = `~
               <tr><td>Label strength</td><td><input type=range min=-3 max=1 step=0.01 value=0 class=labelInput></td></tr>
               <tr><td>Guide strength</td><td><input type=range min=-2 max=2 step=0.01 value=0 class=guideInput></td></tr>
             </table>
-        </div>
+        </div>~
     </div>~
 
     <div class=controlDiv>~
@@ -1284,7 +1288,7 @@ export class Langevitour extends EventTarget {
                 hint = "shift+click to enlarge\n";
             else
                 hint = "click to select\n";
-        } else if (this.selection && !brushPoints.length && !this.mouseDown) {
+        } else if (this.selection && this.mousing && !brushPoints.length && !this.mouseDown) {
             hint = "click to clear\n";
         }
         
