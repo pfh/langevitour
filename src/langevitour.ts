@@ -1104,11 +1104,13 @@ export class Langevitour extends EventTarget {
             if (!this.pointActive[a] || !this.pointActive[b])
                 continue;
             
+            let color = (!this.selection || (this.selection[a] && this.selection[b])) ? '#000000' : '#bbbbbb';
+            
             // Make short lines darker so they have equal visual weight to longer lines
             // Clipped for d < 1/4, d > 1
             let d = Math.sqrt( (this.xy[0][a]-this.xy[0][b])**2 + (this.xy[1][a]-this.xy[1][b])**2 );
             d = Math.max(1/4,Math.min(1,d));
-            ctx.strokeStyle = '#000000'+hexByte(128/(4*d));
+            ctx.strokeStyle = color+hexByte(128/(4*d));
             
             ctx.beginPath();
             ctx.moveTo(this.xScaleClamped(this.xy[0][a]), this.yScaleClamped(this.xy[1][a]));
