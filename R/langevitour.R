@@ -36,9 +36,9 @@
 #'
 #' @param state A JSON string, or an object that htmlwidgets will convert to the correct JSON. Initial widget state settings. The state of a widget can be obtained by pressing the "?" button. I am not going to guarantee that states will be compatible between versions of langevitour. Hint: Since JSON uses double quotes, surround the string in single quotes.
 #'
-#' @param width Width of widget.
+#' @param width Width of widget in CSS units, for example "700px" or "100%".
 #'
-#' @param height Height of widget.
+#' @param height Height of widget in CSS units, for example "600px" or "75vh".
 #'
 #' @param elementId An element ID for the widget, see htmlwidgets::createWidget.
 #'
