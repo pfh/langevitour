@@ -1,6 +1,6 @@
 dependencies:
  - name: langevitour
-   version: 1
+   version: "0.5.1"
    src: htmlwidgets/lib/
    script:
    - langevitour-pack.js

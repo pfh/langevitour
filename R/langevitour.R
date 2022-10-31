@@ -195,6 +195,10 @@ langevitour <- function(
     
     
     # Convert to form that will JSON-ify correctly
+    #
+    # htmlwidgets uses jsonlite::toJSON with auto_unbox=TRUE.
+    # Numeric vectors of length one become numbers, not arrays.
+    # I convert vectors to lists to prevent this.
     
     data <- list(
         X = X,
@@ -225,7 +229,7 @@ langevitour <- function(
     
     htmlwidgets::createWidget(
         name = 'langevitour',
-        data,
+        x = data,
         width = width,
         height = height,
         package = 'langevitour',

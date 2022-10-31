@@ -69,7 +69,8 @@ langevitourWidget <- langevitour(
 # Create a table widget
 datatableWidget <- datatable(
     shared,
-    extensions='Buttons', 
+    rownames=FALSE, width="100%", 
+    class='compact cell-border hover', extensions='Buttons',
     options=list(dom='Bfrtip',buttons=c('copy','csv','excel')))
 ```
 

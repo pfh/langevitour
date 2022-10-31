@@ -1,17 +1,18 @@
 {
   "name": "langevitour",
-  "version": "1.0.0",
+  "version": "0.5.1",
   "description": "",
   "main": "inst/htmlwidgets/langevitour.js",
   "sideEffects": false,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx webpack watch --mode=development",
+    "sync-versions": "VERSION=$(grep '^Version:' DESCRIPTION | cut -d' ' -f2) && sed -i '/^  \\\"version\\\"/ c\\  \\\"version\\\": \\\"'$VERSION'\\\",' package.json && sed -i '/^   version:/ c\\   version: \\\"'$VERSION'\\\"' inst/htmlwidgets/langevitour.yaml",
     "js-build": "npx webpack",
     "js-docs": "npx typedoc src/langevitour.ts --out docs/jsdoc/ --excludeNotDocumented --readme none",
     "r-document": "R -e 'devtools::document()'",
     "r-docs": "npm run r-document && R -e 'pkgdown::build_site()'",
-    "build": "npm run js-build && npm run js-docs && npm run r-docs",
+    "build": "npm run sync-versions && npm run js-build && npm run js-docs && npm run r-docs",
     "r-install": "R -e 'devtools::install()'",
     "r-install-quick": "R -e 'devtools::install(quick=T)'"
   },
