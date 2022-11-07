@@ -2,7 +2,7 @@
   "name": "langevitour",
   "version": "0.5.1",
   "description": "",
-  "main": "inst/htmlwidgets/langevitour.js",
+  "main": "inst/htmlwidgets/lib/langevitour-pack.js",
   "sideEffects": false,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

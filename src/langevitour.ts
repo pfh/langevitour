@@ -1398,6 +1398,7 @@ export class Langevitour extends EventTarget {
             let { u, v, q } = SVD(matTranspose(inactive));
             let maxQ = Math.max(...q);
             u = matTranspose(u);
+            let remove = zeroMat(2, this.m);
             for(let i=0;i<u.length;i++) {
                 // Don't nuke tiny directions (could arise from reduntant nukings). TODO: make tolerance level an option
                 if (q[i] < maxQ*1e-6) {
@@ -1406,10 +1407,14 @@ export class Langevitour extends EventTarget {
                 }
                 let vec = u[i];
                 for(let j=0;j<2;j++) {
-                    vel[j] = vecSub(vel[j], 
-                        vecScale(vec, vecDot(vec, vel[j]) + nuke_amount*vecDot(vec, proj[j])))
+                    // Remove any velocity and part of the projection along u[i]
+                    remove[j] = vecAdd(remove[j], 
+                        vecScale(vec, -vecDot(vec, vel[j]) -nuke_amount*vecDot(vec, proj[j])));
                 }
             }
+            
+            // Don't introduce spin while removing
+            matAddInto(vel, removeSpin(remove, proj));
         }
                 
         if (tooMany) this.computeMessage += 'Error: too many axes removed\n';
