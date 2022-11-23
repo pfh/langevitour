@@ -6,6 +6,8 @@ langevitour is a twist on the "tour" concept from software such as [XGobi](http:
 
 * [Method description (bioRxiv pre-print)](https://www.biorxiv.org/content/10.1101/2022.08.24.505207v1)
 
+* [ABACBS 2022 poster (large image)](https://logarithmic.net/langevitour/2022-abacbs/abacbs-langevitour-poster-2022.png) and [demo](https://logarithmic.net/langevitour/2022-abacbs/)
+
 * ABACBS Seminar 2022 [slides](https://logarithmic.net/langevitour/2022-09-abacbs/)
 
 * useR! 2022 conference [slides](https://logarithmic.net/langevitour/2022-useR/) and [video (extended edition)](https://www.youtube.com/watch?v=vKv9P13UACw)
