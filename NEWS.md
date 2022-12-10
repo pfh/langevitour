@@ -5,6 +5,7 @@
 * Support crosstalk.
 * Interface revamp.
 * Avoid rare divide by zero.
+* Line colors.
 
 # langevitour 0.5
 

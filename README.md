@@ -2,7 +2,7 @@
 
 langevitour is an HTML widget that randomly tours projections of a high-dimensional dataset with an animated scatter-plot. The user can manipulate the plot to use specified axes, or turn on Guided Tour mode to perform [projection pursuit](https://en.wikipedia.org/wiki/Projection_pursuit), finding an informative projection of the data. Groups within the data can be hidden or shown, as can particular axes. Known projections of interest can be added as "extra axes" and also manipulated. The widget can be used from within R, or included in a self-contained Rmarkdown document, or a Shiny app, or used directly from Javascript.
 
-<a href="https://logarithmic.net/langevitour/2022-abacbs/" style="display: block; margin: 5px; float: right">
+<a href="https://logarithmic.net/langevitour/2022-abacbs/" style="display: block; margin: 5px; border: 1px solid #000; float: right">
 <img src="https://logarithmic.net/langevitour/2022-abacbs/abacbs-langevitour-poster-2022-small.png" width=300>
 </a>
 

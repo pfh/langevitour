@@ -220,6 +220,7 @@ export class Langevitour extends EventTarget {
     levelColors: string[] = [];
     lineFrom: number[] = [];
     lineTo: number[] = [];
+    lineColors: string[] = [];
     
     fills: string[] = [];
     
@@ -460,6 +461,8 @@ export class Langevitour extends EventTarget {
      *
      * [data.lineTo] Rows of X to draw lines to.
      *
+     * [data.lineColors] Color for each line. 
+     *
      * [data.axisColors] CSS colors for each variable and then optionally for each extra axis.
      *
      * [data.levelColors] CSS colors for each level.
@@ -482,6 +485,7 @@ export class Langevitour extends EventTarget {
             extraAxesNames?: string[],
             lineFrom?: number[],
             lineTo?: number[],
+            lineColors?: string[],
             axisColors?: string[],
             levelColors?: string[],
             colorVariation?: number,
@@ -531,6 +535,11 @@ export class Langevitour extends EventTarget {
         
         this.lineFrom = (data.lineFrom || []).map(i => this.unpermutor[i]);
         this.lineTo = (data.lineTo || []).map(i => this.unpermutor[i]);
+        this.lineColors = (data.lineColors || []);
+        
+        // Default to semi-transparent black lines
+        if (this.lineFrom.length && !this.lineColors.length)
+            this.lineColors = this.lineFrom.map(()=>"#00000088");
         
         this.axes = [ ];
         
@@ -1104,19 +1113,21 @@ export class Langevitour extends EventTarget {
             if (!this.pointActive[a] || !this.pointActive[b])
                 continue;
             
-            let color = (!this.selection || (this.selection[a] && this.selection[b])) ? '#000000' : '#bbbbbb';
+            ctx.strokeStyle = (!this.selection || (this.selection[a] && this.selection[b])) ? this.lineColors[i] : '#bbbbbb';
             
-            // Make short lines darker so they have equal visual weight to longer lines
+            // Make short lines thicker so they have equal visual weight to longer lines
             // Clipped for d < 1/4, d > 1
             let d = Math.sqrt( (this.xy[0][a]-this.xy[0][b])**2 + (this.xy[1][a]-this.xy[1][b])**2 );
             d = Math.max(1/4,Math.min(1,d));
-            ctx.strokeStyle = color+hexByte(128/(4*d));
+            ctx.lineWidth = 0.25/d;
             
             ctx.beginPath();
             ctx.moveTo(this.xScaleClamped(this.xy[0][a]), this.yScaleClamped(this.xy[1][a]));
             ctx.lineTo(this.xScaleClamped(this.xy[0][b]), this.yScaleClamped(this.xy[1][b]));
             ctx.stroke();
         }
+        
+        ctx.lineWidth = 1;
 
         // Points
         

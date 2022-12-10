@@ -13,6 +13,7 @@ langevitour(
   extraAxes = NULL,
   lineFrom = NULL,
   lineTo = NULL,
+  lineColors = NULL,
   axisColors = NULL,
   levelColors = NULL,
   colorVariation = 0.3,
@@ -42,9 +43,11 @@ langevitour(
 
 \item{lineTo}{A vector of row numbers. Draw lines ending at these rows.}
 
-\item{axisColors}{Character vector. Colors for each variable and then each extra axis.}
+\item{lineColors}{Character vector. A CSS color for each line.}
 
-\item{levelColors}{Character vector. Colors for each level of \code{group}.}
+\item{axisColors}{Character vector. CSS colors for each variable and then each extra axis.}
+
+\item{levelColors}{Character vector. CSS colors for each level of \code{group}.}
 
 \item{colorVariation}{Number between 0 and 1. Individual points are given slightly different brightnesses. How strong should this effect be?}
 

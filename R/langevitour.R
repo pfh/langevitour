@@ -24,9 +24,11 @@
 #'
 #' @param lineTo A vector of row numbers. Draw lines ending at these rows.
 #'
-#' @param axisColors Character vector. Colors for each variable and then each extra axis.
+#' @param lineColors Character vector. A CSS color for each line.
 #'
-#' @param levelColors Character vector. Colors for each level of \code{group}.
+#' @param axisColors Character vector. CSS colors for each variable and then each extra axis.
+#'
+#' @param levelColors Character vector. CSS colors for each level of \code{group}.
 #'
 #' @param colorVariation Number between 0 and 1. Individual points are given slightly different brightnesses. How strong should this effect be?
 #'
@@ -69,7 +71,7 @@
 #' @export
 langevitour <- function(
         X, group=NULL, name=NULL, center=NULL, scale=NULL, 
-        extraAxes=NULL, lineFrom=NULL, lineTo=NULL,
+        extraAxes=NULL, lineFrom=NULL, lineTo=NULL, lineColors=NULL,
         axisColors=NULL, levelColors=NULL, colorVariation=0.3, pointSize=1, subsample=NULL, 
         state=NULL, width=NULL, height=NULL, elementId=NULL,
         link=NULL) {
@@ -117,6 +119,7 @@ langevitour <- function(
         length(group) == nrow(X),
         is.null(name) || length(name) == nrow(X),
         length(lineFrom) == length(lineTo),
+        is.null(lineColors) || length(lineColors) == length(lineFrom),
         all(lineFrom >= 1), 
         all(lineTo >= 1), 
         all(lineFrom <= nrow(X)), 
@@ -215,6 +218,7 @@ langevitour <- function(
         # Convert from 1 based to 0 based indices
         lineFrom = as.list(as.numeric(lineFrom) - 1), 
         lineTo = as.list(as.numeric(lineTo) - 1),
+        lineColors = as.list(as.character(lineColors)),
         
         axisColors=as.list(as.character(axisColors)),
         levelColors=as.list(as.character(levelColors)),
