@@ -1097,7 +1097,7 @@ export class Langevitour extends EventTarget {
             let yProj = vecDot(this.proj[1], this.axes[i].unit);
         
             ctx.beginPath();
-            ctx.moveTo(this.xScale(-axisScale*xProj), this.yScale(-axisScale*yProj));
+            ctx.moveTo(this.xScale(0), this.yScale(0));
             ctx.lineTo(this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
             ctx.stroke();
         }
@@ -1179,7 +1179,7 @@ export class Langevitour extends EventTarget {
                  vecDot(this.proj[1], this.axes[selectedAxis].unit), 
                 -vecDot(this.proj[0], this.axes[selectedAxis].unit) 
             ];
-            ox = vecScale(ox, 0.05/Math.max(1e-30,Math.sqrt(vecDot(ox,ox)))); //Avoid very occasional divide by zero
+            ox = vecScale(ox, 0.03/Math.max(1e-30,Math.sqrt(vecDot(ox,ox)))); //Avoid very occasional divide by zero
                         
             // Hack to speed up rug drawing by rounding positions, 
             // then only drawing each position once.
