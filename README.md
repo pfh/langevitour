@@ -22,7 +22,7 @@ langevitour is a twist on the "tour" concept from software such as [XGobi](http:
 
 <br>
 
-## R Installation
+## R installation
 
 ```{r}
 # Released version
@@ -54,13 +54,28 @@ langevitour(zeiselPC[,-1], zeiselPC$type)
 * Get started by viewing source on [this example](https://pfh.github.io/langevitour/example.html).
 * [Javascript documentation.](https://logarithmic.net/langevitour/jsdoc/)
 
-langevitour can be added to a project using `npm` with:
+The webpacked version can be found in `inst/htmlwidgets/lib/langevitour-pack.js`.
+
+### ESM module and npm
+
+langevitour can be added to a project with:
 
 ```
 npm install pfh/langevitour
 ```
 
-Please tell me if you run into any problems using this, I am new to Javascript development. The webpacked version can be found in `inst/htmlwidgets/lib/langevitour-pack.js`.
+This provides the widget as a modern ESM module. In your HTML page you can import it with:
+
+```
+<script type="module">
+
+import { Langevitour } from "langevitour";
+
+// ...
+</script>
+```
+
+You'll need to use a packager such as [parcel](https://parceljs.org/) or [webpack](https://webpack.js.org/) to use this. Please tell me if you run into any problems, I am fairly new to Javascript development. 
 
 <br>
 
