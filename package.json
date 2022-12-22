@@ -1,20 +1,21 @@
 {
   "name": "langevitour",
   "version": "0.5.1",
-  "description": "",
-  "main": "inst/htmlwidgets/lib/langevitour-pack.js",
+  "description": "An HTML widget that randomly tours 2D projections of numerical data.",
+  "type": "module",
+  "main": "lib/langevitour.js",
   "sideEffects": false,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx webpack watch --mode=development",
     "sync-versions": "VERSION=$(grep '^Version:' DESCRIPTION | cut -d' ' -f2) && sed -i '/^  \\\"version\\\"/ c\\  \\\"version\\\": \\\"'$VERSION'\\\",' package.json && sed -i '/^   version:/ c\\   version: \\\"'$VERSION'\\\"' inst/htmlwidgets/langevitour.yaml",
-    "js-build": "npx webpack",
+    "js-build": "npx tsc && npx webpack",
+    "js-build-quick": "npx tsc && npx webpack --mode=development",
     "js-docs": "npx typedoc src/langevitour.ts --out docs/jsdoc/ --excludeNotDocumented --readme none",
-    "r-document": "R -e 'devtools::document()'",
-    "r-docs": "npm run r-document && R -e 'pkgdown::build_site()'",
+    "r-document": "Rscript -e 'devtools::document()'",
+    "r-docs": "npm run r-document && Rscript -e 'pkgdown::build_site()'",
     "build": "npm run sync-versions && npm run js-build && npm run js-docs && npm run r-docs",
-    "r-install": "R -e 'devtools::install()'",
-    "r-install-quick": "R -e 'devtools::install(quick=T)'"
+    "r-install": "Rscript -e 'devtools::install()'",
+    "r-install-quick": "Rscript -e 'devtools::install(quick=TRUE)'"
   },
   "repository": {
     "type": "git",
@@ -27,7 +28,6 @@
   },
   "homepage": "https://logarithmic.net/langevitour",
   "devDependencies": {
-    "ts-loader": "^9.4.1",
     "typedoc": "^0.23.15",
     "typescript": "^4.8.3",
     "webpack": "^5.74.0",

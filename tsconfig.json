@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "outDir": "./lib/",
     "noImplicitAny": false,
     "strictNullChecks": true,
     "module": "es6",
     "target": "es6",
     "allowJs": true,
-    "moduleResolution": "node"
-  }
+    "moduleResolution": "node",
+    "sourceMap": true,
+  },
+  "include":["src/*"]
 }

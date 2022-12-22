@@ -54,6 +54,14 @@ langevitour(zeiselPC[,-1], zeiselPC$type)
 * Get started by viewing source on [this example](https://pfh.github.io/langevitour/example.html).
 * [Javascript documentation.](https://logarithmic.net/langevitour/jsdoc/)
 
+langevitour can be added to a project using `npm` with:
+
+```
+npm install pfh/langevitour
+```
+
+Please tell me if you run into any problems using this, I am new to Javascript development. The webpacked version can be found in `inst/htmlwidgets/lib/langevitour-pack.js`.
+
 <br>
 
 ## Copyright

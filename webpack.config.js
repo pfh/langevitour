@@ -1,31 +1,12 @@
-const path = require('path');
+import path from 'node:path';
 
-module.exports = {
+export default {
     mode: 'production',
     devtool: 'source-map',
-    entry: './src/langevitour.ts',
+    entry: './lib/langevitour.js',
     output: {
         filename: 'langevitour-pack.js',
-        path: path.resolve(__dirname,'inst','htmlwidgets','lib'),
-        library: {
-            name: 'langevitour',
-            type: 'umd',
-        },
-        
-        // See https://stackoverflow.com/questions/64639839/typescript-webpack-library-generates-referenceerror-self-is-not-defined
-        globalObject: 'this', 
+        path: path.resolve('inst','htmlwidgets','lib'),
+        library: 'langevitour',
     },
-    
-    module: {
-        rules: [
-            {
-                test: /\.tsx?$/,
-                use: 'ts-loader',
-                exclude: /node_modules/,
-            },
-        ],
-    },
-    resolve: {
-        extensions: ['.tsx', '.ts', '.js'],
-    }
 };
