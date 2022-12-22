@@ -11,6 +11,9 @@ module.exports = {
             name: 'langevitour',
             type: 'umd',
         },
+        
+        // See https://stackoverflow.com/questions/64639839/typescript-webpack-library-generates-referenceerror-self-is-not-defined
+        globalObject: 'this', 
     },
     
     module: {
