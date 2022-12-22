@@ -9,4 +9,5 @@ articles:
   - examples
   - crosstalk
   - rnaseq
-
+home:
+  title: "langevitour: a Langevin Dynamics-based data touring widget"

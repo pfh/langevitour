@@ -7,7 +7,10 @@ module.exports = {
     output: {
         filename: 'langevitour-pack.js',
         path: path.resolve(__dirname,'inst','htmlwidgets','lib'),
-        library: 'langevitour',
+        library: {
+            name: 'langevitour',
+            type: 'umd',
+        },
     },
     
     module: {
