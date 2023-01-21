@@ -138,13 +138,16 @@ let template = `~
             </svg>~
         </button>~
         
-        <button class="controlButton infoButton">~
+        <button class="controlButton infoButton" title="Further controls and information">~
             <svg viewBox="0 0 20 20" width=20 height=20 style="vertical-align: middle;">
                 <rect x="4" y="5" width="12" height="2"></rect>
                 <rect x="4" y="9" width="12" height="2"></rect>
                 <rect x="4" y="13" width="12" height="2"></rect>
             </svg>
         </button>~
+        
+        <button class="controlButton playButton" title="Play / Pause">~
+        </button>
         
         <div class=box>~
             Guide
@@ -182,6 +185,18 @@ let template = `~
     </div>~
 </div>~
 `.replace(/~\s+/g,''); // Strip whitespace marked with initial '~'.
+
+let playSvg = 
+`<svg viewBox="0 0 20 20" width=20 height=20 style="vertical-align: middle;">
+    <path d="M 6 4 L 16 10 L 6 16 Z">
+</svg>`;
+
+let pauseSvg = 
+`<svg viewBox="0 0 20 20" width=20 height=20 style="vertical-align: middle;">
+    <rect x="4" y="4" width="4" height="12"></rect>
+    <rect x="12" y="4" width="4" height="12"></rect>
+</svg>`;
+
 
 
 /** Class to create and animate a Langevin Tour widget 
@@ -266,8 +281,9 @@ export class Langevitour extends EventTarget {
     yScaleClamped = scaleLinear();
     
     haveData = false;
+    playing = true;
     frameScheduled = false;
-    lastTime = 0; // Last frame time, in seconds.
+    lastTime = 0; // Last frame time, in seconds. Set to zero to cause no step on the next frame.
     mouseInCheckbox = false; // Track is mouse in checkbox. Do not drag if in checkbox.
     dragging = false; // Used to avoid dragging from checkbox. Also adjusts physics during drag.
     fps: number[] = []; // FPS for up to the last 100 frames
@@ -320,15 +336,18 @@ export class Langevitour extends EventTarget {
         let plotDiv = this.get('plotDiv');
         plotDiv.addEventListener('mouseover', (e) => { 
             this.mousing = true; 
+            this.scheduleFrameIfNeeded();
         });
         plotDiv.addEventListener('mouseout', (e) => { 
             this.mousing = false;
             this.mouseDown = false;
+            this.scheduleFrameIfNeeded();
         });
         plotDiv.addEventListener('mousemove', (e) => { 
             let rect = plotDiv.getBoundingClientRect();
             this.mouseX = e.x - rect.left;
             this.mouseY = e.y - rect.top;
+            this.scheduleFrameIfNeeded();
         });
         plotDiv.addEventListener('mousedown', (e) => {
             if (!(e.target as HTMLElement).classList.contains("overlay"))
@@ -343,9 +362,11 @@ export class Langevitour extends EventTarget {
             this.mouseDown = true;
             this.mouseWentDown = true;
             this.mouseShiftKey = e.shiftKey;
+            this.scheduleFrameIfNeeded();
         });
         plotDiv.addEventListener('mouseup', (e) => {
             this.mouseDown = false;
+            this.scheduleFrameIfNeeded();
         });
         
         // Hide fullscreen button if not available
@@ -401,6 +422,9 @@ export class Langevitour extends EventTarget {
         
         this.get('infoBoxProjButton').addEventListener('click', ()=>toggleVisible(this.get('infoBoxProj')));
         this.get('infoBoxStateButton').addEventListener('click', ()=>toggleVisible(this.get('infoBoxState')));
+        
+        // Play button
+        this.get('playButton').addEventListener('click', () => this.setState({ playing: !this.playing }));
     }
     
     get(className: string) {
@@ -654,11 +678,6 @@ export class Langevitour extends EventTarget {
         this.fillsFrame = Array(this.n).fill("");
         this.pointActive = Array(this.n).fill(true);
         
-        if (!this.frameScheduled) {
-            this.scheduleFrame();
-            this.frameScheduled = true;
-        }
-        
         this.configure();
         
         if (data.state)
@@ -693,6 +712,8 @@ export class Langevitour extends EventTarget {
         
         this.canvas.style.height = this.size+'px';
         this.overlay.style.height = this.size+'px';
+        
+        this.get('playButton').innerHTML = this.playing ? pauseSvg : playSvg;
         
         // Clean up and return if no data.
         if (!this.haveData) {
@@ -797,7 +818,6 @@ export class Langevitour extends EventTarget {
                 d.selected = Math.max(0,d.selected-1);
             });
         makeDraggable(divs);
-
         
         /* Set all as not selected. 
            Reposition labels that are not currently in use. */
@@ -814,6 +834,8 @@ export class Langevitour extends EventTarget {
         }
         
         refreshLabels();
+        
+        this.scheduleFrameIfNeeded();
     }
     
     configureScales() {
@@ -838,6 +860,8 @@ export class Langevitour extends EventTarget {
      */
     getState() {
         let result = { } as any;
+        
+        result.playing = this.playing;
         
         result.axesOn = this.getChecked('axesCheckbox');
         result.heatOn = this.getChecked('heatCheckbox');
@@ -893,7 +917,14 @@ export class Langevitour extends EventTarget {
             
         if (!state)
             return;
-    
+        
+        if (has(state,'playing')) {
+            // Don't leap forward in time when we start playing again.
+            if (!this.playing && state.playing)
+                this.lastTime = 0;
+            this.playing = state.playing;
+        }
+        
         if (has(state,'axesOn'))
             this.getInput('axesCheckbox').checked = state.axesOn;
         if (has(state,'heatOn'))
@@ -975,31 +1006,31 @@ export class Langevitour extends EventTarget {
             this.emitChangeSelectionIfNeeded();
     }
     
-    scheduleFrame() {
+    scheduleFrameIfNeeded() {
+        if (this.frameScheduled || !this.haveData)
+            return;
+        
         window.requestAnimationFrame(this.doFrame.bind(this))
+        this.frameScheduled = true;
     }
     
     doFrame(time: number) {
-        if (!this.haveData) {
-            this.frameScheduled = false;
+        this.frameScheduled = false;
+        if (!this.haveData)
             return;
-        }
         
         time /= 1000.0; //Convert to seconds
         
-        let elapsed = time - this.lastTime;
+        let elapsed = 0;
+        if (this.playing && this.lastTime != 0) {
+            elapsed = time - this.lastTime;
+            
+            this.fps.push( Math.round(1/elapsed) );
+            if (this.fps.length > 100) this.fps.shift();
+        }
         this.lastTime = time;
         
-        if (this.X == null || !elementVisible(this.container)) {
-            // We aren't visible. Wait a while.
-            window.setTimeout(this.scheduleFrame.bind(this), 100);
-            return;
-        }
-        
         this.compute(elapsed);
-        
-        this.fps.push( Math.round(1/elapsed) );
-        if (this.fps.length > 100) this.fps.shift();
         
         this.configureScales();
         
@@ -1306,8 +1337,20 @@ export class Langevitour extends EventTarget {
         
         this.get('messageArea').innerText = `${this.computeMessage || hint}${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
         
-        window.setTimeout(this.scheduleFrame.bind(this), 5);
-
+        if (this.playing) {
+            if (!elementVisible(this.container)) {
+                // Don't leap forward in time when we become visible again.
+                this.lastTime = 0;
+                // We aren't visible. Wait a while.
+                window.setTimeout(this.scheduleFrameIfNeeded.bind(this), 100);
+            } else {
+                // Schedule a frame normally.
+                // Add a slight delay so we never run at 100% CPU.
+                // (I think the browser may start putting off things that it really shouldn't if we run at 100%.)
+                window.setTimeout(this.scheduleFrameIfNeeded.bind(this), 5);
+            }
+        }
+        
         // This is kind of an odd place to do this.
         if (this.selectionChanged && !this.mouseDown)
             this.emitChangeSelectionIfNeeded();
