@@ -407,21 +407,31 @@ export class Langevitour extends EventTarget {
                 el.style.visibility = 'hidden';
             } else {
                 el.style.visibility = 'visible';
-                
+                this.get('infoBoxProj').style.display = 'none';
+                this.get('infoBoxState').style.display = 'none';
+                this.get('infoBoxInfo').innerHTML = `<p>${this.X.length.toLocaleString("en-US")} points.</p>`;
+            }
+        });
+        
+        this.get('infoBoxProjButton').addEventListener('click', () => {
+            let el = this.getInput('infoBoxProj');
+            toggleVisible(el);
+            if (el.style.display != 'none') {
                 let matStr = 'projection <- cbind(\n    c(';
                 matStr += this.proj.map(line => line.map(
                         (item,i) => (item/this.scale[i]).toFixed( Math.ceil(Math.log10(Math.max(0,this.scale[i]))+4) )
                     ).join(',')).join('),\n    c(');
                 matStr += '))\nprojected <- as.matrix(X) %*% projection';
-                
                 this.getInput('infoBoxProj').value = matStr;
-                this.getInput('infoBoxState').value = JSON.stringify(this.getState(), null, 4);
-                this.get('infoBoxInfo').innerHTML = `<p>${this.X.length.toLocaleString("en-US")} points.</p>`;
-            }        
+            }
         });
         
-        this.get('infoBoxProjButton').addEventListener('click', ()=>toggleVisible(this.get('infoBoxProj')));
-        this.get('infoBoxStateButton').addEventListener('click', ()=>toggleVisible(this.get('infoBoxState')));
+        this.get('infoBoxStateButton').addEventListener('click', () => {
+            let el = this.getInput('infoBoxState');
+            toggleVisible(el);
+            if (el.style.display != 'none')
+                el.value =  JSON.stringify(this.getState(), null, 4);
+        });
         
         // Play button
         this.get('playButton').addEventListener('click', () => this.setState({ playing: !this.playing }));
@@ -1006,6 +1016,7 @@ export class Langevitour extends EventTarget {
             this.emitChangeSelectionIfNeeded();
     }
     
+    
     scheduleFrameIfNeeded() {
         if (this.frameScheduled || !this.haveData)
             return;
@@ -1014,6 +1025,13 @@ export class Langevitour extends EventTarget {
         this.frameScheduled = true;
     }
     
+    
+    /*  Update display.
+    
+        Also updates selection if mouse is down.
+        
+        Also schedules another frame if needed.
+     */
     doFrame(time: number) {
         this.frameScheduled = false;
         if (!this.haveData)
@@ -1316,7 +1334,7 @@ export class Langevitour extends EventTarget {
             j++;
         }
         
-        
+        //Hints and messages text
         let hint = '';
         
         if (this.mouseInCheckbox && selected.length) {
@@ -1337,6 +1355,8 @@ export class Langevitour extends EventTarget {
         
         this.get('messageArea').innerText = `${this.computeMessage || hint}${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
         
+        
+        // Schedule another frame if needed
         if (this.playing) {
             if (!elementVisible(this.container)) {
                 // Don't leap forward in time when we become visible again.
@@ -1351,7 +1371,7 @@ export class Langevitour extends EventTarget {
             }
         }
         
-        // This is kind of an odd place to do this.
+        // Emit updated selection
         if (this.selectionChanged && !this.mouseDown)
             this.emitChangeSelectionIfNeeded();
     }
