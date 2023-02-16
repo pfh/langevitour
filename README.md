@@ -54,11 +54,11 @@ langevitour(zeiselPC[,-1], zeiselPC$type)
 * Get started by viewing source on [this example](https://pfh.github.io/langevitour/example.html).
 * [JavaScript documentation.](https://logarithmic.net/langevitour/jsdoc/)
 
-The webpacked version can be found in `inst/htmlwidgets/lib/langevitour-pack.js`.
+The minified and bundled version can be found in `inst/htmlwidgets/lib/langevitour-pack.js`.
 
 ### ESM module and npm
 
-langevitour can be added to a project with:
+If using [node](https://nodejs.org/) and `npm` for development, langevitour can be added with:
 
 ```
 npm install pfh/langevitour
@@ -80,7 +80,7 @@ You'll need to use a packager such as [parcel](https://parceljs.org/) or [webpac
 
 ### JavaScript development
 
-langevitour is written in TypeScript, which is compiled to JavaScipt, and then Webpack is used to produce a minified and bundled version. To make changes to the JavaScript side of langevitour, you will need to install `npm`. `npm` can then install the necessary build tools and dependencies. Build scripts are defined in `package.json`.
+langevitour is written in TypeScript, which is compiled to JavaScipt, and then Webpack is used to produce a minified and bundled version. To make changes to the JavaScript side of langevitour, you will need to install [node](https://nodejs.org/), which includes the `npm` package manager. `npm` can then install the necessary build tools and dependencies. Build scripts are defined in `package.json` and used as below.
 
 ```
 git clone https://github.com/pfh/langevitour.git
@@ -104,6 +104,7 @@ For example, to define a new guide you would:
 * Add a new gradient function in `src/guides.ts`. 
 * Add it to the `gradTable` in `src/guides.ts`.
 * Add it to the `guideSelect` select box in `src/langevitour.ts`.
+* Run `npm run js-build` and the new guide should appear when you load `example.html`.
 
 <br>
 
