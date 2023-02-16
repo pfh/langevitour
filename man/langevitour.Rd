@@ -55,13 +55,13 @@ langevitour(
 
 \item{subsample}{For speed, randomly subsample down to this many rows.}
 
-\item{state}{A JSON string, or an object that htmlwidgets will convert to the correct JSON. Initial widget state settings. The state of a widget can be obtained by pressing the "?" button. I am not going to guarantee that states will be compatible between versions of langevitour. Hint: Since JSON uses double quotes, surround the string in single quotes.}
+\item{state}{A JSON string, or an object that htmlwidgets will convert to the correct JSON. Initial widget state settings. The state of a widget can be obtained from its "further controls and information" pane. I am not going to guarantee that states will be compatible between versions of langevitour. Hint: Since JSON uses double quotes, surround the string in single quotes.}
 
 \item{width}{Width of widget in CSS units, for example "700px" or "100\%".}
 
 \item{height}{Height of widget in CSS units, for example "600px" or "75vh".}
 
-\item{elementId}{An element ID for the widget, see htmlwidgets::createWidget.}
+\item{elementId}{An element ID for the widget, see \code{htmlwidgets::createWidget}.}
 
 \item{link}{A SharedData object from the crosstalk package to share selections and filters with other htmlwidgets. The data in this object is not used, just the keys and group name. The rows of \code{link$origData()} should correspond to the rows of X.}
 }
@@ -69,12 +69,12 @@ langevitour(
 An htmlwidget object.
 }
 \description{
-Make a Langevin Tour HTML widget, which can be used to explore high-dimensional numeric datasets.
+Make a Langevin Tour HTML widget, which can be used to explore high-dimensional numerical datasets.
 }
 \details{
-To retain the original units on plot axes within the widget, use \code{center} and \code{scale} rather than altering X.
+The only required argument is \code{X}, the high-dimensional collection of points. The \code{group} argument is also commonly used so that groups of points can be distinguished by color. Further arguments adjust the appearance or provide advanced features.
 
-langevitour will by default not scale variables individually. If you want variables to be individually scaled, use something like \code{scale=apply(X,2,sd)*4}.
+langevitour will by default not scale variables individually. If you want variables to be individually scaled, use something like \code{scale=apply(X,2,sd)*4}. Using the \code{scale} argument rather than modifying \code{X} directly ensures the plot axes within the widgets retain the original units.
 
 In Javascript, the langevitour object can be obtained using \code{document.getElementById(elementId).langevitour}. For example you could have a button that sets the state of a widget using \code{document.getElementById(elementId).langevitour.setState(desiredState)}.
 }

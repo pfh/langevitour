@@ -49,10 +49,10 @@ langevitour(zeiselPC[,-1], zeiselPC$type)
 
 <br>
 
-## Javascript usage
+## JavaScript usage
 
 * Get started by viewing source on [this example](https://pfh.github.io/langevitour/example.html).
-* [Javascript documentation.](https://logarithmic.net/langevitour/jsdoc/)
+* [JavaScript documentation.](https://logarithmic.net/langevitour/jsdoc/)
 
 The webpacked version can be found in `inst/htmlwidgets/lib/langevitour-pack.js`.
 
@@ -76,6 +76,34 @@ import { Langevitour } from "langevitour";
 ```
 
 You'll need to use a packager such as [parcel](https://parceljs.org/) or [webpack](https://webpack.js.org/) to use this. Please tell me if you run into any problems, I am fairly new to Javascript development. 
+
+
+### JavaScript development
+
+langevitour is written in TypeScript, which is compiled to JavaScipt, and then Webpack is used to produce a minified and bundled version. To make changes to the JavaScript side of langevitour, you will need to install `npm`. `npm` can then install the necessary build tools and dependencies. Build scripts are defined in `package.json`.
+
+```
+git clone https://github.com/pfh/langevitour.git
+cd langevitour
+
+# Install required packages
+npm install
+
+# ... edit source in src/ directory ...
+
+# Compile TypeScript modules in src/ to JavaScript modules in lib/.
+# Produce minified bundle inst/htmlwidgets/lib/langevitour.js
+npm run js-build
+
+# Complete Javascript+R build and documentation process.
+npm run build
+```
+
+For example, to define a new guide you would:
+
+* Add a new gradient function in `src/guides.ts`. 
+* Add it to the `gradTable` in `src/guides.ts`.
+* Add it to the `guideSelect` select box in `src/langevitour.ts`.
 
 <br>
 
