@@ -61,6 +61,7 @@ langevitourWidget <- langevitour(
     completePenguins[,3:6], 
     completePenguins$species, 
     link=shared,                   #<--- the important bit
+    link_filter=FALSE,
     levelColors=colors, 
     scale=scale, 
     pointSize=2,
@@ -102,6 +103,8 @@ Filters hide points completely. The view of the data chosen by a `langevitour` g
 
 I want to demonstrate this with an independent set of widgets, so I make a new SharedData object.
 
+Note 2023-03-09: Something is triggering exceptions in plotly when both filters and selections are used.
+
 ```{r}
 shared2 <- SharedData$new(completePenguins)
 
@@ -134,7 +137,7 @@ browsable(div(
     filter2a, filter2b, plotWidget2, langevitourWidget2))
 ```
 
-If you don't want to link filters, use `link_filter=FALSE`. In the example below, only the selection is linked to the previous example. (Note 2023-03-09: Selecting an item in the widget below that is filtered out above causes plotly to throw an exception.)
+If you don't want to link filters, use `link_filter=FALSE`. In the example below, only the selection is linked to the previous example.
 
 ```{r}
 # Create a langevitour widget that listens for selections only

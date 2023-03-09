@@ -39,10 +39,8 @@ HTMLWidgets.widget({
                     levelActive[item.index] = item.active;
             
             // Check for change
-            if (lastLevelActive && levelActive.every((item,i) => item == lastLevelActive[i])) {
-                //console.log("unchanged");
+            if (lastLevelActive && levelActive.every((item,i) => item == lastLevelActive[i]))
                 return;
-            }
             
             lastLevelActive = levelActive;
             
@@ -66,17 +64,22 @@ HTMLWidgets.widget({
             let currentSet = new Set(ctSel.value || []);
             
             let wanted = [ ];
+            let mismatch = false;
             if (tour.selection) {
-                for(let i=0;i<tour.n;i++)
-                    if (tour.selection[tour.unpermutor[i]]) // Yikes.
+                for(let i=0;i<tour.n;i++) {
+                    let j = tour.unpermutor[i]; // Yikes.
+                    let want = tour.selection[j];
+                    let have = currentSet.has(ctKey[i]);
+                    if (want != have)
+                        mismatch = true;
+                    if (want)
                         wanted.push(ctKey[i]);
+                }
+                
+                // Abort if no mismatches.
+                if (!mismatch)
+                    return;
             }
-            
-            // Abort if equivalent.
-            if (wanted.length == currentSet.size && wanted.every(item => currentSet.has(item)))
-                return;
-            
-            console.log(wanted);
             
             if (wanted.length == 0)
                 ctSel.set(null);
