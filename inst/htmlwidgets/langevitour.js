@@ -76,6 +76,8 @@ HTMLWidgets.widget({
             if (wanted.length == currentSet.size && wanted.every(item => currentSet.has(item)))
                 return;
             
+            console.log(wanted);
+            
             if (wanted.length == 0)
                 ctSel.set(null);
             else
@@ -105,10 +107,12 @@ HTMLWidgets.widget({
                     ctSel.on("change", updateIn);
                     tour.addEventListener("changeSelection", updateOutSelection);
                     
-                    ctFilter = new crosstalk.FilterHandle();
-                    ctFilter.setGroup(data.crosstalkGroup);
-                    ctFilter.on("change", updateIn);
-                    tour.addEventListener("changeFilter", updateOutFilter);
+                    if (data.crosstalkWantFilter) {
+                        ctFilter = new crosstalk.FilterHandle();
+                        ctFilter.setGroup(data.crosstalkGroup);
+                        ctFilter.on("change", updateIn);
+                        tour.addEventListener("changeFilter", updateOutFilter);
+                    }
                     
                     updateOutFilter();
                     updateIn();

@@ -23,7 +23,8 @@ langevitour(
   width = NULL,
   height = NULL,
   elementId = NULL,
-  link = NULL
+  link = NULL,
+  link_filter = TRUE
 )
 }
 \arguments{
@@ -64,6 +65,8 @@ langevitour(
 \item{elementId}{An element ID for the widget, see \code{htmlwidgets::createWidget}.}
 
 \item{link}{A SharedData object from the crosstalk package to share selections and filters with other htmlwidgets. The data in this object is not used, just the keys and group name. The rows of \code{link$origData()} should correspond to the rows of X.}
+
+\item{link_filter}{TRUE or FALSE. If using crosstalk, should hiding groups in langevitour also cause them to be filtered in linked widgets?}
 }
 \value{
 An htmlwidget object.

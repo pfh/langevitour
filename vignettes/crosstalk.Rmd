@@ -133,3 +133,18 @@ browsable(div(
     style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;",
     filter2a, filter2b, plotWidget2, langevitourWidget2))
 ```
+
+If you don't want to link filters, use `link_filter=FALSE`. In the example below, only the selection is linked to the previous example. (Note 2023-03-09: Selecting an item in the widget below that is filtered out above causes plotly to throw an exception.)
+
+```{r}
+# Create a langevitour widget that listens for selections only
+langevitour(
+    completePenguins[,3:6], 
+    completePenguins$species, 
+    link=shared2, 
+    link_filter=FALSE,
+    levelColors=colors, 
+    scale=scale, 
+    pointSize=2,
+    state='{"guideType":"pca"}')
+```

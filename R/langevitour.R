@@ -46,6 +46,8 @@
 #'
 #' @param link A SharedData object from the crosstalk package to share selections and filters with other htmlwidgets. The data in this object is not used, just the keys and group name. The rows of \code{link$origData()} should correspond to the rows of X.
 #'
+#' @param link_filter TRUE or FALSE. If using crosstalk, should hiding groups in langevitour also cause them to be filtered in linked widgets?
+#'
 #' @return An htmlwidget object.
 #'
 #' @examples
@@ -74,7 +76,7 @@ langevitour <- function(
         extraAxes=NULL, lineFrom=NULL, lineTo=NULL, lineColors=NULL,
         axisColors=NULL, levelColors=NULL, colorVariation=0.3, pointSize=1, subsample=NULL, 
         state=NULL, width=NULL, height=NULL, elementId=NULL,
-        link=NULL) {
+        link=NULL, link_filter=TRUE) {
     
     # Ensure data is matrix
     
@@ -109,6 +111,8 @@ langevitour <- function(
         crosstalkGroup <- link$groupName()
         crosstalkKey <- link$key()
     }
+    
+    assertthat::assert_that( assertthat::is.flag(link_filter) )
     
     
     # Check for problems (not exhaustive!)
@@ -227,6 +231,7 @@ langevitour <- function(
         
         crosstalkGroup=crosstalkGroup,
         crosstalkKey=crosstalkKey,
+        crosstalkWantFilter=link_filter,
         
         state=state)
     
