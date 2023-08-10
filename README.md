@@ -24,12 +24,12 @@ langevitour is a twist on the "tour" concept from software such as [XGobi](http:
 
 ## R installation
 
-```{r}
+```
 # Released version
 install.packages("langevitour")
 ```
 
-```{r}
+```
 # Development version
 remotes::install_github("pfh/langevitour")
 ```
@@ -38,7 +38,7 @@ remotes::install_github("pfh/langevitour")
 
 Example:
 
-```{r}
+```
 library(langevitour)
 
 data(zeiselPC)
