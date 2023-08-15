@@ -391,7 +391,7 @@ export class Langevitour extends EventTarget {
         
         let handleWindowSize = () => {
             let el = this.shadowDiv;
-            if (document.fullscreenElement !== el) 
+            if (document.fullscreenElement !== el || this.originalWidth < 0) 
                 return;
             let width = window.innerWidth;
             let height = window.innerHeight;
@@ -408,8 +408,10 @@ export class Langevitour extends EventTarget {
             let el = this.shadowDiv;
             if (document.fullscreenElement === el) {
                 // Stash original size
-                this.originalWidth = this.width;
-                this.originalHeight = this.height;
+                if (this.originalWidth < 0) {
+                    this.originalWidth = this.width;
+                    this.originalHeight = this.height;
+                }
                 handleWindowSize();
                 // ... further window resize events may occur while full screen ...
             } else if (this.originalWidth >= 0) {

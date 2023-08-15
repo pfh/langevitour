@@ -132,10 +132,8 @@ HTMLWidgets.widget({
                 // Supplied width and height are based on getBoundingClientRect.
                 // Wrong eg when using revealjs and slide is scaled.
                 // Ignore.
-                width = el.offsetWidth;
-                height = el.offsetHeight;
-                
-                tour.resize(width, height);
+                //
+                // tour.resize(width, height);
             }
         };
     }
