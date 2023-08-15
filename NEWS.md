@@ -6,7 +6,7 @@
 * Interface revamp.
 * Avoid rare divide by zero.
 * Line colors.
-* Ignore width and height provided by htmlwidgets, as this is incorrect for example in revealjs when a slide is scaled. Use container width and height.
+* Ignore width and height provided by htmlwidgets if we seem to be scaled, as they are based on getBoundingClientRect.
 
 # langevitour 0.5
 

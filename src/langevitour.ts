@@ -211,17 +211,20 @@ let pauseSvg =
   */
 export class Langevitour extends EventTarget {
     container: HTMLElement;
-    shadow: ShadowRoot;
     shadowDiv: HTMLElement;
+    shadowRoot: ShadowRoot;
     shadowChild: HTMLElement;
     canvas: HTMLCanvasElement;
     overlay: HTMLElement;
     
     width = 1;
     height = 1;
-    originalWidth = -1;
-    originalHeight = -1;
     size = 1;
+    
+    // We stash the original size when we go full-screen
+    fullscreen = false;
+    originalWidth = 1;
+    originalHeight = 1;
     
     pointSize = 1;
     
@@ -322,9 +325,9 @@ export class Langevitour extends EventTarget {
         this.container = container;
         this.shadowDiv = document.createElement("div");
         this.container.appendChild(this.shadowDiv);
-        this.shadow = this.shadowDiv.attachShadow({mode: 'open'});
-        this.shadow.innerHTML = template;
-        this.shadowChild = this.shadow.firstChild as HTMLElement;
+        this.shadowRoot = this.shadowDiv.attachShadow({mode: 'open'});
+        this.shadowRoot.innerHTML = template;
+        this.shadowChild = this.shadowRoot.firstChild as HTMLElement;
         
         this.canvas = this.get('canvas') as HTMLCanvasElement;
         this.overlay = this.get('overlay');
@@ -390,9 +393,9 @@ export class Langevitour extends EventTarget {
         });
         
         let handleWindowSize = () => {
-            let el = this.shadowDiv;
-            if (document.fullscreenElement !== el || this.originalWidth < 0) 
+            if (!this.fullscreen) 
                 return;
+            let el = this.shadowDiv;
             let width = window.innerWidth;
             let height = window.innerHeight;
             let pad = Math.max(0, width-height)/2;
@@ -408,19 +411,19 @@ export class Langevitour extends EventTarget {
             let el = this.shadowDiv;
             if (document.fullscreenElement === el) {
                 // Stash original size
-                if (this.originalWidth < 0) {
+                if (!this.fullscreen) {
+                    this.fullscreen = true;
                     this.originalWidth = this.width;
                     this.originalHeight = this.height;
                 }
                 handleWindowSize();
                 // ... further window resize events may occur while full screen ...
-            } else if (this.originalWidth >= 0) {
+            } else if (this.fullscreen) {
                 // Restore original size
+                this.fullscreen = false;
                 el.style.paddingLeft = '0px';
                 this.width = this.originalWidth;
                 this.height = this.originalHeight;
-                this.originalWidth = -1;
-                this.originalHeight = -1;
                 this.configure();
             }
         });

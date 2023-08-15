@@ -4,9 +4,13 @@ HTMLWidgets.widget({
     factory: function(el, width, height) {
         // Supplied width and height are based on getBoundingClientRect.
         // Wrong eg when using revealjs and slide is scaled.
-        // Ignore.
-        width = el.offsetWidth;
-        height = el.offsetHeight;
+        // Ignore if we seem to be scaled.
+        let rect = el.getBoundingClientRect();
+        let trustSize = rect.width == el.offsetWidth && rect.height == el.offsetHeight;
+        if (!trustSize) {
+            width = el.offsetWidth;
+            height = el.offsetHeight;
+        }
         
         let tour = new langevitour.Langevitour(el, width, height);
         
@@ -131,9 +135,11 @@ HTMLWidgets.widget({
             resize: function(width, height) {
                 // Supplied width and height are based on getBoundingClientRect.
                 // Wrong eg when using revealjs and slide is scaled.
-                // Ignore.
-                //
-                // tour.resize(width, height);
+                // Spurious events also happen if we are full screen.
+                if (!trustSize || tour.fullscreen || document.fullscreenElement)
+                    return;
+                
+                tour.resize(width, height);
             }
         };
     }
