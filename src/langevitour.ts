@@ -212,14 +212,15 @@ let pauseSvg =
 export class Langevitour extends EventTarget {
     container: HTMLElement;
     shadow: ShadowRoot;
+    shadowDiv: HTMLElement;
     shadowChild: HTMLElement;
     canvas: HTMLCanvasElement;
     overlay: HTMLElement;
     
     width = 1;
     height = 1;
-    originalWidth = 1;
-    originalHeight = 1;
+    originalWidth = -1;
+    originalHeight = -1;
     size = 1;
     
     pointSize = 1;
@@ -319,9 +320,9 @@ export class Langevitour extends EventTarget {
         // Set up elements in a shadow DOM to isolate from document style.
         // The extra div seems necessary to avoid weird shrinkage with resizing.
         this.container = container;
-        let div = document.createElement("div");
-        this.container.appendChild(div);
-        this.shadow = div.attachShadow({mode: 'open'});
+        this.shadowDiv = document.createElement("div");
+        this.container.appendChild(this.shadowDiv);
+        this.shadow = this.shadowDiv.attachShadow({mode: 'open'});
         this.shadow.innerHTML = template;
         this.shadowChild = this.shadow.firstChild as HTMLElement;
         
@@ -378,31 +379,52 @@ export class Langevitour extends EventTarget {
             this.get('fullscreenButton').style.display = 'none';
         
         // Handle fullscreen
+        // Complication: Window may resize after getting fullscreenchange event, so we have to handle window resize.
+        // - Window does not resize immediately in Chrome.
+        // - Macs with webcam cutout do something weird on Firefox.
+        
         this.get('fullscreenButton').addEventListener('click', () => {
             if (!document.fullscreenElement) {
-                this.shadowChild.requestFullscreen();
-            } else if (document.exitFullscreen) {
+                this.shadowDiv.requestFullscreen();
+            } else if (document.fullscreenElement === this.shadowDiv && document.exitFullscreen) {
                 document.exitFullscreen();
             }
         });
         
-        this.shadowChild.addEventListener('fullscreenchange', () => { 
-            let el = this.shadowChild;
-            if (document.fullscreenElement) {
+        let handleWindowSize = () => {
+            let el = this.shadowDiv;
+            if (document.fullscreenElement !== el) 
+                return;
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            let pad = Math.max(0, width-height)/2;
+            el.style.paddingLeft = pad+'px';
+            this.width = width-pad;
+            this.height = height;
+            this.configure();
+        }
+        
+        window.addEventListener('resize', handleWindowSize);
+        
+        this.shadowDiv.addEventListener('fullscreenchange', () => { 
+            let el = this.shadowDiv;
+            if (document.fullscreenElement === el) {
+                // Stash original size
                 this.originalWidth = this.width;
                 this.originalHeight = this.height;
-                let pad = Math.max(0, el.offsetWidth-el.offsetHeight)/2;
-                el.style.paddingLeft = pad+'px';
-                this.width = el.offsetWidth-pad;
-                this.height = el.offsetHeight;
-                this.configure();
-            } else {
+                handleWindowSize();
+                // ... further window resize events may occur while full screen ...
+            } else if (this.originalWidth >= 0) {
+                // Restore original size
                 el.style.paddingLeft = '0px';
                 this.width = this.originalWidth;
                 this.height = this.originalHeight;
+                this.originalWidth = -1;
+                this.originalHeight = -1;
                 this.configure();
             }
         });
+        
         
         // Info box
         this.get('infoButton').addEventListener('click', () => {
@@ -708,6 +730,7 @@ export class Langevitour extends EventTarget {
      */
     resize(width: number, height: number) {
         // At least in pkgdown vignettes, we get weird resize requests while fullscreen.
+        // Note this also ignores resizes if something else is fullscreen. This seemed to be necessary for revealjs presentations.
         if (document.fullscreenElement) return;
         
         this.width = Math.max(200, width);

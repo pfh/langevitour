@@ -2,6 +2,12 @@ HTMLWidgets.widget({
     name: 'langevitour',
     type: 'output',
     factory: function(el, width, height) {
+        // Supplied width and height are based on getBoundingClientRect.
+        // Wrong eg when using revealjs and slide is scaled.
+        // Ignore.
+        width = el.offsetWidth;
+        height = el.offsetHeight;
+        
         let tour = new langevitour.Langevitour(el, width, height);
         
         // Support for crosstalk
@@ -123,6 +129,12 @@ HTMLWidgets.widget({
                 }
             },
             resize: function(width, height) {
+                // Supplied width and height are based on getBoundingClientRect.
+                // Wrong eg when using revealjs and slide is scaled.
+                // Ignore.
+                width = el.offsetWidth;
+                height = el.offsetHeight;
+                
                 tour.resize(width, height);
             }
         };
