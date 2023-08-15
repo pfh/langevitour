@@ -24,6 +24,13 @@ export function elementVisible(el: HTMLElement) {
            rect.left < window.innerWidth && rect.right >= 0;
 }
 
+export function locateEventInElement(event: MouseEvent, el: HTMLElement) {
+    let rect = el.getBoundingClientRect();
+    return [
+        (event.x - rect.left)/rect.width*el.offsetWidth,
+        (event.y - rect.top)/rect.height*el.offsetHeight 
+    ];
+}
 
 export function toggleVisible(el :HTMLElement) {
     if (el.style.display == "none")

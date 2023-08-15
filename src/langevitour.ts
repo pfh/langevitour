@@ -4,7 +4,7 @@ const { normal } = jstat;
 
 import { SVD } from 'svd-js';
 
-import { rgb, scaleLinear, ScaleLinear, select, drag, interpolateViridis } from 'd3';
+import { rgb, scaleLinear, select, drag, interpolateViridis } from 'd3';
 
 import { 
     vecAdd, vecSub, vecScale, vecDot, times, zeros, zeroMat, randInt, 
@@ -12,7 +12,7 @@ import {
     matScale, removeSpin, permutation 
 } from './math.js';
 
-import { has, elementVisible, toggleVisible, hexByte } from './util.js';
+import { has, elementVisible, locateEventInElement, toggleVisible, hexByte } from './util.js';
 
 import { gradTable } from './guides.js';
 
@@ -349,9 +349,7 @@ export class Langevitour extends EventTarget {
             this.scheduleFrameIfNeeded();
         });
         plotDiv.addEventListener('mousemove', (e) => { 
-            let rect = plotDiv.getBoundingClientRect();
-            this.mouseX = e.x - rect.left;
-            this.mouseY = e.y - rect.top;
+            [ this.mouseX, this.mouseY ] = locateEventInElement(e, this.canvas);
             this.scheduleFrameIfNeeded();
         });
         plotDiv.addEventListener('mousedown', (e) => {
@@ -826,7 +824,7 @@ export class Langevitour extends EventTarget {
 
         let makeDraggable = drag()
             .subject(function (e,d) {
-                return { x:e.x, y:e.y };
+                return { x:d.x, y:d.y };
             })
             .on('start', function(e,d) {
                 // Do not drag checkbox.
@@ -841,9 +839,10 @@ export class Langevitour extends EventTarget {
                 // We decided not to drag because we started on the checkbox.
                 if (!thys.dragging)
                     return;
-                    
-                d.x = thys.xScaleUnit.invert(e.x);
-                d.y = thys.yScaleUnit.invert(e.y);
+                
+                let [x,y] = locateEventInElement(e.sourceEvent, thys.canvas);
+                d.x = thys.xScaleUnit.invert(x);
+                d.y = thys.yScaleUnit.invert(y);
                 refreshLabels();
             })
             .on('end', function(e,d) {
