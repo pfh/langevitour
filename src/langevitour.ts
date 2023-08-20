@@ -305,7 +305,7 @@ export class Langevitour extends EventTarget {
     mouseX = 0;
     mouseY = 0;
     
-    rightMouseDown = false; // Used to directly interact with projection.
+    rightMouseDown = false; // Used to directly interact with projection. Note ctrl+left also triggers this, as right drag is difficult on trackpad.
     rightMouseWentDown = false;
     tugging = false;
     tugX = 0; // Desired position in projection space.
@@ -359,12 +359,16 @@ export class Langevitour extends EventTarget {
             this.rightMouseDown = false;
             this.scheduleFrameIfNeeded();
         });
-        plotDiv.addEventListener('mousemove', (e) => { 
+        
+        let handleMouseMove = (e) => { 
             [ this.mouseX, this.mouseY ] = locateEventInElement(e, this.canvas);
-            this.mouseDown = e.buttons == 1;
-            this.rightMouseDown = e.buttons == 2;
+            // Ctrl+left click and right click are treated the same
+            this.mouseDown = e.buttons == 1 && !e.ctrlKey;
+            this.rightMouseDown = e.buttons == 2 || (e.buttons == 1 && e.ctrlKey);
             this.scheduleFrameIfNeeded();
-        });
+        };
+        plotDiv.addEventListener('mousemove', handleMouseMove);
+        
         plotDiv.addEventListener('mousedown', (e) => {
             if (!(e.target as HTMLElement).classList.contains("overlay"))
                 return;
@@ -375,9 +379,7 @@ export class Langevitour extends EventTarget {
                 return;
             }
             
-            [ this.mouseX, this.mouseY ] = locateEventInElement(e, this.canvas);
-            this.mouseDown = e.buttons == 1;
-            this.rightMouseDown = e.buttons == 2;
+            handleMouseMove(e);
             
             if (this.mouseDown) {
                 this.mouseWentDown = true;
@@ -1400,7 +1402,7 @@ export class Langevitour extends EventTarget {
         let hint = '';
         
         if (this.tugging) {
-            hint = "right drag to tug\n";
+            hint = "drag to tug\n";
         } else if (this.mouseInCheckbox && selected.length) {
             if (selected[0].active)
                 hint = "click to hide\n";
@@ -1412,7 +1414,7 @@ export class Langevitour extends EventTarget {
             if (this.selection)
                 hint = "shift+click to enlarge\n";
             else
-                hint = "left click to select\nright drag to tug\n";
+                hint = "click to select\nctrl+drag to tug\n";
         } else if (this.selection && this.mousing && !brushPoints.length && !this.mouseDown) {
             hint = "click to clear\n";
         }
