@@ -5,9 +5,12 @@ HTMLWidgets.widget({
         // Supplied width and height are based on getBoundingClientRect.
         // Wrong eg when using revealjs and slide is scaled.
         // Ignore if we seem to be scaled.
-        let rect = el.getBoundingClientRect();
-        let trustSize = rect.width == el.offsetWidth && rect.height == el.offsetHeight;
-        if (!trustSize) {
+        let trustSize = () => {
+            let rect = el.getBoundingClientRect();
+            return rect.width == el.offsetWidth && rect.height == el.offsetHeight;
+        };
+        
+        if (!trustSize()) {
             width = el.offsetWidth;
             height = el.offsetHeight;
         }
@@ -136,7 +139,7 @@ HTMLWidgets.widget({
                 // Supplied width and height are based on getBoundingClientRect.
                 // Wrong eg when using revealjs and slide is scaled.
                 // Spurious events also happen if we are full screen.
-                if (!trustSize || tour.fullscreen || document.fullscreenElement)
+                if (!trustSize() || tour.fullscreen || document.fullscreenElement)
                     return;
                 
                 tour.resize(width, height);

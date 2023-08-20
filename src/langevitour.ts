@@ -405,8 +405,6 @@ export class Langevitour extends EventTarget {
             this.configure();
         }
         
-        window.addEventListener('resize', handleWindowSize);
-        
         this.shadowDiv.addEventListener('fullscreenchange', () => { 
             let el = this.shadowDiv;
             if (document.fullscreenElement === el) {
@@ -415,6 +413,7 @@ export class Langevitour extends EventTarget {
                     this.fullscreen = true;
                     this.originalWidth = this.width;
                     this.originalHeight = this.height;
+                    window.addEventListener('resize', handleWindowSize);
                 }
                 handleWindowSize();
                 // ... further window resize events may occur while full screen ...
@@ -424,6 +423,7 @@ export class Langevitour extends EventTarget {
                 el.style.paddingLeft = '0px';
                 this.width = this.originalWidth;
                 this.height = this.originalHeight;
+                window.removeEventListener('resize', handleWindowSize);
                 this.configure();
             }
         });
