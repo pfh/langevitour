@@ -7,6 +7,7 @@
 * Avoid rare divide by zero.
 * Line colors.
 * Ignore width and height provided by htmlwidgets if we seem to be scaled, as they are based on getBoundingClientRect.
+* Directly manipulate projection with right drag.
 
 # langevitour 0.5
 

@@ -109,7 +109,7 @@ let template = `~
     <div style="position: relative" class=plotDiv>~
         <canvas class=canvas></canvas>~
         <div class=messageArea></div>~
-        <div class=overlay style="position: absolute; left:0; top:0;"></div>~
+        <div class=overlay style="position: absolute; left:0; top:0;" oncontextmenu="return false;"></div>~
         <div class=infoBox>~
             <div><b><a href="https://logarithmic.net/langevitour/" target="_blank">langevitour</a></b></div>
             <br><div><button class=infoBoxProjButton>Projection &#9662;</button></div>
@@ -302,8 +302,15 @@ export class Langevitour extends EventTarget {
     mouseDown = false; // While this mouse is down, the selection continues to be updated.
     mouseWentDown = false; // Set when mouse button goes down. Unset once selection updated.
     mouseShiftKey = false; // Shift was pressed at mouse down, we want to extend the current selection.
-    mouseX = 0; // Used to display row names
-    mouseY = 0; // Used to display row names
+    mouseX = 0;
+    mouseY = 0;
+    
+    rightMouseDown = false; // Used to directly interact with projection.
+    rightMouseWentDown = false;
+    tugging = false;
+    tugX = 0; // Desired position in projection space.
+    tugY = 0;
+    tugPoints: number[] = [ ]; // Indices of points being tugged.
     
     // Only used during doFrame. 
     // Properties only to avoid re-allocation.
@@ -349,10 +356,13 @@ export class Langevitour extends EventTarget {
         plotDiv.addEventListener('mouseout', (e) => { 
             this.mousing = false;
             this.mouseDown = false;
+            this.rightMouseDown = false;
             this.scheduleFrameIfNeeded();
         });
         plotDiv.addEventListener('mousemove', (e) => { 
             [ this.mouseX, this.mouseY ] = locateEventInElement(e, this.canvas);
+            this.mouseDown = e.buttons == 1;
+            this.rightMouseDown = e.buttons == 2;
             this.scheduleFrameIfNeeded();
         });
         plotDiv.addEventListener('mousedown', (e) => {
@@ -365,13 +375,24 @@ export class Langevitour extends EventTarget {
                 return;
             }
             
-            this.mouseDown = true;
-            this.mouseWentDown = true;
-            this.mouseShiftKey = e.shiftKey;
+            [ this.mouseX, this.mouseY ] = locateEventInElement(e, this.canvas);
+            this.mouseDown = e.buttons == 1;
+            this.rightMouseDown = e.buttons == 2;
+            
+            if (this.mouseDown) {
+                this.mouseWentDown = true;
+                this.mouseShiftKey = e.shiftKey;
+            }
+            
+            if (this.rightMouseDown) {
+                this.rightMouseWentDown = true;
+            }
+            
             this.scheduleFrameIfNeeded();
         });
         plotDiv.addEventListener('mouseup', (e) => {
             this.mouseDown = false;
+            this.rightMouseDown = false;
             this.scheduleFrameIfNeeded();
         });
         
@@ -1070,7 +1091,7 @@ export class Langevitour extends EventTarget {
         time /= 1000.0; //Convert to seconds
         
         let elapsed = 0;
-        if (this.playing && this.lastTime != 0) {
+        if ((this.playing || this.tugging) && this.lastTime != 0) {
             elapsed = time - this.lastTime;
             
             this.fps.push( Math.round(1/elapsed) );
@@ -1118,6 +1139,17 @@ export class Langevitour extends EventTarget {
                 brushPoints.push({ index:i, d2: d2 });
             }
             brushPoints.sort((a,b) => a.d2-b.d2);
+        }
+        
+        // Respond to right-mouse tugging
+        if (this.rightMouseWentDown) {
+            this.tugPoints = brushPoints.map(item => item.index);
+            this.rightMouseWentDown = false;
+        }
+        this.tugging = this.rightMouseDown && this.tugPoints.length>0;
+        if (this.tugging) {
+            this.tugX = this.xScale.invert(this.mouseX);
+            this.tugY = this.yScale.invert(this.mouseY);
         }
         
         // Update selection.
@@ -1283,7 +1315,7 @@ export class Langevitour extends EventTarget {
         }
         
         // Brushing indicator
-        if (this.mousing && brushPoints.length) {
+        if (this.mousing && !this.tugging && brushPoints.length) {
             ctx.fillStyle = '#0000ff11';
             ctx.beginPath();
             ctx.arc(this.mouseX, this.mouseY, brushRadius, 0, 2 * Math.PI, false);
@@ -1367,7 +1399,9 @@ export class Langevitour extends EventTarget {
         //Hints and messages text
         let hint = '';
         
-        if (this.mouseInCheckbox && selected.length) {
+        if (this.tugging) {
+            hint = "right drag to tug\n";
+        } else if (this.mouseInCheckbox && selected.length) {
             if (selected[0].active)
                 hint = "click to hide\n";
             else
@@ -1378,7 +1412,7 @@ export class Langevitour extends EventTarget {
             if (this.selection)
                 hint = "shift+click to enlarge\n";
             else
-                hint = "click to select\n";
+                hint = "left click to select\nright drag to tug\n";
         } else if (this.selection && this.mousing && !brushPoints.length && !this.mouseDown) {
             hint = "click to clear\n";
         }
@@ -1387,7 +1421,7 @@ export class Langevitour extends EventTarget {
         
         
         // Schedule another frame if needed
-        if (this.playing) {
+        if (this.playing || this.tugging) {
             if (!elementVisible(this.container)) {
                 // Don't leap forward in time when we become visible again.
                 this.lastTime = 0;
@@ -1444,7 +1478,29 @@ export class Langevitour extends EventTarget {
         //Integrate dv/dt = -damping * v
         let velKeep = Math.exp(-elapsed*damping);
         matScaleInto(vel, velKeep);
-
+        
+        
+        if (this.tugging) {
+            // Calculate tugging based position update.
+            let tugAmount = Math.min(100, 1/elapsed);
+            
+            let tugCenter = zeros(this.m);
+            for(let i=0;i<this.tugPoints.length;i++)
+               tugCenter = vecAdd(tugCenter, this.X[this.tugPoints[i]]);
+            tugCenter = vecScale(tugCenter, 1/this.tugPoints.length);
+            let currentX = vecDot(tugCenter, proj[0]);
+            let currentY = vecDot(tugCenter, proj[1]);
+            let length2 = vecDot(tugCenter, tugCenter) + 1e-3;
+            vel[0] = vecScale(tugCenter, (this.tugX-currentX)/length2*tugAmount);
+            vel[1] = vecScale(tugCenter, (this.tugY-currentY)/length2*tugAmount);
+            // Note this removes any existing velocity!
+            // Don't do any other velocity adjustments.
+            doHeat = false;
+            doAttraction = false;
+            whatGuide = 'none';
+        }
+        
+        
         if (doHeat) {
             // Damping reduces the variance * velKeep^2
             // We need to add velReplaceVar * desired steady state variance of temperature
@@ -1460,7 +1516,7 @@ export class Langevitour extends EventTarget {
             
             matAddInto(vel, noise);
         }
-
+        
         if (whatGuide != 'none') {
             let activeX = this.X.filter((item,i) => this.pointActive[i]);
             if (activeX.length) {
@@ -1469,8 +1525,8 @@ export class Langevitour extends EventTarget {
                 matAddInto(vel, grad);
             }
         }
-
-        if (doAttraction)        
+        
+        if (doAttraction)
         for(let label of this.labelData) {
             let x = label.x;
             let y = label.y;
@@ -1480,7 +1536,6 @@ export class Langevitour extends EventTarget {
             vel[0] = vecAdd(vel[0], vecScale(label.vec, x*adjustment*attraction));
             vel[1] = vecAdd(vel[1], vecScale(label.vec, y*adjustment*attraction));
         }
-        
         
         // Nuke inactive axes
         // - remove from velocity
@@ -1497,7 +1552,7 @@ export class Langevitour extends EventTarget {
         if (inactive.length && !tooMany) {
             // How fast inactive axes are removed
             let nuke_amount = Math.min(2, 1/elapsed);
-        
+            
             let { u, v, q } = SVD(matTranspose(inactive));
             let maxQ = Math.max(...q);
             u = matTranspose(u);
@@ -1522,18 +1577,24 @@ export class Langevitour extends EventTarget {
                 
         if (tooMany) this.computeMessage += 'Error: too many axes removed\n';
         if (anyDropped) this.computeMessage += 'Note: redundant axes removed\n';
-
-
+        
+        
         // Velocity step        
         let newProj = matAdd(proj, matScale(vel, elapsed));
-
+        
         // Project onto Stiefel manifold                
         let { u, v, q } = SVD(matTranspose(newProj));
         matTcrossprodInto(newProj, v, u);
         
         // "Position based dynamics"
-        this.vel = matScale(matAdd(newProj,matScale(proj,-1)), 1/elapsed);
+        vel = matScale(matAdd(newProj,matScale(proj,-1)), 1/elapsed);
+        
+        // No velocity during tugging
+        if (this.tugging)
+            vel = [ zeros(this.m), zeros(this.m) ];
+        
         this.proj = newProj;
+        this.vel = vel;
     }
 }
 
