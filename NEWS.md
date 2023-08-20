@@ -1,5 +1,5 @@
 
-# langevitour 0.5.1
+# langevitour 0.5.2
 
 * Use TypeScript and webpack.
 * Support crosstalk.

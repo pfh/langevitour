@@ -1,6 +1,6 @@
 Package: langevitour
 Title: Langevin Tour
-Version: 0.5.1
+Version: 0.5.2
 Authors@R: 
     person("Paul", "Harrison", , "pfh@logarithmic.net", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-3980-268X"))
