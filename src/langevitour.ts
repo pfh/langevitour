@@ -811,7 +811,8 @@ export class Langevitour extends EventTarget {
                         .attr('type','checkbox')
                         .property('checked',d => d.active)
                         .on('change',function(e,d) { 
-                            d.active = this.checked; 
+                            d.active = this.checked;
+                            thys.scheduleFrameIfNeeded(); 
                             thys.emitChangeFilter();
                         })
                         .on('mouseover',() => { this.mouseInCheckbox = true; })
@@ -1089,6 +1090,15 @@ export class Langevitour extends EventTarget {
         this.frameScheduled = false;
         if (!this.haveData)
             return;
+        
+        if (!elementVisible(this.container)) {
+            // Don't leap forward in time when we become visible again.
+            this.lastTime = 0;
+            // We aren't visible. Wait a while.
+            window.setTimeout(this.scheduleFrameIfNeeded.bind(this), 100);
+            return;
+        }
+        
         
         time /= 1000.0; //Convert to seconds
         
@@ -1424,17 +1434,10 @@ export class Langevitour extends EventTarget {
         
         // Schedule another frame if needed
         if (this.playing || this.tugging) {
-            if (!elementVisible(this.container)) {
-                // Don't leap forward in time when we become visible again.
-                this.lastTime = 0;
-                // We aren't visible. Wait a while.
-                window.setTimeout(this.scheduleFrameIfNeeded.bind(this), 100);
-            } else {
-                // Schedule a frame normally.
-                // Add a slight delay so we never run at 100% CPU.
-                // (I think the browser may start putting off things that it really shouldn't if we run at 100%.)
-                window.setTimeout(this.scheduleFrameIfNeeded.bind(this), 5);
-            }
+            // Schedule a frame normally.
+            // Add a slight delay so we never run at 100% CPU.
+            // (I think the browser may start putting off things that it really shouldn't if we run at 100%.)
+            window.setTimeout(this.scheduleFrameIfNeeded.bind(this), 5);
         }
         
         // Emit updated selection
@@ -1492,7 +1495,7 @@ export class Langevitour extends EventTarget {
             tugCenter = vecScale(tugCenter, 1/this.tugPoints.length);
             let currentX = vecDot(tugCenter, proj[0]);
             let currentY = vecDot(tugCenter, proj[1]);
-            let length2 = vecDot(tugCenter, tugCenter) + 1e-3;
+            let length2 = vecDot(tugCenter, tugCenter) + 1e-4;
             
             // Don't tug beyond what is possible
             let tugX = this.tugX;
