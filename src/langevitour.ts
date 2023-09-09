@@ -362,24 +362,33 @@ export class Langevitour extends EventTarget {
         
         let handleMouseMove = (e) => { 
             [ this.mouseX, this.mouseY ] = locateEventInElement(e, this.canvas);
+            
+            if (!(e.target as HTMLElement).classList.contains("overlay")) {
+                this.mouseDown = false;
+                this.rightMouseDown = false;
+                return false;
+            }
+            
             // Ctrl+left click and right click are treated the same
             this.mouseDown = e.buttons == 1 && !e.ctrlKey;
             this.rightMouseDown = e.buttons == 2 || (e.buttons == 1 && e.ctrlKey);
             this.scheduleFrameIfNeeded();
+            return true;
         };
-        plotDiv.addEventListener('mousemove', handleMouseMove);
+        
+        plotDiv.addEventListener('mousemove', (e) => {
+            handleMouseMove(e);
+        });
         
         plotDiv.addEventListener('mousedown', (e) => {
-            if (!(e.target as HTMLElement).classList.contains("overlay"))
-                return;
+            if (!handleMouseMove(e))
+                return; //Interacting with infoBox.
             
             let el = this.get('infoBox');
             if (el.style.visibility == 'visible') {
                 el.style.visibility = 'hidden';
                 return;
             }
-            
-            handleMouseMove(e);
             
             if (this.mouseDown) {
                 this.mouseWentDown = true;
@@ -392,6 +401,7 @@ export class Langevitour extends EventTarget {
             
             this.scheduleFrameIfNeeded();
         });
+        
         plotDiv.addEventListener('mouseup', (e) => {
             this.mouseDown = false;
             this.rightMouseDown = false;
