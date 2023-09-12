@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "langevitour"
 dynamic = ["version"]
 description = 'Python interface to langevintour'
-readme = "README.md"
+readme = "py/README.md"
 requires-python = ">=3.7"
 license = "MIT"
 keywords = []
@@ -30,9 +30,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/wytamma/langevitour#readme"
-Issues = "https://github.com/wytamma/langevitour/issues"
-Source = "https://github.com/wytamma/langevitour"
+Documentation = "https://github.com/pfh/langevitour#readme"
+Issues = "https://github.com/pfh/langevitour/issues"
+Source = "https://github.com/pfh/langevitour"
 
 [tool.hatch.version]
 path = "py/langevitour/__about__.py"
