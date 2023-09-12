@@ -155,7 +155,7 @@ tour = Langevitour(
 tour.write_html("langevitour_plot.html")
 ```
 
-langevitour also works in [jupyter notebooks](/py/examples/langevitour.ipynb).
+langevitour also works in [jupyter notebooks](https://colab.research.google.com/githubpfh/langevitour/blob/main/py/examples/langevitour.ipynb).
 
 ## Copyright
 
