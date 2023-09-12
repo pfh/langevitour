@@ -47,3 +47,8 @@ inst/doc
 docs
 /doc/
 /Meta/
+
+# python 
+*.pyc
+dist
+.ipynb_checkpoints/
