@@ -20,7 +20,7 @@ langevitour is a twist on the "tour" concept from software such as [XGobi](http:
 
 * [Javascript example](https://pfh.github.io/langevitour/example.html)
 
-* [Python example](https://colab.research.google.com/github/Wytamma/pyLangevitour/blob/main/examples/notebook.ipynb)
+* [Python example](https://colab.research.google.com/github/pfh/langevitour/blob/main/py/examples/langevitour.ipynb)
 
 <br>
 
