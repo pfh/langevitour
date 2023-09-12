@@ -157,6 +157,10 @@ tour.write_html("langevitour_plot.html")
 
 langevitour also works in [jupyter notebooks](https://colab.research.google.com/github/pfh/langevitour/blob/main/py/examples/langevitour.ipynb).
 
+## Authors
+
+The Javascript and R package are written by Paul Harrison. The Python package was kindly contributed by Wytamma Wirth.
+
 ## Copyright
 
 Langevitour is free software made available under the [MIT license](https://github.com/pfh/langevitour/blob/main/LICENSE.md). Included libraries [jStat](https://github.com/jstat/jstat) and [SVD-JS](https://github.com/danilosalvati/svd-js) are also provided under the MIT license. Included library [D3](https://github.com/d3/d3) is provided under the [ISC license](https://github.com/d3/d3/blob/main/LICENSE).

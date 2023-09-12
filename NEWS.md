@@ -1,5 +1,5 @@
 
-# langevitour 0.5.2
+# langevitour 0.6
 
 * Use TypeScript and webpack.
 * Support crosstalk.
@@ -8,6 +8,7 @@
 * Line colors.
 * Ignore width and height provided by htmlwidgets if we seem to be scaled, as they are based on getBoundingClientRect.
 * Directly manipulate projection with right drag.
+* Python package.
 
 # langevitour 0.5
 

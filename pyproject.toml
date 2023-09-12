@@ -36,6 +36,7 @@ Source = "https://github.com/pfh/langevitour"
 
 [tool.hatch.version]
 path = "py/langevitour/__about__.py"
+validate-bump = false
 
 [tool.hatch.build]
 include = [
@@ -47,12 +48,14 @@ packages = ["py/langevitour"]
 
 
 [tool.hatch.envs.default]
+python = "python3"
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
   "jupyter",
   "pandas",
 ]
+
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:py/tests}"
 test-cov = "coverage run -m pytest {args:py/tests}"
