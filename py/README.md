@@ -1,4 +1,4 @@
-# langevitour
+# langevitour for Python
 
 [![PyPI - Version](https://img.shields.io/pypi/v/langevitour.svg)](https://pypi.org/project/langevitour)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/langevitour.svg)](https://pypi.org/project/langevitour)
@@ -53,4 +53,4 @@ tour = Langevitour(
 tour.write_html("langevitour_plot.html")
 ```
 
-pyLangevitour also works in [jupyter notebooks](/py/examples/langevitour.ipynb).
+langevitour also works in [jupyter notebooks](/py/examples/langevitour.ipynb).
