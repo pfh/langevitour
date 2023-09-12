@@ -1,6 +1,6 @@
 # langevitour
 
-langevitour is an HTML widget that randomly tours projections of a high-dimensional dataset with an animated scatter-plot. The user can manipulate the plot to use specified axes, or turn on Guided Tour mode to perform [projection pursuit](https://en.wikipedia.org/wiki/Projection_pursuit), finding an informative projection of the data. Groups within the data can be hidden or shown, as can particular axes. Known projections of interest can be added as "extra axes" and also manipulated. The widget can be used from within R, or included in a self-contained Rmarkdown document, or a Shiny app, or used directly from Javascript.
+langevitour is an HTML widget that randomly tours projections of a high-dimensional dataset with an animated scatter-plot. The user can manipulate the plot to use specified axes, or turn on Guided Tour mode to perform [projection pursuit](https://en.wikipedia.org/wiki/Projection_pursuit), finding an informative projection of the data. Groups within the data can be hidden or shown, as can particular axes. Known projections of interest can be added as "extra axes" and also manipulated. The widget can be used from within R or Python, or included in a self-contained Rmarkdown document, or a Shiny app, or used directly from Javascript.
 
 <a href="https://logarithmic.net/langevitour/2022-abacbs/" style="display: block; margin: 5px; border: 1px solid #000; float: right">
 <img src="https://logarithmic.net/langevitour/2022-abacbs/abacbs-langevitour-poster-2022-small.png" width=300>
@@ -19,6 +19,8 @@ langevitour is a twist on the "tour" concept from software such as [XGobi](http:
 * [R examples](https://logarithmic.net/langevitour/articles/examples.html)
 
 * [Javascript example](https://pfh.github.io/langevitour/example.html)
+
+* [Python example](https://colab.research.google.com/github/Wytamma/pyLangevitour/blob/main/examples/notebook.ipynb)
 
 <br>
 
@@ -107,6 +109,53 @@ For example, to define a new guide you would:
 * Run `npm run js-build` and the new guide should appear when you load `example.html`.
 
 <br>
+
+## Python installation 
+```bash
+pip install langevitour
+```
+
+## Python usage 
+
+```python
+import numpy as np
+
+from langevitour import Langevitour
+
+# Generate a sample dataset
+X = []
+group = []
+n = 20000
+
+def r():
+    return np.random.normal(0, 0.02)
+
+for i in range(n):
+    a = i/n * np.pi * 2
+    X.append([
+        10 + np.sin(a)/3 + r(),
+        20 + np.sin(a*2)/3 + r(),
+        30 + np.sin(a*3)/3,
+        40 + np.sin(a*4)/3,
+        50 + np.sin(a*5)/3
+    ])
+    group.append(int(i*4/n))
+
+# Extra axes (specified as columns of a matrix)
+extra_axes = [[1], [2], [0], [0], [0]]
+extra_axes_names = ["V1+2*V2"]
+
+tour = Langevitour(
+    X,
+    group=group,
+    extra_axes=extra_axes,
+    extra_axes_names=extra_axes_names,
+    point_size=1,
+)
+tour.write_html("langevitour_plot.html")
+```
+
+langevitour also works in [jupyter notebooks](https://colab.research.google.com/github/pfh/langevitour/blob/main/py/examples/langevitour.ipynb).
 
 ## Copyright
 
