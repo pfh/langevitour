@@ -4,16 +4,16 @@ HTMLWidgets.widget({
     factory: function(el, width, height) {
         // Supplied width and height are based on getBoundingClientRect.
         // Wrong eg when using revealjs and slide is scaled.
-        // Ignore if we seem to be scaled.
-        let trustSize = () => {
-            let rect = el.getBoundingClientRect();
-            return rect.width == el.offsetWidth && rect.height == el.offsetHeight;
-        };
+        //let trustSize = () => {
+        //    let rect = el.getBoundingClientRect();
+        //    return rect.width == el.offsetWidth && rect.height == el.offsetHeight;
+        //};
         
-        if (!trustSize()) {
-            width = el.offsetWidth;
-            height = el.offsetHeight;
-        }
+        // May as will just never trust the width and height we are given.
+        //if (!trustSize()) {
+        width = el.offsetWidth;
+        height = el.offsetHeight;
+        //}
         
         let tour = new langevitour.Langevitour(el, width, height);
         
@@ -139,8 +139,14 @@ HTMLWidgets.widget({
                 // Supplied width and height are based on getBoundingClientRect.
                 // Wrong eg when using revealjs and slide is scaled.
                 // Spurious events also happen if we are full screen.
-                if (!trustSize() || tour.fullscreen || document.fullscreenElement)
+                if (tour.fullscreen || document.fullscreenElement)
                     return;
+                
+                // May as will just never trust the width and height we are given.
+                //if (!trustSize()) {
+                width = el.offsetWidth;
+                height = el.offsetHeight;
+                //}
                 
                 tour.resize(width, height);
             }
