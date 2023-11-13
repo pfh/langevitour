@@ -1,0 +1,11 @@
+bibentry(
+  "Article",
+  title    = "langevitour: Smooth Interactive Touring of High Dimensions, Demonstrated with scRNA-Seq Data",
+  author   = "Paul Harrison",
+  journal  = "The R Journal",
+  year     = "2023",
+  volume   = "15",
+  number   = "2",
+  pages    = "206-219",
+  doi      = "10.32614/RJ-2023-046"
+)
