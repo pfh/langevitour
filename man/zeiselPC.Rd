@@ -24,7 +24,7 @@ A data frame with 2,816 rows representing brain cells and 11 columns:
 data(zeiselPC)
 }
 \description{
-Single-cell RNA-Seq gene expression of 2,816 mouse brain cells (Zeisel, 2015). The top 10 principal components were produced using the steps in the \href{http://bioconductor.org/books/3.13/OSCA.workflows/zeisel-mouse-brain-strt-seq.html}{Bioconductor OSCA workflow}.
+Single-cell RNA-Seq gene expression of 2,816 mouse brain cells (Zeisel, 2015). The top 10 principal components were produced using the steps in the \href{https://bioconductor.org/books/3.13/OSCA.workflows/zeisel-mouse-brain-strt-seq.html}{Bioconductor OSCA workflow}.
 }
 \examples{
 data(zeiselPC)
