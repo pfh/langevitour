@@ -6,8 +6,8 @@
 * Interface revamp.
 * Avoid rare divide by zero.
 * Line colors.
-* Ignore width and height provided by htmlwidgets if we seem to be scaled, as they are based on getBoundingClientRect.
-* Directly manipulate projection with right drag.
+* Ignore width and height provided by htmlwidgets, as this is wrong when the widget is scaled using a transformation (happens in revealjs presentations).
+* Directly manipulate projection with ctrl+drag.
 * Python package.
 
 # langevitour 0.5
