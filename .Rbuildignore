@@ -13,5 +13,11 @@
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^dist$
+^lib$
+^py$
+^pyproject.toml$
 ^vignettes/examples.Rmd$
 ^vignettes/rnaseq.Rmd$
+^vignettes/crosstalk.Rmd$
+
