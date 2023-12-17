@@ -7,7 +7,7 @@
   "sideEffects": false,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "sync-versions": "VERSION=$(grep '^Version:' DESCRIPTION | cut -d' ' -f2) && sed -i '/^  \\\"version\\\"/ c\\  \\\"version\\\": \\\"'$VERSION'\\\",' package.json && sed -i '/^   version:/ c\\   version: \\\"'$VERSION'\\\"' inst/htmlwidgets/langevitour.yaml && hatch version $VERSION",
+    "sync-versions": "VERSION=$(grep '^Version:' DESCRIPTION | cut -d' ' -f2) && sed -i '' 's/^  \\\"version\\\":.*/  \\\"version\\\": \\\"'$VERSION'\\\",/' package.json && sed -i '' 's/^   version:.*/   version: \\\"'$VERSION'\\\"/' inst/htmlwidgets/langevitour.yaml && hatch version $VERSION",
     "js-build": "npx tsc && npx webpack",
     "js-build-quick": "npx tsc && npx webpack --mode=development",
     "js-docs": "npx typedoc src/langevitour.ts --out docs/jsdoc/ --excludeNotDocumented --readme none",
