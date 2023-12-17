@@ -139,7 +139,7 @@ HTMLWidgets.widget({
                 // Supplied width and height are based on getBoundingClientRect.
                 // Wrong eg when using revealjs and slide is scaled.
                 // Spurious events also happen if we are full screen.
-                if (tour.fullscreen || document.fullscreenElement)
+                if (tour.fullscreen)
                     return;
                 
                 // May as will just never trust the width and height we are given.

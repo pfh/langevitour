@@ -1,4 +1,8 @@
 
+# langevitour 0.7
+
+* Refine full-screen logic.
+
 # langevitour 0.6
 
 * Use TypeScript and webpack.
