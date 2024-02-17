@@ -30,7 +30,7 @@ class Langevitour:
         axis_colors (list[str], optional): CSS colors for each variable and extra axis.
         level_colors (list[str], optional): CSS colors for each level of `group`.
         color_variation (float, 0-1, optional): Brightness variation among individual points. Defaults to 0.3.
-        point_size (int, optional): Point radius in pixels. Defaults to 1.
+        point_size (float|list[float], optional): Point radius in pixels. Defaults to 1. A single value or a value for each point.
         subsample (int, optional): Randomly subsample to this many rows for speed. Defaults to None.
         state (str, optional): Initial widget state settings. Defaults to None.
         width (int, optional): Width of widget in pixels. Defaults to 700.
@@ -58,7 +58,7 @@ class Langevitour:
         line_colors=None,
         axis_colors=None,
         level_colors=None,
-        color_variation=0.3,
+        color_variation=0.1,
         point_size=1,
         subsample=None,
         state=None,

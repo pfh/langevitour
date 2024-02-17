@@ -237,7 +237,7 @@ langevitour(
     lineFrom=cube$edges[,"from"], 
     lineTo=cube$edges[,"to"], 
     lineColors=rainbow(nrow(cube$edges)),
-    pointSize=3)
+    pointSize=sqrt(seq_len(nrow(cube$points))))
 ```
 
 ## Torus

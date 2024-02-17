@@ -30,13 +30,14 @@ body {
 "use strict";
 
 // Generate a sample dataset
-let X = [ ], group = [ ];
+let X = [ ], group = [ ], pointSize = [ ];
 let r = ()=>jStat.normal.sample(0,0.02);
-let n = 20000;
+let n = 1000;
 for(let i=0;i<n;i++) {
     let a=i/n * Math.PI * 2;
     X.push([ 10+Math.sin(a)/3+r(), 20+Math.sin(a*2)/3+r(), 30+Math.sin(a*3)/3, 40+Math.sin(a*4)/3, 50+Math.sin(a*5)/3 ]);
     group.push( Math.floor(i*4/n) );
+    pointSize.push(i%10+1);
 }
 
 // Extra axes (specified as columns of a matrix)
@@ -60,7 +61,8 @@ let val = {
     extraAxes:extraAxes,
     extraAxesNames:extraAxesNames,
     
-    pointSize:1,
+    //pointSize: 3,
+    pointSize: pointSize,
 };
 
 let container = document.getElementById("container");

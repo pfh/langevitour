@@ -16,7 +16,7 @@ langevitour(
   lineColors = NULL,
   axisColors = NULL,
   levelColors = NULL,
-  colorVariation = 0.3,
+  colorVariation = 0.1,
   pointSize = 1,
   subsample = NULL,
   state = NULL,
@@ -52,7 +52,7 @@ langevitour(
 
 \item{colorVariation}{Number between 0 and 1. Individual points are given slightly different brightnesses. How strong should this effect be?}
 
-\item{pointSize}{Point radius in pixels.}
+\item{pointSize}{Point radius in pixels. A single number, or a number for each row in X.}
 
 \item{subsample}{For speed, randomly subsample down to this many rows.}
 

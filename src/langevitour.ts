@@ -226,7 +226,6 @@ export class Langevitour extends EventTarget {
     originalWidth = 1;
     originalHeight = 1;
     
-    pointSize = 1;
     
     center: number[] = [];
     scale: number[] = [];
@@ -238,6 +237,7 @@ export class Langevitour extends EventTarget {
     unpermutor: number[] = [];
     rownames: string[] = [];
     group: number[] = [];
+    pointSize: number[] = [];
     levels: string[] = [];
     levelColors: string[] = [];
     lineFrom: number[] = [];
@@ -564,7 +564,7 @@ export class Langevitour extends EventTarget {
      *
      * [data.colorVariation] Amount of brightness variation of points, between 0 and 1.
      *
-     * [data.pointSize] Radius of points in pixels.
+     * [data.pointSize] Radius of points in pixels either, a number or an array of numbers for each point.
      *
      * [data.state] State to be passed on to setState().
      */
@@ -584,7 +584,7 @@ export class Langevitour extends EventTarget {
             axisColors?: string[],
             levelColors?: string[],
             colorVariation?: number,
-            pointSize?: number,
+            pointSize?: number | number[],
             state?: any
         }) {
         
@@ -599,8 +599,6 @@ export class Langevitour extends EventTarget {
         //TODO: checking
         this.n = data.X.length;
         this.m = data.X[0].length;
-        
-        this.pointSize = data.pointSize != null ? data.pointSize : 1;
         
         let axisColors = data.axisColors || [];
         
@@ -618,6 +616,15 @@ export class Langevitour extends EventTarget {
         // Store data internally in centered and scaled form.
         this.X = this.X.map(item => item.map((value, i) => 
             (value-this.center[i])/this.scale[i] ));
+        
+        if (data.pointSize == null) { //check for null or undefined
+            this.pointSize = Array(this.n).fill(1)
+        } else if (typeof(data.pointSize) === "number") {
+            this.pointSize = Array(this.n).fill(data.pointSize);
+        } else {
+            let pointSize = data.pointSize;
+            this.pointSize = this.permutor.map(i => pointSize[i]);
+        }
         
         if (!data.rownames || data.rownames.length == 0) {
             this.rownames = [ ];
@@ -692,7 +699,7 @@ export class Langevitour extends EventTarget {
         
         // Point colors are given a small back-to-front brightness gradient,
         // to add some variation and give a pseudo-3D effect.
-        let colorVariation = data.colorVariation == null ? 0.3 : data.colorVariation;
+        let colorVariation = data.colorVariation == null ? 0.1 : data.colorVariation;
         this.fills = [ ];
         for(let i=0;i<this.n;i++) {
             let pointColor = rgb(this.levelColors[this.group[i]]);
@@ -1295,9 +1302,9 @@ export class Langevitour extends EventTarget {
         }
         
         // Draw points that aren't hidden
-        let size = this.pointSize;
         for(let i=0;i<this.n;i++) {
             if (this.pointActive[i]) {
+                let size = this.pointSize[i];
                 ctx.fillStyle = this.fillsFrame[i];
                 ctx.fillRect(this.xScaleClamped(this.xy[0][i])-size, this.yScaleClamped(this.xy[1][i])-size, size*2, size*2);
             }

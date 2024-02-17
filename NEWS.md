@@ -2,6 +2,8 @@
 # langevitour 0.7
 
 * Refine full-screen logic.
+* Default colorVariation seemed a bit much, reduced to 0.1.
+* pointSize can now be specified per-point.
 
 # langevitour 0.6
 

@@ -20,7 +20,7 @@ Further material:
 
 * useR! 2022 conference [slides](https://logarithmic.net/langevitour/2022-useR/) and [video (extended edition)](https://www.youtube.com/watch?v=vKv9P13UACw)
 
-* IASC-ARS 2023 [slides](https://logarithmic.net/langevitour/2023-iasc-ars/) for *Visualising high-dimensional genomics data: what Non-Linear Dimension Reduction hides and misrepresents.* Demonstrates some advanced tricks setting the state of the widget using buttons in a Quarto presentation.
+* IASC-ARS 2023 [slides](https://logarithmic.net/langevitour/2023-iasc-ars/) and [short video](https://www.youtube.com/watch?v=gwqU9OoFwjQ) for *Visualising high-dimensional genomics data: what Non-Linear Dimension Reduction hides and misrepresents.* Demonstrates some advanced tricks setting the state of the widget using buttons in a Quarto presentation.
 
 * [R examples](https://logarithmic.net/langevitour/articles/examples.html)
 

@@ -32,7 +32,7 @@
 #'
 #' @param colorVariation Number between 0 and 1. Individual points are given slightly different brightnesses. How strong should this effect be?
 #'
-#' @param pointSize Point radius in pixels.
+#' @param pointSize Point radius in pixels. A single number, or a number for each row in X.
 #'
 #' @param subsample For speed, randomly subsample down to this many rows.
 #'
@@ -74,7 +74,7 @@
 langevitour <- function(
         X, group=NULL, name=NULL, center=NULL, scale=NULL, 
         extraAxes=NULL, lineFrom=NULL, lineTo=NULL, lineColors=NULL,
-        axisColors=NULL, levelColors=NULL, colorVariation=0.3, pointSize=1, subsample=NULL, 
+        axisColors=NULL, levelColors=NULL, colorVariation=0.1, pointSize=1, subsample=NULL, 
         state=NULL, width=NULL, height=NULL, elementId=NULL,
         link=NULL, link_filter=TRUE) {
     
@@ -121,6 +121,7 @@ langevitour <- function(
         ncol(X) >= 2,
         length(columnNames) == ncol(X),
         length(group) == nrow(X),
+        length(pointSize) == 1 || length(pointSize) == nrow(X),
         is.null(name) || length(name) == nrow(X),
         length(lineFrom) == length(lineTo),
         is.null(lineColors) || length(lineColors) == length(lineFrom),
@@ -227,7 +228,7 @@ langevitour <- function(
         axisColors=as.list(as.character(axisColors)),
         levelColors=as.list(as.character(levelColors)),
         colorVariation=as.numeric(colorVariation),
-        pointSize=as.numeric(pointSize),
+        pointSize=as.numeric(pointSize), # Javascript side can handle unboxing here (number|number[])
         
         crosstalkGroup=crosstalkGroup,
         crosstalkKey=crosstalkKey,
