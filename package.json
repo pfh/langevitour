@@ -1,6 +1,6 @@
 {
   "name": "langevitour",
-  "version": "0.7",
+  "version": "0.7.0",
   "description": "An HTML widget that randomly tours 2D projections of numerical data.",
   "type": "module",
   "main": "lib/langevitour.js",
