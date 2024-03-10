@@ -24,9 +24,11 @@ Further material:
 
 * [R examples](https://logarithmic.net/langevitour/articles/examples.html)
 
+* [Python example](https://colab.research.google.com/github/pfh/langevitour/blob/main/py/examples/langevitour.ipynb)
+
 * [Javascript example](https://pfh.github.io/langevitour/example.html)
 
-* [Python example](https://colab.research.google.com/github/pfh/langevitour/blob/main/py/examples/langevitour.ipynb)
+* [Observable Notebook example](https://observablehq.com/d/56b34c363af4dbca)
 
 <br>
 
@@ -64,12 +66,12 @@ langevitour(zeiselPC[,-1], zeiselPC$type)
 
 The minified and bundled version can be found in `inst/htmlwidgets/lib/langevitour-pack.js`.
 
-### ESM module and npm
+### ESM module with npm
 
 If using [node](https://nodejs.org/) and `npm` for development, langevitour can be added with:
 
 ```
-npm install pfh/langevitour
+npm install langevitour
 ```
 
 This provides the widget as a modern ESM module. In your HTML page you can import it with:
@@ -85,6 +87,20 @@ import { Langevitour } from "langevitour";
 
 You'll need to use a packager such as [parcel](https://parceljs.org/) or [webpack](https://webpack.js.org/) to use this. Please tell me if you run into any problems, I am fairly new to Javascript development. 
 
+### ESM module without npm
+
+To avoid using npm, you could use [skypack.dev](https://skypack.dev). You will still need to serve your page with some sort of web-server, such as `python3 -m http.server`.
+
+```
+<script type="module">
+
+import { Langevitour } from "https://cdn.skypack.dev/langevitour";
+
+// ...
+</script>
+```
+
+[Here](https://observablehq.com/d/56b34c363af4dbca) is an example using skypack in an Observable Notebook.
 
 ### JavaScript development
 
