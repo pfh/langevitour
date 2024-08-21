@@ -16,7 +16,7 @@
 #'
 #' @param center Center for each variable. If omitted, the column means will be used.
 #'
-#' @param scale Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen, equal for all variables. (The default is the largest singular value of the centered X times 2.5.)
+#' @param scale Scale for each variable (or a single value to apply to all variables). center +/- scale will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen, equal for all variables. (The default is the largest singular value of the centered X times 2.5.)
 #'
 #' @param extraAxes A matrix with each column defining a projection of interest. The columns of \code{X \%*\% extraAxes} will be presented as extra "variables".
 #'
