@@ -55,6 +55,7 @@ let template = `~
             vertical-align: middle;
             height: 26px;
             width: 26px;
+            line-height: 16px;
         }
         
         .infoBox {

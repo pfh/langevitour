@@ -19,10 +19,12 @@ Suggests:
     rmarkdown,
     GGally,
     DT,
+    plotly,
     palmerpenguins,
     tourr,
     geozoo,
-    liminal
+    liminal,
+    uwot
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

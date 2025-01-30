@@ -51,7 +51,7 @@ To build the documentation site:
 ```r
 install.packages(c("devtools", "pkgdown", "BiocManager"))
 devtools::install_dev_deps()
-BiocManager::install(c("airway", "org.Hs.eg.db"))
+BiocManager::install(c("airway", "org.Hs.eg.db", "edgeR", "limma"))
 
 pkgdown::build_site()
 ```
