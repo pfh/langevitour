@@ -105,7 +105,7 @@ let template = `~
             display: block; 
         }
     </style>~
-
+    
     <div style="position: relative" class=plotDiv>~
         <canvas class=canvas></canvas>~
         <div class=messageArea></div>~
@@ -127,7 +127,7 @@ let template = `~
             </table>
         </div>~
     </div>~
-
+    
     <div class=controlDiv>~
         <button class="controlButton fullscreenButton" title="Full screen">~
             <svg viewBox="0 0 20 20" width=20 height=20 style="vertical-align: middle;">
@@ -216,6 +216,8 @@ export class Langevitour extends EventTarget {
     shadowChild: HTMLElement;
     canvas: HTMLCanvasElement;
     overlay: HTMLElement;
+    
+    enableControls = true;
     
     width = 1;
     height = 1;
@@ -567,6 +569,8 @@ export class Langevitour extends EventTarget {
      * [data.pointSize] Radius of points in pixels either, a number or an array of numbers for each point.
      *
      * [data.state] State to be passed on to setState().
+     *
+     * [data.enableControls] Should interactive controls be shown? Defaults to true.
      */
     renderValue(data: null | {
             X: number[][],
@@ -585,16 +589,20 @@ export class Langevitour extends EventTarget {
             levelColors?: string[],
             colorVariation?: number,
             pointSize?: number | number[],
-            state?: any
+            state?: any,
+            enableControls?: boolean,
         }) {
         
         if (!data) {
             this.haveData = false;
+            this.enableControls = false;
             this.configure();
             return;
         }
         
         this.haveData = true;
+        
+        this.enableControls = data.enableControls ?? true;
         
         //TODO: checking
         this.n = data.X.length;
@@ -787,8 +795,11 @@ export class Langevitour extends EventTarget {
         this.canvas.style.width = this.width+'px';
         this.overlay.style.width = this.width+'px';
         
+        // Hide controls if not wanted
+        this.get('controlDiv').style.display = this.enableControls ? '' : 'none';
+        
         // Scrollbars will appear if very small
-        let controlHeight = this.get('controlDiv').offsetHeight + 5;
+        let controlHeight = this.enableControls ? this.get('controlDiv').offsetHeight+5 : 0;
         this.size = Math.max(100, Math.min(this.width-100, this.height-controlHeight));
         
         this.canvas.style.height = this.size+'px';
@@ -816,12 +827,12 @@ export class Langevitour extends EventTarget {
         overlay.selectAll('*').remove();
         
         this.mouseInCheckbox = false;
-
-        let thys = this; //sigh
         
+        // Create/update divs for draggable labels.
+        // Not shown if controls are not enabled.
         let divs = overlay
             .selectAll('div')
-            .data(this.labelData)
+            .data(this.enableControls ? this.labelData : [])
             .join(
                 enter => {
                     let div = enter.append('div')
@@ -829,10 +840,10 @@ export class Langevitour extends EventTarget {
                     div.append('input')
                         .attr('type','checkbox')
                         .property('checked',d => d.active)
-                        .on('change',function(e,d) { 
-                            d.active = this.checked;
-                            thys.scheduleFrameIfNeeded(); 
-                            thys.emitChangeFilter();
+                        .on('change',(e,d) => { 
+                            d.active = e.currentTarget.checked;
+                            this.scheduleFrameIfNeeded(); 
+                            this.emitChangeFilter();
                         })
                         .on('mouseover',() => { this.mouseInCheckbox = true; })
                         .on('mouseout',() => { this.mouseInCheckbox = false; });
@@ -855,48 +866,49 @@ export class Langevitour extends EventTarget {
             d.halfWidth = this.offsetWidth/2;
             d.halfHeight = this.offsetHeight/2;
         });
-
-        function refreshLabels() {
-            let maxX = thys.xScaleUnit.invert(thys.width);
-            for(let item of thys.labelData) {
+        
+        let refreshLabels = () => {
+            let maxX = this.xScaleUnit.invert(this.width);
+            for(let item of this.labelData) {
                 item.x = Math.max(-1,Math.min(maxX, item.x));
                 item.y = Math.max(-1,Math.min(1,    item.y));
             }
             
             divs
-                .style('left',d=>thys.xScaleUnit(d.x)-d.halfWidth+'px')
-                .style('top',d=>thys.yScaleUnit(d.y)-d.halfHeight+'px')
+                .style('left',d=>this.xScaleUnit(d.x)-d.halfWidth+'px')
+                .style('top',d=>this.yScaleUnit(d.y)-d.halfHeight+'px')
                 .style('background',d=>d.selected?'#aaa':'#ddd');
         }
-
+        
+        let thisOriginal = this;
         let makeDraggable = drag()
-            .subject(function (e,d) {
+            .subject((e,d) => {
                 return { x:d.x, y:d.y };
             })
             .on('start', function(e,d) {
                 // Do not drag checkbox.
-                if (thys.mouseInCheckbox)
+                if (thisOriginal.mouseInCheckbox)
                     return;
                 
-                thys.dragging = true;
+                thisOriginal.dragging = true;
                 this.style.cursor = 'grabbing';
                 d.selected += 1;
             })
             .on('drag', function(e,d) {
                 // We decided not to drag because we started on the checkbox.
-                if (!thys.dragging)
+                if (!thisOriginal.dragging)
                     return;
                 
-                let [x,y] = locateEventInElement(e.sourceEvent, thys.canvas);
-                d.x = thys.xScaleUnit.invert(x);
-                d.y = thys.yScaleUnit.invert(y);
+                let [x,y] = locateEventInElement(e.sourceEvent, thisOriginal.canvas);
+                d.x = thisOriginal.xScaleUnit.invert(x);
+                d.y = thisOriginal.yScaleUnit.invert(y);
                 refreshLabels();
             })
             .on('end', function(e,d) {
-                if (!thys.dragging)
+                if (!thisOriginal.dragging)
                     return;
                 
-                thys.dragging = false;
+                thisOriginal.dragging = false;
                 this.style.cursor = 'grab';
                 d.selected = Math.max(0,d.selected-1);
             });
@@ -974,7 +986,7 @@ export class Langevitour extends EventTarget {
             result.selection = this.unpermutor.map(i => this.selection![i]);
         else
             result.selection = null;
-
+        
         // Potentially large.
         if (this.filter)
             result.filter = this.unpermutor.map(i => this.filter![i]);
@@ -1134,22 +1146,25 @@ export class Langevitour extends EventTarget {
         
         this.configureScales();
         
+        let showAxes = this.getChecked('axesCheckbox');
+        
         let selectedAxis: number|null = null;
         let selectedLevel: number|null = null;
+        let selectedActive = false;
         let selected = this.labelData.filter(d=>d.selected);
         if (selected.length) {
+            selectedActive = selected[0].active;
             if (selected[0].type == 'axis')
                 selectedAxis = selected[0].index;
             else
                 selectedLevel = selected[0].index;
         }
         
-        let showAxes = this.getChecked('axesCheckbox');
         
         let levelActive = Array(this.levels.length).fill(true);
         for(let item of this.labelData)
-        if (item.type == 'level')
-            levelActive[item.index] = item.active;
+            if (item.type == 'level')
+                levelActive[item.index] = item.active;
         
         // Note: pointActive is updated in compute.
         
@@ -1161,12 +1176,12 @@ export class Langevitour extends EventTarget {
             for(let i=0;i<this.n;i++) {
                 if (!this.pointActive[i])
                     continue;
-
+                
                 let d2 = (this.xScaleClamped(this.xy[0][i])-this.mouseX)**2+
                             (this.yScaleClamped(this.xy[1][i])-this.mouseY)**2;
                 if (d2 > brushRadius**2) 
                     continue;
-
+                
                 brushPoints.push({ index:i, d2: d2 });
             }
             brushPoints.sort((a,b) => a.d2-b.d2);
@@ -1177,7 +1192,7 @@ export class Langevitour extends EventTarget {
             this.tugPoints = brushPoints.map(item => item.index);
             this.rightMouseWentDown = false;
         }
-        this.tugging = this.rightMouseDown && this.tugPoints.length>0;
+        this.tugging = this.enableControls && this.rightMouseDown && this.tugPoints.length>0;
         if (this.tugging) {
             this.tugX = this.xScale.invert(this.mouseX);
             this.tugY = this.yScale.invert(this.mouseY);
@@ -1185,7 +1200,7 @@ export class Langevitour extends EventTarget {
         
         // Update selection.
         // This is kind of an odd place to do this.
-        if (this.mouseDown || this.mouseWentDown) {
+        if (this.enableControls && (this.mouseDown || this.mouseWentDown)) {
             // Clear selection on mouse down unless shift was pressed.
             if (this.mouseWentDown && !this.mouseShiftKey) {
                 this.selection = null;
@@ -1205,12 +1220,11 @@ export class Langevitour extends EventTarget {
                     }
                 }
             }
-            
-            this.mouseWentDown = false;
-            //Note: at end of this function, we decide if it's time to emit a changeSelection event
         }
+        this.mouseWentDown = false;
+        //Note: at end of this function, we decide if it's time to emit a changeSelection event
         
-        this.overlay.style.opacity = this.mousing?"1":"0";
+        this.overlay.style.opacity = this.mousing?'1':'0';
         
         // Setup canvas and get context
         // Adjust for HiDPI screens and zoom level
@@ -1218,7 +1232,7 @@ export class Langevitour extends EventTarget {
         let ratio = window.devicePixelRatio;
         this.canvas.width = Math.floor(this.width * ratio);
         this.canvas.height = Math.floor(this.size * ratio);
-        let ctx = this.canvas.getContext("2d")!;
+        let ctx = this.canvas.getContext('2d')!;
         ctx.scale(ratio, ratio);
         ctx.clearRect(0,0,this.width,this.size);
         
@@ -1227,22 +1241,23 @@ export class Langevitour extends EventTarget {
         ctx.fillStyle = '#fff';
         ctx.fillRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
         ctx.strokeRect(rx[0],ry[0],rx[1]-rx[0],ry[1]-ry[0]);
-       
+        
         // Axes
         let axisScale = 0.75 * this.zoom;
         ctx.strokeStyle = '#ccc';
         
-        if (showAxes)
-        for(let i=0;i<this.axes.length;i++) {
-            let xProj = vecDot(this.proj[0], this.axes[i].unit);
-            let yProj = vecDot(this.proj[1], this.axes[i].unit);
-        
-            ctx.beginPath();
-            ctx.moveTo(this.xScale(0), this.yScale(0));
-            ctx.lineTo(this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
-            ctx.stroke();
+        if (showAxes) {
+            for(let i=0;i<this.axes.length;i++) {
+                let xProj = vecDot(this.proj[0], this.axes[i].unit);
+                let yProj = vecDot(this.proj[1], this.axes[i].unit);
+                
+                ctx.beginPath();
+                ctx.moveTo(this.xScale(0), this.yScale(0));
+                ctx.lineTo(this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
+                ctx.stroke();
+            }
         }
-
+        
         // Projection
         matTcrossprodInto(this.xy, this.proj, this.X);
         
@@ -1269,7 +1284,7 @@ export class Langevitour extends EventTarget {
         }
         
         ctx.lineWidth = 1;
-
+        
         // Points
         
         // Default to group colors
@@ -1287,7 +1302,7 @@ export class Langevitour extends EventTarget {
         // If we're mousing over a level, gray the other levels
         if (selectedLevel !== null && levelActive[selectedLevel]) {
             for(let i=0;i<this.n;i++) {
-                if (this.group[i] != selected[0].index)
+                if (this.group[i] != selectedLevel)
                     this.fillsFrame[i] = '#bbbbbb';
             }
         }
@@ -1346,7 +1361,7 @@ export class Langevitour extends EventTarget {
         }
         
         // Brushing indicator
-        if (this.mousing && !this.tugging && brushPoints.length) {
+        if (this.enableControls && this.mousing && !this.tugging && brushPoints.length) {
             ctx.fillStyle = '#0000ff11';
             ctx.beginPath();
             ctx.arc(this.mouseX, this.mouseY, brushRadius, 0, 2 * Math.PI, false);
@@ -1361,43 +1376,44 @@ export class Langevitour extends EventTarget {
         ctx.lineWidth = 5;
                 
         // Axis labels
-        if (showAxes)
-        for(let i=0;i<this.axes.length;i++) {
-            let xProj = vecDot(this.proj[0], this.axes[i].unit);
-            let yProj = vecDot(this.proj[1], this.axes[i].unit);
-            
-            if (this.axes[i].color) {
-                ctx.strokeStyle = '#fff';
-                ctx.fillStyle = this.axes[i].color;
-            } else {
-                let r2 = xProj*xProj+yProj*yProj;
-                let alpha = (i==selectedAxis ? '' : hexByte(r2*2*355));
-                ctx.strokeStyle = '#ffffff'+alpha;
-                ctx.fillStyle = '#000000'+alpha;
-            }
-            
-            if (i === selectedAxis) {
-                let ticks = scaleLinear()
-                    .domain([this.axes[i].center-this.axes[i].scale*axisScale, this.axes[i].center+this.axes[i].scale*axisScale])
-                    .range([-axisScale,axisScale])
-                    .ticks(5);
-                ctx.font = `12px sans-serif`;
-                for(let value of ticks) {
-                    let scaled = (value-this.axes[i].center)/this.axes[i].scale;
-                    ctx.strokeText(`${value}`, this.xScale(scaled*xProj), this.yScale(scaled*yProj));    
-                    ctx.fillText(`${value}`, this.xScale(scaled*xProj), this.yScale(scaled*yProj));    
+        if (showAxes) {
+            for(let i=0;i<this.axes.length;i++) {
+                let xProj = vecDot(this.proj[0], this.axes[i].unit);
+                let yProj = vecDot(this.proj[1], this.axes[i].unit);
+                
+                if (this.axes[i].color) {
+                    ctx.strokeStyle = '#fff';
+                    ctx.fillStyle = this.axes[i].color;
+                } else {
+                    let r2 = xProj*xProj+yProj*yProj;
+                    let alpha = (i==selectedAxis ? '' : hexByte(r2*2*355));
+                    ctx.strokeStyle = '#ffffff'+alpha;
+                    ctx.fillStyle = '#000000'+alpha;
                 }
+                
+                if (i === selectedAxis) {
+                    let ticks = scaleLinear()
+                        .domain([this.axes[i].center-this.axes[i].scale*axisScale, this.axes[i].center+this.axes[i].scale*axisScale])
+                        .range([-axisScale,axisScale])
+                        .ticks(5);
+                    ctx.font = `12px sans-serif`;
+                    for(let value of ticks) {
+                        let scaled = (value-this.axes[i].center)/this.axes[i].scale;
+                        ctx.strokeText(`${value}`, this.xScale(scaled*xProj), this.yScale(scaled*yProj));    
+                        ctx.fillText(`${value}`, this.xScale(scaled*xProj), this.yScale(scaled*yProj));    
+                    }
+                }
+                
+                /*if (selectedAxis != null) {
+                    let similarity = vecDot(this.axes[i].unit, this.axes[selectedAxis].unit)*0.5+0.5;
+                    ctx.fillStyle = interpolateViridis(similarity);
+                    ctx.strokeStyle = '#fff';
+                }*/
+                
+                ctx.font = `15px sans-serif`;
+                ctx.strokeText(this.axes[i].name, this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
+                ctx.fillText(this.axes[i].name, this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
             }
-            
-            /*if (selectedAxis != null) {
-                let similarity = vecDot(this.axes[i].unit, this.axes[selectedAxis].unit)*0.5+0.5;
-                ctx.fillStyle = interpolateViridis(similarity);
-                ctx.strokeStyle = '#fff';
-            }*/
-            
-            ctx.font = `15px sans-serif`;
-            ctx.strokeText(this.axes[i].name, this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
-            ctx.fillText(this.axes[i].name, this.xScale(axisScale*xProj), this.yScale(axisScale*yProj));
         }
         
         // Row label
@@ -1419,36 +1435,43 @@ export class Langevitour extends EventTarget {
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.font = '15px sans-serif';
-        if (!this.mousing)
-        for(let i=0,j=0;i<this.levels.length;i++)
-        if (levelActive[i]) {
-            ctx.fillStyle = this.levelColors[i];
-            ctx.fillText(this.levels[i], this.size+10, 11+j*20);
-            j++;
+        if (!this.enableControls || !this.mousing) {
+            for(let i=0,j=0;i<this.levels.length;i++) {
+                if (!levelActive[i]) continue;
+                ctx.fillStyle = this.levelColors[i];
+                ctx.fillText(this.levels[i], this.size+10, 11+j*20);
+                j++;
+            }
         }
         
         //Hints and messages text
         let hint = '';
         
-        if (this.tugging) {
-            hint = "drag to tug\n";
-        } else if (this.mouseInCheckbox && selected.length) {
-            if (selected[0].active)
-                hint = "click to hide\n";
-            else
-                hint = "click to show\n";
-        } else if (selectedAxis !== null || selectedLevel !== null) {
-            hint = "drag to position\n";
-        } else if (brushPoints.length && !this.mouseDown) {
-            if (this.selection)
-                hint = "shift+click to enlarge\n";
-            else
-                hint = "click to select\nctrl+drag to tug\n";
-        } else if (this.selection && this.mousing && !brushPoints.length && !this.mouseDown) {
-            hint = "click to clear\n";
+        if (this.enableControls && this.mousing) {
+            if (this.computeMessage) {
+                hint = this.computeMessage;
+            } else if (this.tugging) {
+                hint = "drag to tug\n";
+            } else if (this.mouseInCheckbox && (selectedAxis !== null || selectedLevel !== null)) {
+                if (selectedActive)
+                    hint = "click to hide\n";
+                else
+                    hint = "click to show\n";
+            } else if (selectedAxis !== null || selectedLevel !== null) {
+                hint = "drag to position\n";
+            } else if (brushPoints.length && !this.mouseDown) {
+                if (this.selection)
+                    hint = "shift+click to enlarge\n";
+                else
+                    hint = "click to select\nctrl+drag to tug\n";
+            } else if (this.selection && this.mousing && !brushPoints.length && !this.mouseDown) {
+                hint = "click to clear\n";
+            }
+            
+            hint = `${hint}${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`
         }
         
-        this.get('messageArea').innerText = `${this.computeMessage || hint}${Math.min(...this.fps)} to ${Math.max(...this.fps)} FPS`;
+        this.get('messageArea').innerText = hint;
         
         
         // Schedule another frame if needed

@@ -1,4 +1,9 @@
 
+# langevitour 0.8
+
+* Option to disable controls.
+* In R interface, link_filter argument renamed to linkFilter because what was I even thinking?
+
 # langevitour 0.7
 
 * Refine full-screen and sizing logic.

@@ -61,7 +61,7 @@ langevitourWidget <- langevitour(
     completePenguins[,3:6], 
     completePenguins$species, 
     link=shared,                   #<--- the important bit
-    link_filter=FALSE,
+    linkFilter=FALSE,
     levelColors=colors, 
     scale=scale, 
     pointSize=2,
@@ -137,7 +137,7 @@ browsable(div(
     filter2a, filter2b, plotWidget2, langevitourWidget2))
 ```
 
-If you don't want to link filters, use `link_filter=FALSE`. In the example below, only the selection is linked to the previous example.
+If you don't want to link filters, use `linkFilter=FALSE`. In the example below, only the selection is linked to the previous example.
 
 ```{r}
 # Create a langevitour widget that listens for selections only
@@ -145,7 +145,7 @@ langevitour(
     completePenguins[,3:6], 
     completePenguins$species, 
     link=shared2, 
-    link_filter=FALSE,
+    linkFilter=FALSE,
     levelColors=colors, 
     scale=scale, 
     pointSize=2,

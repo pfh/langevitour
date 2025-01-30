@@ -24,7 +24,8 @@ langevitour(
   height = NULL,
   elementId = NULL,
   link = NULL,
-  link_filter = TRUE
+  linkFilter = TRUE,
+  enableControls = TRUE
 )
 }
 \arguments{
@@ -36,7 +37,7 @@ langevitour(
 
 \item{center}{Center for each variable. If omitted, the column means will be used.}
 
-\item{scale}{Scale for each variable. Scale +/- center will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen, equal for all variables. (The default is the largest singular value of the centered X times 2.5.)}
+\item{scale}{Scale for each variable (or a single value to apply to all variables). center +/- scale will be the range of guaranteed visible data. If omitted, a reasonable default will be chosen, equal for all variables. (The default is the largest singular value of the centered X times 2.5.)}
 
 \item{extraAxes}{A matrix with each column defining a projection of interest. The columns of \code{X \%*\% extraAxes} will be presented as extra "variables".}
 
@@ -66,7 +67,9 @@ langevitour(
 
 \item{link}{A SharedData object from the crosstalk package to share selections and filters with other htmlwidgets. The data in this object is not used, just the keys and group name. The rows of \code{link$origData()} should correspond to the rows of X.}
 
-\item{link_filter}{TRUE or FALSE. If using crosstalk, should hiding groups in langevitour also cause them to be filtered in linked widgets?}
+\item{linkFilter}{TRUE or FALSE. If using crosstalk, should hiding groups in langevitour also cause them to be filtered in linked widgets?}
+
+\item{enableControls}{TRUE or FALSE. If FALSE, all controls and interaction are disabled.}
 }
 \value{
 An htmlwidget object.
@@ -100,5 +103,14 @@ langevitour(
     completePenguins$species, 
     scale=scale, pointSize=2,
     state='{"guideType":"pca","labelInactive":["bill_length_mm"]}')
+
+
+# An example with controls and interaction disabled
+
+langevitour(
+    completePenguins[,-1], 
+    completePenguins$species, 
+    scale=scale, pointSize=2,
+    enableControls=FALSE)
 
 }

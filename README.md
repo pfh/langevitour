@@ -34,21 +34,33 @@ Further material:
 
 ## R installation
 
-```
-# Released version
+Release version:
+
+```r
 install.packages("langevitour")
 ```
 
-```
-# Development version
+Development version:
+
+```r
 remotes::install_github("pfh/langevitour")
+```
+
+To build the documentation site:
+
+```r
+install.packages(c("devtools", "pkgdown", "BiocManager"))
+devtools::install_dev_deps()
+BiocManager::install(c("airway", "org.Hs.eg.db"))
+
+pkgdown::build_site()
 ```
 
 ## R usage
 
 Example:
 
-```
+```r
 library(langevitour)
 
 data(zeiselPC)
@@ -70,7 +82,7 @@ The minified and bundled version can be found in `inst/htmlwidgets/lib/langevito
 
 If using [node](https://nodejs.org/) and `npm` for development, langevitour can be added with:
 
-```
+```bash
 npm install langevitour
 ```
 
@@ -106,7 +118,7 @@ import { Langevitour } from "https://cdn.skypack.dev/langevitour";
 
 langevitour is written in TypeScript, which is compiled to JavaScipt, and then Webpack is used to produce a minified and bundled version. To make changes to the JavaScript side of langevitour, you will need to install [node](https://nodejs.org/), which includes the `npm` package manager. `npm` can then install the necessary build tools and dependencies. Build scripts are defined in `package.json` and used as below.
 
-```
+```bash
 git clone https://github.com/pfh/langevitour.git
 cd langevitour
 
@@ -132,7 +144,8 @@ For example, to define a new guide you would:
 
 <br>
 
-## Python installation 
+## Python installation
+
 ```bash
 pip install langevitour
 ```

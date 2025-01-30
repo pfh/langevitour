@@ -23,6 +23,7 @@ body {
 <!-- Check we can set and clear value. -->
 <div style="margin: 20px;">
     <p><button onclick="tour.renderValue(val)">tour.renderValue(val)</button></p>
+    <p><button onclick="tour.renderValue({...val, enableControls: false})">tour.renderValue({...val, enableControls: false})</button></p>
     <p><button onclick="tour.renderValue(null)">tour.renderValue(null)</button></p>
 </div>
 

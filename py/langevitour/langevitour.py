@@ -36,7 +36,8 @@ class Langevitour:
         width (int, optional): Width of widget in pixels. Defaults to 700.
         height (int, optional): Height of widget in pixels. Defaults to 600.
         element_id (str, optional): A unique ID for the widget element. Defaults to None.
-
+        enable_controls (bool, optional): If False, all controls and interaction is disabled.
+    
     Note:
         In JavaScript, the Langevitour object can be accessed using `document.getElementById(elementId).langevitour`.
         A button could, for example, set the widget state with `document.getElementById(elementId).langevitour.setState(desiredState)`.
@@ -65,6 +66,7 @@ class Langevitour:
         width=700,
         height=600,
         element_id=None,
+        enable_controls=True
     ):
         if hasattr(data, "columns") and column_names is None:
             column_names = list(data.columns)
@@ -157,6 +159,7 @@ class Langevitour:
         self.width = width
         self.height = height
         self.element_id = element_id
+        self.enable_controls = enable_controls
 
     def _get_js_content(self):
         """
@@ -203,6 +206,7 @@ class Langevitour:
             "width": self.width,
             "height": self.height,
             "elementId": self.element_id,
+            "enableControls": self.enable_controls,
         }
 
         # Convert the dictionary to a JSON string and return
