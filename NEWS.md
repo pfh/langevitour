@@ -1,5 +1,5 @@
 
-# langevitour 0.8
+# langevitour 0.8.0
 
 * Option to disable controls.
 * In R interface, link_filter argument renamed to linkFilter because what was I even thinking?
