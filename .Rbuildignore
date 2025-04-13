@@ -1,6 +1,7 @@
 ^LICENSE\.md$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.npmignore$
 ^package\.json$
 ^package-lock\.json$
 ^webpack\.config\.js$
