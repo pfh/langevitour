@@ -56,6 +56,7 @@ dependencies = [
   "pytest",
   "jupyter",
   "pandas",
+  "nbconvert",
 ]
 
 [tool.hatch.envs.default.scripts]

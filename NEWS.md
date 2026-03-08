@@ -1,4 +1,8 @@
 
+# langevitour 0.8.2
+
+* In Python, de-indent generated HTML so jupyter nbconvert via markdown to HTML works.
+
 # langevitour 0.8.1
 
 * Rename src to ts, so "R CMD build ." doesn't add "NeedsCompilation: yes" to the DESCRIPTION.
