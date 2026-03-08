@@ -224,20 +224,20 @@ class Langevitour:
         js_content = self._get_js_content()
 
         html = f"""
-        <div id="{unique_id}"></div>
-        <script>
-            if ('el_{unique_id}' in window) {{
-                // ensure that the previous instance is cleaned up
-                delete window.el_{unique_id};
-                delete window.tour_{unique_id};
-            }}
+<div id="{unique_id}"></div>
+<script>
+    if ('el_{unique_id}' in window) {{
+        // ensure that the previous instance is cleaned up
+        delete window.el_{unique_id};
+        delete window.tour_{unique_id};
+    }}
 
-            {js_content}
+    {js_content}
 
-            var el_{unique_id} = document.getElementById("{unique_id}");
-            var tour_{unique_id} = new langevitour.Langevitour(el_{unique_id}, {self.width}, {self.height});
-            tour_{unique_id}.renderValue({data_json});
-        </script>
+    var el_{unique_id} = document.getElementById("{unique_id}");
+    var tour_{unique_id} = new langevitour.Langevitour(el_{unique_id}, {self.width}, {self.height});
+    tour_{unique_id}.renderValue({data_json});
+</script>
         """
         return html
 
